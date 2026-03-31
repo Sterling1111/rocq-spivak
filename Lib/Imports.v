@@ -33,6 +33,7 @@ From Stdlib Require Export
   Permutation
   Utf8
   Classes.Morphisms
+  Classes.RelationClasses
 
   (* Sets and Lists *)
   Sets.Ensembles

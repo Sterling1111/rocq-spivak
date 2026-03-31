@@ -565,3 +565,57 @@ Lemma Rpower_compat : forall a, 0 < a -> Exponential.Rpower a = Rpower.Rpower a.
 Proof.
   intros. extensionality x. apply Rpower_compat_pt; auto.
 Qed.
+
+Lemma sinh_compat_pt : forall x, Exponential.sinh x = Rtrigo_def.sinh x.
+Proof.
+  intros x. unfold sinh, Rtrigo_def.sinh.
+  repeat rewrite exp_compat_pt. reflexivity.
+Qed.
+
+Lemma cosh_compat_pt : forall x, Exponential.cosh x = Rtrigo_def.cosh x.
+Proof.
+  intros x. unfold cosh, Rtrigo_def.cosh.
+  repeat rewrite exp_compat_pt. reflexivity.
+Qed.
+
+Lemma tanh_compat_pt : forall x, Exponential.tanh x = Rtrigo_def.tanh x.
+Proof.
+  intros x. unfold tanh, Rtrigo_def.tanh.
+  rewrite sinh_compat_pt, cosh_compat_pt.
+  reflexivity.
+Qed.
+
+Lemma sinh_compat : sinh = Rtrigo_def.sinh.
+Proof. extensionality x. apply sinh_compat_pt. Qed.
+
+Lemma cosh_compat : cosh = Rtrigo_def.cosh.
+Proof. extensionality x. apply cosh_compat_pt. Qed.
+
+Lemma tanh_compat : tanh = Rtrigo_def.tanh.
+Proof. extensionality x. apply tanh_compat_pt. Qed.
+
+Lemma continuous_on_closed_compat : forall f a b,
+  a < b ->
+  (forall x, a <= x <= b -> continuity_pt f x) ->
+  continuous_on f [a, b].
+Proof.
+  intros f a b H1 H2.
+  apply continuous_on_closed_interval_iff; auto. split; [|split].
+  - intros x H3. apply continuous_compat. apply H2. solve_R.
+  - apply continuous_at_imp_right_continuous. apply continuous_compat. apply H2. lra.
+  - apply continuous_at_imp_left_continuous. apply continuous_compat. apply H2. lra.
+Qed.
+
+Lemma continuous_on_open_compat : forall f a b,
+  continuous_on f (a, b) <-> (forall x, a < x < b -> continuity_pt f x).
+Proof.
+  split; intros H1.
+  - intros x H2. apply continuous_compat. unfold continuous_at.
+    unfold continuous_on, limit_on in H1.
+    specialize (H1 x ltac:(solve_R)).
+    intros ε H3. specialize (H1 ε H3) as [δ [H4 H5]].
+    exists (Rmin δ (Rmin (b - x) (x - a))); split; [solve_R |].
+    intros x2 H6. apply H5. solve_R. solve_R.
+  - apply continuous_at_imp_continuous_on.
+    intros x H2. apply continuous_compat. apply H1. solve_R.
+Qed.

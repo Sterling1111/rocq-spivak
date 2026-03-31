@@ -1,4 +1,4 @@
-From Lib Require Import Imports Sets.
+From Lib Require Import Imports Sets Taylor Trigonometry.
 Require Export ATTAM.Chapter9.
 
 Import SetNotations.
@@ -11,14 +11,12 @@ Open Scope set_scope.
 Lemma lemma_10_1_a : 3 ∈ ⦃ 1, 2, 3, 4, 5, 6, 7 ⦄.
 Proof. autoset. Qed.
 
-Axiom PI_int_bound : 3 < PI < 4.
-
-Lemma lemma_10_1_b : PI ∉ ⦃ 1, 2, 3, 4, 5, 6, 7 ⦄.
+Lemma lemma_10_1_b : π ∉ ⦃ 1, 2, 3, 4, 5, 6, 7 ⦄.
 Proof.
-  pose proof PI_int_bound as H1. autoset.
+  pose proof π_bounds as H1. autoset.
 Qed.
 
-Lemma lemma_10_1_c : PI ∈ Full_set R.
+Lemma lemma_10_1_c : π ∈ Full_set R.
 Proof.
   apply Full_intro.
 Qed.

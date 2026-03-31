@@ -1351,3 +1351,7 @@ Proof.
   rewrite ln_eq_log.
   apply log_exp.
 Qed.
+
+Definition sinh (x : R) : R := (exp x - exp (- x)) / 2.
+Definition cosh (x : R) : R := (exp x + exp (- x)) / 2.
+Definition tanh (x : R) : R := sinh x / cosh x.
