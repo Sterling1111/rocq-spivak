@@ -1,5 +1,8 @@
 Set Warnings "-all".
 
+Declare Scope bigQ_scope.
+
+From Interval Require Export Tactic.
 From Stdlib Require Export 
   (* Real numbers *)
   Reals 
@@ -32,8 +35,6 @@ From Stdlib Require Export
   Sorting
   Permutation
   Utf8
-  Classes.Morphisms
-  Classes.RelationClasses
 
   (* Sets and Lists *)
   Sets.Ensembles
