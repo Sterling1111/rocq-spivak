@@ -40,7 +40,7 @@ Proof.
        }
        apply IZR_divides in H15. replace (nth (S (length t)) (h :: t) 1)%Z with 1%Z in H15. 2 : { simpl. rewrite nth_overflow; lia. } rewrite Z.mul_1_l in H15.
        replace (q' ^ Z.of_nat (S (length t) - S (length t)))%Z with 1%Z in H15. 2 : { replace (S (length t) - S (length t))%nat with 0%nat by lia. lia. }
-       rewrite Z.mul_1_r in H15.  apply prime_div_pow_div_Z in H15. 2 : { apply Znt.prime_alt; auto. } assert (H16 : (a | q')%Z). { exists b. lia. }
+       rewrite Z.mul_1_r in H15.  apply prime_div_pow_div_Z in H15. 2 : { auto. } assert (H16 : (a | q')%Z). { exists b. lia. }
        assert (H17 : (a > 1)%Z) by (destruct H12; lia). specialize (H7 a H17); tauto.
 Qed.
 

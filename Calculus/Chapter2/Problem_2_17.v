@@ -9,10 +9,10 @@ Proof.
   intros z. assert (z <= 1 \/ z > 1) as [H1 | H1]; try lia.
   apply strong_induction_Z with (n := z); try lia.
   intros n IH H2. assert (n = 2 \/ n > 2) as [H3 | H3] by lia.
-  - exists [2]. split; simpl; auto. right; auto. apply Znt.prime_2.
-  - destruct (Znt.prime_dec n) as [H4 | H4].
+  - exists [2]. split; simpl; auto. right; auto. apply Z.prime_2.
+  - destruct (Z_prime_dec n) as [H4 | H4].
     + exists [n]. split; simpl; try lia; constructor; auto.
-    + rewrite <- Znt.prime_alt in H4. unfold Znt.prime' in H4. apply not_and_or in H4 as [H4 | H4]; try lia.
+    + unfold Z.prime in H4. apply not_and_or in H4 as [H4 | H4]; try lia.
       apply not_all_ex_not in H4 as [p H4]. apply imply_to_and in H4 as [H4 H5].
       apply NNPP in H5. destruct H5 as [k H5]. assert (p > 1 /\ 0 <= p < n) as [H7 H8] by lia.
       assert (k > 1 /\ 0 <= k < n) as [H9 H10] by nia.
@@ -173,13 +173,13 @@ Proof.
 Qed.
 
 Lemma lemma_2_17_d : forall (l : list Z),
-  first_n_primes l -> exists p : Z, Znt.prime p /\ p > max_list_Z l.
+  first_n_primes l -> exists p : Z, Z.prime p /\ p > max_list_Z l.
 Proof.
   intros l [H1 [H2 H3]]. set (N := fold_right Z.mul 1 l + 1).
   assert (N > 1) as H4 by (destruct l; apply prime_list_product_gt_1 in H2; lia).
   destruct (prime_divides N H4) as [q H5]. exists q. split.
-  - apply Znt.prime_alt. apply H5.
-  - destruct H5 as [H5 H6]. apply Znt.prime_alt in H5. destruct (in_dec Z.eq_dec q l) as [H7 | H7].
+  - apply H5.
+  - destruct H5 as [H5 H6]. destruct (in_dec Z.eq_dec q l) as [H7 | H7].
     -- assert ((q | fold_right Z.mul 1 l)) as H8 by (apply fold_right_factor_divides; auto).
        unfold N in H6. pose proof (prime_no_div q (fold_right Z.mul 1 l) H5 H8 H6) as H9. lia.
     -- specialize (H3 q). tauto.
