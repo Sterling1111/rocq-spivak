@@ -3,7 +3,7 @@
 -R ATTAM ATTAM
 
 -arg -quiet
--arg -w -arg "-uniform-inheritance,-ambiguous-paths"
+-arg -w -arg "-uniform-inheritance,-ambiguous-paths,-deprecated-dirpath-Coq"
 
 # =========
 # Lib (API)
@@ -44,7 +44,8 @@ Lib/Vector.v
 Lib/Matrix.v
 Lib/Asymptotics.v
 Lib/PolySimp.v
-Lib/Compat.v
+Lib/StdlibCompat.v
+Lib/MathCompCompat.v
 Lib/ComplexLimit.v
 Lib/ComplexContinuity.v
 Lib/ComplexDerivative.v

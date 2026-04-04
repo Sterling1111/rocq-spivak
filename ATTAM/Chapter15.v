@@ -31,7 +31,7 @@ Proof.
   intros n. strong_induction n. intros H1. destruct (Nat.Even_or_Odd n) as [[k H2] | H2].
   - assert (k < n) as H3 by lia. assert (k > 0) as H4 by lia. specialize (IH k H3 H4) as [e [m [H5 H6]]].
     exists (S e), m. simpl. split; auto; lia.
-  - exists 0, n; split; auto; lia.
+  - exists 0, n; split; auto; simpl; lia.
 Qed.
 
 Lemma lemma_15_5_a : forall n,

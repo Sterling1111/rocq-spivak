@@ -2028,6 +2028,34 @@ Proof.
   intros n. destruct (H2 n) as [fn [H3 H4]]. exists fn. apply H3.
 Qed.
 
+Lemma inf_differentiable_sin : inf_differentiable sin.
+Proof.
+  assert (H1 : forall f, 
+    f = cos \/ f = sin \/ f = (fun x => -cos x) \/ f = (fun x => -sin x) ->
+    exists f', derivative f f' /\ (f' = cos \/ f' = sin \/ f' = (fun x => -cos x) \/ f' = (fun x => -sin x))).
+  {
+    intros f [H2 | [H2 | [H2 | H2]]]; subst.
+    - exists (- sin)%function. split; [apply derivative_cos | right; right; right; reflexivity].
+    - exists cos. split; [apply derivative_sin | left; reflexivity].
+    - exists sin. split.
+      + replace sin with (fun x => - (- sin x)) by (extensionality x; lra). 
+        apply derivative_neg. apply derivative_cos.
+      + right; left; reflexivity.
+    - exists (- cos)%function. split; [apply derivative_neg; apply derivative_sin | right; right; left; reflexivity].
+  }
+  assert (H2 : forall n, exists fn, nth_derivative n sin fn /\ (fn = cos \/ fn = sin \/ fn = (fun x => -cos x) \/ fn = (fun x => -sin x))).
+  {
+    induction n as [| n H3].
+    - exists sin. split; [simpl; reflexivity | right; left; reflexivity].
+    - destruct H3 as [fk [H4 H5]].
+      apply H1 in H5 as [fk' [H6 H7]].
+      exists fk'. split; auto.
+      simpl.
+      exists fk. split; auto.
+  }
+  intros n. destruct (H2 n) as [fn [H3 H4]]. exists fn. apply H3.
+Qed.
+
 Lemma nth_derivative_cos_0 : ⟦ der^0 ⟧ cos = cos.
 Proof.
   reflexivity.
@@ -3257,4 +3285,370 @@ Proof.
   intros x. apply differentiable_at_imp_continuous_at.
   apply derivative_at_imp_differentiable_at with (f' := fun x => 1 / (1 + x ^ 2)).
   pose proof derivative_arctan as H. unfold derivative in H. apply H.
+Qed.
+
+Lemma product_to_sum_sin_cos : forall x y, sin x * cos y = (sin (x + y) + sin (x - y)) / 2.
+Proof.
+  intros x y.
+  rewrite sin_plus, sin_minus.
+  lra.
+Qed.
+
+Lemma product_to_sum_cos_cos : forall x y, cos x * cos y = (cos (x + y) + cos (x - y)) / 2.
+Proof.
+  intros x y.
+  rewrite cos_plus, cos_minus.
+  lra.
+Qed.
+
+Lemma product_to_sum_sin_sin : forall x y, sin x * sin y = (cos (x - y) - cos (x + y)) / 2.
+Proof.
+  intros x y.
+  rewrite cos_plus, cos_minus.
+  lra.
+Qed.
+
+Lemma sum_to_product_sin_plus : forall x y, sin x + sin y = 2 * sin ((x + y) / 2) * cos ((x - y) / 2).
+Proof.
+  intros x y.
+  replace (sin x) with (sin ((x + y) / 2 + (x - y) / 2)) by (f_equal; lra).
+  replace (sin y) with (sin ((x + y) / 2 - (x - y) / 2)) by (f_equal; lra).
+  rewrite sin_plus, sin_minus.
+  lra.
+Qed.
+
+Lemma sum_to_product_sin_minus : forall x y, sin x - sin y = 2 * sin ((x - y) / 2) * cos ((x + y) / 2).
+Proof.
+  intros x y.
+  replace (sin x) with (sin ((x + y) / 2 + (x - y) / 2)) by (f_equal; lra).
+  replace (sin y) with (sin ((x + y) / 2 - (x - y) / 2)) by (f_equal; lra).
+  rewrite sin_plus, sin_minus.
+  lra.
+Qed.
+
+Lemma sum_to_product_cos_plus : forall x y, cos x + cos y = 2 * cos ((x + y) / 2) * cos ((x - y) / 2).
+Proof.
+  intros x y.
+  replace (cos x) with (cos ((x + y) / 2 + (x - y) / 2)) by (f_equal; lra).
+  replace (cos y) with (cos ((x + y) / 2 - (x - y) / 2)) by (f_equal; lra).
+  rewrite cos_plus, cos_minus.
+  lra.
+Qed.
+
+Lemma sum_to_product_cos_minus : forall x y, cos x - cos y = -2 * sin ((x + y) / 2) * sin ((x - y) / 2).
+Proof.
+  intros x y.
+  replace (cos x) with (cos ((x + y) / 2 + (x - y) / 2)) by (f_equal; lra).
+  replace (cos y) with (cos ((x + y) / 2 - (x - y) / 2)) by (f_equal; lra).
+  rewrite cos_plus, cos_minus.
+  lra.
+Qed.
+
+Lemma sin_3x : forall x, sin (3 * x) = 3 * sin x - 4 * (sin x)^3.
+Proof.
+  intros x.
+  replace (3 * x) with (2 * x + x) by lra.
+  rewrite sin_plus.
+  rewrite sin_2x.
+  rewrite cos_2x_3.
+  pose proof pythagorean_identity x as H1.
+  replace (2 * sin x * cos x * cos x) with (2 * sin x * (cos x)^2) by ring.
+  assert (H2 : (cos x)^2 = 1 - (sin x)^2) by lra.
+  rewrite H2.
+  lra.
+Qed.
+
+Lemma cos_3x : forall x, cos (3 * x) = 4 * (cos x)^3 - 3 * cos x.
+Proof.
+  intros x.
+  replace (3 * x) with (2 * x + x) by lra.
+  rewrite cos_plus.
+  rewrite cos_2x_2.
+  rewrite sin_2x.
+  pose proof pythagorean_identity x as H1.
+  replace (2 * sin x * cos x * sin x) with (2 * cos x * (sin x)^2) by ring.
+  assert (H2 : (sin x)^2 = 1 - (cos x)^2) by lra.
+  rewrite H2.
+  lra.
+Qed.
+
+Lemma tan_3x : forall x, cos x <> 0 -> cos (3 * x) <> 0 -> 1 - 3 * (tan x)^2 <> 0 -> tan (3 * x) = (3 * tan x - (tan x)^3) / (1 - 3 * (tan x)^2).
+Proof.
+  intros x H1 H2 H3.
+  unfold tan in *.
+  rewrite sin_3x.
+  rewrite cos_3x in *.
+  pose proof pythagorean_identity x as H4.
+  assert (H5 : cos x ^ 3 - 3 * sin x ^ 2 * cos x = 4 * cos x ^ 3 - 3 * cos x) by nra.
+  assert (sin x ^ 2 = 1 - cos x ^ 2) as H6 by lra.
+  replace (3 * sin x - 4 * sin x ^ 3) with (3 * sin x * cos x ^ 2 - sin x ^ 3).
+  2: { replace (sin x ^ 3) with (sin x * sin x ^ 2) by ring. rewrite H6. ring. }
+  rewrite <- H5.
+  assert (cos x ^ 3 - 3 * sin x ^ 2 * cos x <> 0) as H7.
+  { rewrite H5. exact H2. }
+  field. repeat split; auto.
+  intro H8. apply H3.
+  replace (1 - 3 * (sin x / cos x) ^ 2) with ((cos x ^ 2 - 3 * sin x ^ 2) / cos x ^ 2).
+  - rewrite H8. unfold Rdiv. ring.
+  - field. exact H1.
+Qed.
+
+Lemma sin_half_tan : forall x, cos (x / 2) <> 0 -> sin x = 2 * tan (x / 2) / (1 + (tan (x / 2))^2).
+Proof.
+  intros x H1.
+  unfold tan.
+  replace x with (2 * (x / 2)) at 1 by lra.
+  rewrite sin_2x.
+  pose proof pythagorean_identity (x / 2) as H2.
+  replace (2 * sin (x / 2) * cos (x / 2)) with ((2 * sin (x / 2) * cos (x / 2)) / ((sin (x / 2))^2 + (cos (x / 2))^2)).
+  2: { rewrite H2. unfold Rdiv. rewrite Rinv_1. ring. }
+  field. split; auto.
+  nra.
+Qed.
+
+Lemma cos_half_tan : forall x, cos (x / 2) <> 0 -> cos x = (1 - (tan (x / 2))^2) / (1 + (tan (x / 2))^2).
+Proof.
+  intros x H1.
+  unfold tan.
+  replace x with (2 * (x / 2)) at 1 by lra.
+  rewrite cos_2x_1.
+  pose proof pythagorean_identity (x / 2) as H2.
+  replace ((cos (x / 2))^2 - (sin (x / 2))^2) with (((cos (x / 2))^2 - (sin (x / 2))^2) / ((sin (x / 2))^2 + (cos (x / 2))^2)).
+  2: { rewrite H2. unfold Rdiv. rewrite Rinv_1. ring. }
+  field. split; auto.
+  nra.
+Qed.
+
+Lemma tan_half_tan : forall x, cos x <> 0 -> cos (x / 2) <> 0 -> 1 - (tan (x / 2))^2 <> 0 -> tan x = 2 * tan (x / 2) / (1 - (tan (x / 2))^2).
+Proof.
+  intros x H1 H2 H3.
+  unfold tan in *.
+  assert (sin x = 2 * sin (x / 2) * cos (x / 2)) as H4.
+  { replace x with (2 * (x / 2)) at 1 by lra. apply sin_2x. }
+  assert (cos x = (cos (x / 2))^2 - (sin (x / 2))^2) as H5.
+  { replace x with (2 * (x / 2)) at 1 by lra. apply cos_2x_1. }
+  rewrite H4. rewrite H5 in *.
+  pose proof pythagorean_identity (x / 2) as H6.
+  replace ((cos (x / 2))^2 - (sin (x / 2))^2) with (((cos (x / 2))^2 - (sin (x / 2))^2) / ((sin (x / 2))^2 + (cos (x / 2))^2)) in *.
+  2: { rewrite H6. unfold Rdiv. rewrite Rinv_1. ring. }
+  replace (2 * sin (x / 2) * cos (x / 2)) with ((2 * sin (x / 2) * cos (x / 2)) / ((sin (x / 2))^2 + (cos (x / 2))^2)).
+  2: { rewrite H6. unfold Rdiv. rewrite Rinv_1. ring. }
+  assert (sin (x / 2) ^ 2 + cos (x / 2) ^ 2 <> 0) as H7 by (rewrite H6; lra).
+  assert (cos (x / 2) ^ 2 - sin (x / 2) ^ 2 <> 0) as H8.
+  { intro H8. apply H1. rewrite H8. unfold Rdiv. rewrite Rmult_0_l. reflexivity. }
+  field. repeat split; auto.
+Qed.
+
+Lemma tan_half_alt : forall x, sin x <> 0 -> cos (x / 2) <> 0 -> tan (x / 2) = (1 - cos x) / sin x.
+Proof.
+  intros x H1 H2.
+  unfold tan.
+  assert (sin x = 2 * sin (x / 2) * cos (x / 2)) as H4.
+  { replace x with (2 * (x / 2)) at 1 by lra. apply sin_2x. }
+  assert (cos x = 1 - 2 * (sin (x / 2))^2) as H5.
+  { replace x with (2 * (x / 2)) at 1 by lra. apply cos_2x_3. }
+  rewrite H4, H5 in *.
+  field. repeat split; auto.
+  intro H6. apply H1. rewrite H6. nra.
+Qed.
+
+Lemma sin_pi_plus : forall x, sin (π + x) = - sin x.
+Proof.
+  intros x.
+  rewrite sin_plus.
+  rewrite sin_π, cos_π.
+  lra.
+Qed.
+
+Lemma cos_pi_plus : forall x, cos (π + x) = - cos x.
+Proof.
+  intros x.
+  rewrite cos_plus.
+  rewrite sin_π, cos_π.
+  lra.
+Qed.
+
+Lemma tan_periodic : forall x, cos x <> 0 -> cos (x + π) <> 0 -> tan (x + π) = tan x.
+Proof.
+  intros x H1 H2.
+  unfold tan.
+  replace (x + π) with (π + x) by lra.
+  rewrite sin_pi_plus, cos_pi_plus.
+  field.
+  repeat split; auto.
+Qed.
+
+Lemma cot_periodic : forall x, sin x <> 0 -> sin (x + π) <> 0 -> cot (x + π) = cot x.
+Proof.
+  intros x H1 H2.
+  rewrite cot_identity; auto.
+  rewrite cot_identity; auto.
+  replace (x + π) with (π + x) by lra.
+  rewrite sin_pi_plus, cos_pi_plus.
+  field.
+  lra.
+Qed.
+
+Lemma sec_periodic : forall x, sec (x + 2 * π) = sec x.
+Proof.
+  intros x.
+  unfold sec.
+  rewrite cos_periodic.
+  reflexivity.
+Qed.
+
+Lemma csc_periodic : forall x, csc (x + 2 * π) = csc x.
+Proof.
+  intros x.
+  unfold csc.
+  rewrite sin_periodic.
+  reflexivity.
+Qed.
+
+Lemma tan_pi_minus : forall x, cos x <> 0 -> cos (π - x) <> 0 -> tan (π - x) = - tan x.
+Proof.
+  intros x H1 H2.
+  unfold tan.
+  rewrite sin_minus, cos_minus.
+  rewrite sin_π, cos_π.
+  field.
+  repeat split; auto.
+Qed.
+
+Lemma derivative_at_tan_alt : forall x, cos x <> 0 -> ⟦ der x ⟧ tan = (fun y => 1 + (tan y)^2).
+Proof.
+  intros x H1.
+  eapply derivative_at_ext_val.
+  - apply derivative_at_tan; auto.
+  - simpl. pose proof tan_sec_identity x H1 as H2. lra.
+Qed.
+
+Lemma derivative_at_sec : forall x, cos x <> 0 -> ⟦ der x ⟧ sec = (fun y => sec y * tan y).
+Proof.
+  intros x H1. unfold sec.
+  eapply derivative_at_ext_val.
+  - apply derivative_at_div; auto.
+    + apply derivative_const.
+    + apply derivative_cos.
+  - simpl. unfold tan. field. auto.
+Qed.
+
+Lemma derivative_at_csc : forall x, sin x <> 0 -> ⟦ der x ⟧ csc = (fun y => - csc y * cot y).
+Proof.
+  intros x H1. unfold csc.
+  eapply derivative_at_ext_val.
+  - apply derivative_at_div; auto.
+    + apply derivative_const.
+    + apply derivative_sin.
+  - simpl. unfold cot, tan.
+    assert (cos x = 0 \/ cos x <> 0) as [H2 | H2] by lra.
+    + rewrite H2. repeat rewrite Rdiv_0_r. lra.
+    + field. split; auto.
+Qed.
+
+Lemma derivative_at_cot : forall x, sin x <> 0 -> ⟦ der x ⟧ cot = (fun y => - (csc y)^2).
+Proof.
+  intros x H1.
+  eapply derivative_at_ext_val.
+  - apply derivative_at_eq with (f1 := fun y => cos y / sin y).
+    + exists 1. split; [lra |]. intros y _. unfold cot, tan.
+      assert (cos y = 0 \/ cos y <> 0) as [H2 | H2] by lra.
+      * rewrite H2. repeat rewrite Rdiv_0_r. lra.
+      * assert (sin y = 0 \/ sin y <> 0) as [H3 | H3] by lra.
+        -- rewrite H3. repeat rewrite Rdiv_0_r. rewrite Rdiv_0_l, Rdiv_0_r. lra.
+        -- field. split; auto.
+    + apply derivative_at_div; auto.
+      * apply derivative_cos.
+      * apply derivative_sin.
+  - simpl. unfold csc. 
+    pose proof pythagorean_identity x as H2.
+    replace (- sin x * sin x - cos x * cos x) with (- (sin x ^ 2 + cos x ^ 2)) by ring.
+    rewrite H2.
+    field; auto.
+Qed.
+
+Lemma limit_sin_x_over_x : ⟦ lim 0 ⟧ (fun x => sin x / x) = 1.
+Proof.
+  pose proof (derivative_at_sin 0) as H1.
+  unfold derivative_at in H1.
+  rewrite cos_0 in H1.
+  eapply limit_eq with (f1 := fun h => (sin (0 + h) - sin 0) / h).
+  - exists 1. split; [lra |].
+    intros h H2. rewrite sin_0. replace (0 + h) with h by lra. rewrite Rminus_0_r. reflexivity.
+  - exact H1.
+Qed.
+
+Lemma limit_1_minus_cos_x_over_x_sq : ⟦ lim 0 ⟧ (fun x => (1 - cos x) / x^2) = 1 / 2.
+Proof.
+  eapply limit_eq with (f1 := fun x => 1/2 * (sin (x / 2) / (x / 2)) ^ 2).
+  - exists 1. split; [lra |].
+    intros x H1.
+    replace (cos x) with (cos (2 * (x / 2))) by (f_equal; lra).
+    rewrite cos_2x_3.
+    set (S := sin (x / 2)).
+    replace (1 - (1 - 2 * S ^ 2)) with (2 * S ^ 2) by ring.
+    field. solve_R.
+  - assert (H1 : ⟦ lim 0 ⟧ (fun x => 1/2 * (sin (x / 2) / (x / 2)) ^ 2) = 1/2 * 1^2).
+    {
+      apply limit_mult.
+      - apply limit_const.
+      - apply limit_pow.
+        apply limit_comp with (b := 0) (g := fun x => x / 2) (f := fun u => sin u / u).
+        + apply limit_eq with (f1 := fun x => x * (1/2)).
+          * exists 1. split; [lra|]. intros x H1. lra.
+          * replace 0 with (0 * (1/2)) at 2 by lra.
+            apply limit_mult; [apply limit_id | apply limit_const].
+        + apply limit_sin_x_over_x.
+        + exists 1. split; [lra|]. intros x H1. solve_R.
+    }
+    replace (1 / 2 * 1 ^ 2) with (1/2) in H1 by lra. auto.
+Qed.
+
+Lemma limit_tan_x_over_x : ⟦ lim 0 ⟧ (fun x => tan x / x) = 1.
+Proof.
+  eapply limit_eq with (f1 := fun x => (sin x / x) * (1 / cos x)).
+  - exists (π / 4). split; [pose proof π_pos; lra |].
+    intros x H1. unfold tan. field.
+    split; [| solve_R].
+    apply Rgt_not_eq.
+    assert (x > 0 \/ x < 0) as [H2 | H2] by solve_R.
+    + apply cos_gt_0_on_open_pi_2. pose proof π_pos as H3. solve_R.
+    + rewrite <- cos_even_odd. apply cos_gt_0_on_open_pi_2. pose proof π_pos as H3. solve_R.
+  - replace 1 with (1 * (1 / 1)) by lra.
+    apply limit_mult.
+    + apply limit_sin_x_over_x.
+    + apply limit_div.
+      * rewrite Rdiv_1_r, Rmult_1_r. apply limit_const.
+      * pose proof (limit_cos 0) as H1. rewrite cos_0 in H1. exact H1.
+      * lra.
+Qed.
+
+Lemma sin_bound_x : forall x, 0 <= x -> sin x <= x.
+Proof.
+  intros x H1.
+  destruct (Req_dec x 0) as [H2 | H2].
+  - subst. rewrite sin_0. lra.
+  - assert (H3 : 0 < x) by lra.
+    assert (H4 : continuous_on sin [0, x]).
+    {
+      apply differentiable_on_imp_continuous_on_closed; auto.
+      apply differentiable_imp_differentiable_on; auto.
+      apply differentiable_sin.
+      apply differentiable_domain_closed; auto.
+    }
+    assert (H5 : differentiable_on sin (0, x)).
+    {
+      apply differentiable_imp_differentiable_on; auto.
+      apply differentiable_sin.
+      apply differentiable_domain_open; auto.
+    }
+    pose proof mean_value_theorem sin 0 x H3 H4 H5 as [c [Hc1 Hc2]].
+    rewrite sin_0 in Hc2.
+    assert (H6 : ⟦ der c ⟧ sin = cos) by apply derivative_sin.
+    pose proof derivative_at_unique sin (λ _ : ℝ, (sin x - 0) / (x - 0)) cos c Hc2 H6 as H7.
+    simpl in H7.
+    pose proof cos_bounds c as H8.
+    repeat rewrite Rminus_0_r in H7.
+    replace (sin x) with (x * (sin x / x)) by (field; lra).
+    nra.
 Qed.

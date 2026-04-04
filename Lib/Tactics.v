@@ -540,7 +540,7 @@ Qed.
 
 Lemma stress_diff_quotient :
   ⟦ der ⟧ (fun x => (arcsin x * ln (x + 1)) / (x^2 + 1)) (-0.5, 0.5) =
-  (fun x => ((1 / sqrt (1 - x^2) * ln (x + 1) + arcsin x * (1 / (x + 1))) * (x^2 + 1) -
+  (fun x => ((1 / √(1 - x^2) * ln (x + 1) + arcsin x * (1 / (x + 1))) * (x^2 + 1) -
   (arcsin x * ln (x + 1)) * (2 * x)) / ((x^2 + 1) ^ 2)).
 Proof.
   auto_diff. 
