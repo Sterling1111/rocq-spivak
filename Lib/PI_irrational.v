@@ -274,12 +274,7 @@ Proof.
       nra.
     }
     assert (H10 : ∫ 0 1 (λ x : ℝ, π ^ 2 * (a ^ n * f n x * sin (π*x))) = H 1 - H 0).
-    {
-      rewrite <- H9.
-      apply FTC2; [ lra | |].
-      - rewrite H9. auto_cont. apply f_n_continuous.
-      - apply derivative_imp_derivative_on; try lra; auto. apply differentiable_domain_closed; lra.
-    }
+    { rewrite <- H9. apply FTC2; [ lra | rewrite H9; auto_cont; apply f_n_continuous | auto_diff]. }
     assert (H11 : H 1 - H 0 = π * (G 1 + G 0)).
     { unfold H. rewrite Rmult_1_r, Rmult_0_r, sin_0, sin_π, cos_0, cos_π. lra. }
 

@@ -2,7 +2,7 @@ Set Warnings "-all".
 
 Declare Scope bigQ_scope.
 
-From Interval Require Export Tactic.
+From Interval Require Export Tactic Plot.
 From Stdlib Require Export 
   (* Real numbers *)
   Reals 

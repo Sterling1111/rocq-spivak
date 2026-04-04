@@ -5,9 +5,6 @@ Import LimitNotations DerivativeNotations SequenceNotations SeriesNotations Inte
 
 Open Scope R_scope.
 
-From Interval Require Import Plot Tactic.
-Open Scope R_scope.
-
 Lemma lim_coquelicot_compat : forall f a L,
   ⟦ lim a ⟧ f = L <-> is_lim f a L.
 Proof.
@@ -80,12 +77,9 @@ Proof.
 Admitted.
 
 Lemma cos_integral_bound :
-  1 / 2 <= ∫ 0 1 cos <= 1.
+  1 / 2 <= ∫ 0 1 Trigonometry.cos <= 1.
 Proof.
   rewrite RInt_coquelicot_compat.
-  - (* Goal 1: 1 / 2 <= RInt cos 0 1 <= 1 *)
-    integral. 
-    
-  - apply theorem_13_3; try lra. apply continuous_imp_continuous_on. auto_cont.
-    (* Add your proof of `continuous_on cos [0, 1]` here *)
-Admitted.
+  - rewrite cos_compat. integral. 
+  - apply theorem_13_3; try lra. auto_cont.
+Qed.
