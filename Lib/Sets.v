@@ -814,6 +814,14 @@ Proof.
   - apply IH; auto. intros z H6. apply H3; right; auto.
 Qed.
 
+Lemma Injective_map_NoDup {A B : Type} (f : A -> B) (l : list A) :
+  (forall x y, f x = f y -> x = y) -> NoDup l -> NoDup (map f l).
+Proof.
+  intros Hf Hdup. induction Hdup; simpl; constructor; auto.
+  intro Hin. apply in_map_iff in Hin. destruct Hin as [z [Heq Hin]].
+  apply Hf in Heq. subst z. contradiction.
+Qed.
+
 Lemma NoDup_list_prod : forall {A B : Type} (l1 : list A) (l2 : list B),
   NoDup l1 -> NoDup l2 -> NoDup (list_prod l1 l2).
 Proof.
@@ -821,7 +829,7 @@ Proof.
   - simpl. constructor.
   - simpl. inversion H1; subst.
     apply NoDup_app_disjoint.
-    + apply FinFun.Injective_map_NoDup; auto. intros x y H5. inversion H5; auto.
+    + apply Injective_map_NoDup; auto. intros x y H5. inversion H5; auto.
     + apply IH; assumption.
     + intros [x y] H5 H6.
       apply in_map_iff in H5. destruct H5 as [z [H5 H7]]. inversion H5; subst.
@@ -836,8 +844,8 @@ Proof.
     + apply in_app_iff. left. apply in_map. auto.
     + apply in_app_iff. right. apply in_map. auto.
   - apply NoDup_app_disjoint.
-    + apply FinFun.Injective_map_NoDup; auto. intros x y H7. injection H7 as H7. auto.
-    + apply FinFun.Injective_map_NoDup; auto. intros x y H7. injection H7 as H7. auto.
+    + apply Injective_map_NoDup; auto. intros x y H7. injection H7 as H7. auto.
+    + apply Injective_map_NoDup; auto. intros x y H7. injection H7 as H7. auto.
     + intros x H7 H8. apply in_map_iff in H7. destruct H7 as [y1 [H9 H10]]. apply in_map_iff in H8. destruct H8 as [y2 [H11 H12]]. rewrite <- H9 in H11. discriminate.
   - intros [x1 | y1] [x2 | y2]; try (right; discriminate).
     + destruct (H3 x1 x2) as [H7 | H7]. left; subst; auto. right; intro H8; injection H8 as H8; auto.
@@ -852,7 +860,7 @@ Proof.
     + left. reflexivity.
   - constructor.
     + intro H4. apply in_map_iff in H4. destruct H4 as [x [H5 H6]]. discriminate.
-    + apply FinFun.Injective_map_NoDup; auto. intros x y H4. injection H4 as H4. auto.
+    + apply Injective_map_NoDup; auto. intros x y H4. injection H4 as H4. auto.
   - intros [x |] [y |]; try (right; discriminate); try (left; reflexivity).
     destruct (H3 x y) as [H4 | H4].
     + left. subst. reflexivity.

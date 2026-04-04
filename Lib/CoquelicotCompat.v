@@ -8,11 +8,6 @@ Open Scope R_scope.
 From Interval Require Import Plot Tactic.
 Open Scope R_scope.
 
-Definition p1 := ltac:(plot (fun x => x^2 * sin (x^2)) (-4) 4).
-Definition p2 := ltac:(plot (fun x => x * sin (x)) (-50) 50).
-Plot p1.
-Plot p2.
-
 Lemma lim_coquelicot_compat : forall f a L,
   ⟦ lim a ⟧ f = L <-> is_lim f a L.
 Proof.
@@ -82,4 +77,15 @@ Proof.
   split; intros H1.
   - admit.
   - admit.
+Admitted.
+
+Lemma cos_integral_bound :
+  1 / 2 <= ∫ 0 1 cos <= 1.
+Proof.
+  rewrite RInt_coquelicot_compat.
+  - (* Goal 1: 1 / 2 <= RInt cos 0 1 <= 1 *)
+    integral. 
+    
+  - apply theorem_13_3; try lra. apply continuous_imp_continuous_on. auto_cont.
+    (* Add your proof of `continuous_on cos [0, 1]` here *)
 Admitted.
