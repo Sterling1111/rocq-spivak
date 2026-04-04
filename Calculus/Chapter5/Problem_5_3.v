@@ -75,11 +75,13 @@ Qed.
 
 Lemma lemma_5_3_v : ⟦ lim 1 ⟧ (λ x, x^4 + 1 / x) = 2.
 Proof.
-Admitted.
+  auto_limit.
+Qed.
 
 Lemma lemma_5_3_vi : ⟦ lim 0 ⟧ (λ x, x / (2 - (sin x)^2)) = 0.
 Proof.
-Admitted.
+  auto_limit; simpl; rewrite Rmult_1_r, sin_0; lra.
+Qed.
 
 Lemma lemma_5_3_vii : ⟦ lim 0 ⟧ (λ x, √(|x|)) = 0.
 Proof.
@@ -87,4 +89,5 @@ Admitted.
 
 Lemma lemma_5_3_viii : ⟦ lim 1 ⟧ (λ x, √x) = 1.
 Proof.
-Admitted.
+  auto_limit. rewrite sqrt_1. reflexivity.
+Qed.
