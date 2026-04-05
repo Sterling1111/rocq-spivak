@@ -46,6 +46,7 @@ Lib/Matrix.v
 Lib/Asymptotics.v
 Lib/PolySimp.v
 Lib/StdlibCompat.v
+Lib/CoquelicotCompat.v
 Lib/MathCompCompat.v
 Lib/ComplexLimit.v
 Lib/ComplexContinuity.v
@@ -116,6 +117,7 @@ Calculus/Chapter14/Prelude.v
 Calculus/Chapter15/Prelude.v
 Calculus/Chapter18/Prelude.v
 Calculus/Chapter19/Prelude.v
+Calculus/Chapter20/Prelude.v
 Calculus/Chapter21/Prelude.v
 Calculus/Chapter22/Prelude.v
 Calculus/Chapter23/Prelude.v
