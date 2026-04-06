@@ -1465,16 +1465,16 @@ Qed.
 Lemma integrable_on_sub_interval : forall f a b c d,
   a <= c <= d <= b -> integrable_on a b f -> integrable_on c d f.
 Proof.
-  intros f a b c d H1. assert (a = b \/ a < b) as [H0 | H0] by lra.
-  intros [H0' | [bf [sup [inf [H2 [H3 [H4 H5]]]]]]]; left; lra.
-  intros [H0' | [bf [sup [inf [H2 [H3 [H4 H5]]]]]]]. left. lra.
-  assert (c = d \/ c < d) as [H6 | H6] by lra. subst. left. auto.
-  assert ((a = c /\ d = b) \/ (a = c /\ d < b) \/ (a < c /\ d = b) \/ (a < c /\ d < b)) as [[H7 H8] | [[H7 H8] | [[H7 H8] | [H7 H8]]]] by lra.
-  - rewrite <- H7, H8. right. exists bf, sup, inf; auto.
-  - rewrite <- H7. apply integrable_on_sub_interval_left with (b := b) (c := d); try lra. right. exists bf, sup, inf; auto.
-  - rewrite H8. apply integrable_on_sub_interval_right with (a := a) (c := c); try lra. right. exists bf, sup, inf; auto.
-  - apply integrable_on_sub_interval_left with (b := b) (c := d); try lra.
-    apply integrable_on_sub_interval_right with (a := a) (c := c); try lra. right. exists bf, sup, inf; auto.
+  intros f a b c d H1 H2.
+  assert (c = d \/ c < d) as [H3 | H3] by lra.
+  - subst. left. reflexivity.
+  - assert (a = c \/ a < c) as [H4 | H4] by lra; assert (d = b \/ d < b) as [H5 | H5] by lra.
+    + subst. exact H2.
+    + subst. apply integrable_on_sub_interval_left with (b := b); try lra; exact H2.
+    + subst. apply integrable_on_sub_interval_right with (a := a); try lra; exact H2.
+    + apply integrable_on_sub_interval_left with (b := b); try lra.
+      apply integrable_on_sub_interval_right with (a := a); try lra.
+      exact H2.
 Qed.
 
 Lemma integral_bound : forall a b bf P,

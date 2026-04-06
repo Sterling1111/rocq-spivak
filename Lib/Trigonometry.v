@@ -3652,3 +3652,47 @@ Proof.
     replace (sin x) with (x * (sin x / x)) by (field; lra).
     nra.
 Qed.
+
+Lemma cos_eq_sqrt_1_minus_sin_sqr : forall y,
+  0 <= cos y -> cos y = √(1 - (sin y)^2).
+Proof.
+  intros y H1.
+  pose proof pythagorean_identity y as H2.
+  assert (H3 : (cos y)^2 = 1 - (sin y)^2) by lra.
+  rewrite <- H3.
+  replace ((cos y)^2) with ((cos y) * (cos y)) by ring.
+  symmetry.
+  apply sqrt_square.
+  exact H1.
+Qed.
+
+Lemma cos_arctan_pos : forall x,
+  0 < cos (arctan x).
+Proof.
+  intros.
+  pose proof arctan_spec as [_ [Hrange _]].
+  assert (H_in : arctan x ∈ (-(π/2), π/2)) by (apply Hrange; apply Full_intro).
+  destruct H_in as [Hlt1 Hlt2].
+  pose proof π_pos as Hpi.
+  assert (arctan x = 0 \/ arctan x > 0 \/ arctan x < 0) as [Hz | [Hz | Hz]] by lra.
+  - rewrite Hz, cos_0. lra.
+  - apply cos_gt_0_on_open_pi_2. lra.
+  - rewrite <- (cos_even_odd (arctan x)). 
+    apply cos_gt_0_on_open_pi_2. lra.
+Qed.
+
+Lemma cos_arctan_nonneg : forall x,
+  0 <= cos (arctan x).
+Proof.
+  intros. 
+  apply Rlt_le. 
+  apply cos_arctan_pos.
+Qed.
+
+Lemma cos_y_nonneg_if_arctan : forall x y,
+  y = arctan x -> 0 <= cos y.
+Proof.
+  intros x y H.
+  rewrite H.
+  apply cos_arctan_nonneg.
+Qed.
