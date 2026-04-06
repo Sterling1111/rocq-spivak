@@ -19,7 +19,7 @@ Proof.
   assert (a < w) as H10 by solve_R.
   assert (continuous_on f [a, w]) as H11.
   { apply continuous_on_subset with (A2 := [a, b]); auto. intros x' y'; solve_R. }
-  destruct (intermediate_value_theorem_decreasing f a w v H10 H11 H9) as [u [H12 H13]].
+  destruct (intermediate_value_theorem_decreasing f a w v H10 H11 ltac:(lra)) as [u [H12 H13]].
   assert (u <> w) as H14 by (intro H14; subst u; lra).
   assert (a <> u) as H15 by (intro H15; subst u; lra).
   assert (a < u /\ u < w) as H16 by solve_R.
@@ -46,7 +46,7 @@ Proof.
   assert (w < b) as H10 by solve_R.
   assert (continuous_on f [w, b]) as H11.
   { apply continuous_on_subset with (A2 := [a, b]); auto. intros x' y'; solve_R. }
-  destruct (intermediate_value_theorem_decreasing f w b v H10 H11 H9) as [u [H12 H13]].
+  destruct (intermediate_value_theorem_decreasing f w b v H10 H11 ltac:(lra)) as [u [H12 H13]].
   assert (u <> w) as H14 by (intro H14; subst u; lra).
   assert (b <> u) as H15 by (intro H15; subst u; lra).
   assert (w < u /\ u < b) as H16 by solve_R.

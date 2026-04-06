@@ -10,7 +10,7 @@ Proof.
     + auto.
     + auto_cont.
     + split.
-      * replace (f 0 - 0) with (f 0) by lra. exact H7.
+      * replace (f 0 - 0) with (f 0) by lra. lra.
       * replace (f (f 0) - f 0) with (0 - f 0). 2: { rewrite H5; auto. apply Full_intro. } lra.
     + exists x. lra.
   - destruct (Req_dec (f 0) 0) as [H8 | H8].

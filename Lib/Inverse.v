@@ -144,7 +144,7 @@ Proof.
       { specialize (H5 a (a + η) ltac:(solve_R) ltac:(unfold η; solve_R) ltac:(unfold η; solve_R)). unfold δ. solve_R. }
       split; auto. intros x H10 H11. assert (H12 : a ∈ [a, b]) by solve_R. rewrite (H4 a H12).
       assert (H13 : f a < f b) by (apply (H5 a b ltac:(solve_R) ltac:(solve_R) H1)).
-      assert (f a < x < f (a + η)) as H14 by (unfold δ in *; solve_R).
+      assert (f a <= x <= f (a + η)) as H14 by (unfold δ in *; solve_R).
       assert (continuous_on f [a, a + η]) as H15.
       { unfold η in *. apply continuous_on_subset with (A2 := [a, b]); auto. intros y z. solve_R. }
       pose proof intermediate_value_theorem f a (a + η) x ltac:(unfold η; solve_R) H15 H14 as [y [H16 H17]].
@@ -154,7 +154,7 @@ Proof.
       { specialize (H5 (b - η) b ltac:(unfold η; solve_R) ltac:(solve_R) ltac:(unfold η; solve_R)). unfold δ. solve_R. }
       split; auto. intros x H10 H11. assert (H12 : b ∈ [a, b]) by solve_R. rewrite (H4 b H12).
       assert (H13 : f a < f b) by (apply (H5 a b ltac:(solve_R) ltac:(solve_R) H1)).
-      assert (f (b - η) < x < f b) as H14 by (unfold δ in *; solve_R).
+      assert (f (b - η) <= x <= f b) as H14 by (unfold δ in *; solve_R).
       assert (continuous_on f [b - η, b]) as H15.
       { unfold η in *. apply continuous_on_subset with (A2 := [a, b]); auto. intros y z. solve_R. }
       pose proof intermediate_value_theorem f (b - η) b x ltac:(unfold η; solve_R) H15 H14 as [y [H16 H17]].
@@ -169,7 +169,7 @@ Proof.
       }
       split; auto. intros x0 H11 H13. rewrite (H4 y H8).
       assert (H14 : f a < f b) by (apply (H5 a b ltac:(solve_R) ltac:(solve_R) H1)).
-      assert (f (y - η) < x0 < f (y + η)) as H15 by (unfold δ in *; solve_R).
+      assert (f (y - η) <= x0 <= f (y + η)) as H15 by (unfold δ in *; solve_R).
       assert (continuous_on f [y - η, y + η]) as H16.
       { unfold η in *. apply continuous_on_subset with (A2 := [a, b]); auto. intros z Hz. solve_R. }
       pose proof intermediate_value_theorem f (y - η) (y + η) x0 ltac:(unfold η; solve_R) H16 H15 as [z [H17 H18]].
@@ -188,7 +188,7 @@ Proof.
       { specialize (H5 a (a + η) ltac:(solve_R) ltac:(unfold η; solve_R) ltac:(unfold η; solve_R)). unfold δ. solve_R. }
       split; auto. intros x H10 H11. assert (H12 : a ∈ [a, b]) by solve_R. rewrite (H4 a H12).
       assert (H13 : f b < f a) by (apply (H5 a b ltac:(solve_R) ltac:(solve_R) H1)).
-      assert (f (a + η) < x < f a) as H14 by (unfold δ in *; solve_R).
+      assert (f (a + η) <= x <= f a) as H14 by (unfold δ in *; solve_R).
       assert (continuous_on f [a, a + η]) as H15.
       { unfold η in *. apply continuous_on_subset with (A2 := [a, b]); auto. intros y z. solve_R. }
       pose proof intermediate_value_theorem_decreasing f a (a + η) x ltac:(unfold η; solve_R) H15 H14 as [y [H16 H17]].
@@ -198,7 +198,7 @@ Proof.
       { specialize (H5 (b - η) b ltac:(unfold η; solve_R) ltac:(solve_R) ltac:(unfold η; solve_R)). unfold δ. solve_R. }
       split; auto. intros x H10 H11. assert (H12 : b ∈ [a, b]) by solve_R. rewrite (H4 b H12).
       assert (H13 : f b < f a) by (apply (H5 a b ltac:(solve_R) ltac:(solve_R) H1)).
-      assert (f b < x < f (b - η)) as H14 by (unfold δ in *; solve_R).
+      assert (f b <= x <= f (b - η)) as H14 by (unfold δ in *; solve_R).
       assert (continuous_on f [b - η, b]) as H15.
       { unfold η in *. apply continuous_on_subset with (A2 := [a, b]); auto. intros y z. solve_R. }
       pose proof intermediate_value_theorem_decreasing f (b - η) b x ltac:(unfold η; solve_R) H15 H14 as [y [H16 H17]].
@@ -213,7 +213,7 @@ Proof.
       }
       split; auto. intros x0 H11 H13. rewrite (H4 y H8).
       assert (H14 : f b < f a) by (apply (H5 a b ltac:(solve_R) ltac:(solve_R) H1)).
-      assert (f (y + η) < x0 < f (y - η)) as H15 by (unfold δ in *; solve_R).
+      assert (f (y + η) <= x0 <= f (y - η)) as H15 by (unfold δ in *; solve_R).
       assert (continuous_on f [y - η, y + η]) as H16.
       { unfold η in *. apply continuous_on_subset with (A2 := [a, b]); auto. intros z Hz. solve_R. }
       pose proof intermediate_value_theorem_decreasing f (y - η) (y + η) x0 ltac:(unfold η; solve_R) H16 H15 as [z [H17 H18]].
@@ -411,7 +411,7 @@ Proof.
       + assert (H18 : f a <= f b).
         { apply increasing_on_imp_non_decreasing_on in H17. apply H17; solve_R. }
         rewrite Rmin_left, Rmax_right in H16; auto.
-        assert (H19 : w = f a \/ w = f b \/ f a < w < f b) by solve_R.
+        assert (H19 : w = f a \/ w = f b \/ f a <= w <= f b) by solve_R.
         destruct H19 as [H19 | [H19 | H19]].
         * rewrite H19. rewrite H14. solve_R. apply Full_intro.
         * rewrite H19. rewrite H14. solve_R. apply Full_intro.
@@ -420,7 +420,7 @@ Proof.
       + assert (H18 : f b <= f a).
         { apply decreasing_on_imp_non_increasing_on in H17. apply Rge_le, H17; solve_R. }
         rewrite Rmin_right, Rmax_left in H16; auto.
-        assert (H19 : w = f b \/ w = f a \/ f b < w < f a) by solve_R.
+        assert (H19 : w = f b \/ w = f a \/ f b <= w <= f a) by solve_R.
         destruct H19 as [H19 | [H19 | H19]].
         * rewrite H19. rewrite H14. solve_R. apply Full_intro.
         * rewrite H19. rewrite H14. solve_R. apply Full_intro.

@@ -941,6 +941,18 @@ Proof.
     specialize (H14 x0 ltac:(solve_R)). specialize (H17 x0). solve_R.
 Qed.
 
+Theorem intermediate_value_theorem_zero_le : forall f a b,
+  a < b -> continuous_on f [a, b] -> f a <= 0 /\ 0 <= f b -> { x | x ∈ [a, b] /\ f x = 0 }.
+Proof.
+  intros f a b H1 H2 [H3 H4].
+  destruct (Req_dec_T (f a) 0) as [Ha | Ha].
+  - exists a. split; [solve_R | auto].
+  - destruct (Req_dec_T (f b) 0) as [Hb | Hb].
+    + exists b. split; [solve_R | auto].
+    + apply intermediate_value_theorem_zero; auto.
+      lra. 
+Qed.
+
 Theorem continuous_at_locally_bounded_above : forall f a,
   continuous_at f a -> ∃ δ c, δ > 0 /\ ∀ x, |x - a| < δ -> f x < c.
 Proof.
@@ -1111,7 +1123,7 @@ Proof.
 Qed.
 
 Theorem intermediate_value_theorem : forall f a b c,
-  a < b -> continuous_on f [a, b] -> f a < c < f b -> { x | x ∈ [a, b] /\ f x = c }.
+  a < b -> continuous_on f [a, b] -> f a <= c <= f b -> { x | x ∈ [a, b] /\ f x = c }.
 Proof.
   intros f a b c H1 H2 H3. (set (g := fun x => f x - c)). assert (H4 : continuous_on g [a, b]).
   {
@@ -1120,11 +1132,11 @@ Proof.
     - apply continuous_on_closed_interval_iff in H2 as [_ [H2 _]]; auto. apply limit_right_minus; auto. apply limit_right_const.
     - apply continuous_on_closed_interval_iff in H2 as [_ [_ H2]]; auto. apply limit_left_minus; auto. apply limit_left_const.
   }
-  apply intermediate_value_theorem_zero in H4 as [x [H4 H5]]; unfold g in *; solve_R. exists x; split; solve_R.
+  apply intermediate_value_theorem_zero_le in H4 as [x [H4 H5]]; unfold g in *; solve_R. exists x; split; solve_R.
 Qed.
 
 Theorem intermediate_value_theorem_decreasing : forall f a b c,
-  a < b -> continuous_on f [a, b] -> f b < c < f a -> { x | x ∈ [a, b] /\ f x = c }.
+  a < b -> continuous_on f [a, b] -> f b <= c <= f a -> { x | x ∈ [a, b] /\ f x = c }.
 Proof.
   intros f a b c H1 H2 H3. pose proof continuous_on_interval_neg f a b H1 H2 as H4.
   pose proof intermediate_value_theorem (fun x => -1 * f x) a b (-c) H1 H4 ltac:(solve_R) as [x [H5 H6]]. exists x; split; solve_R.

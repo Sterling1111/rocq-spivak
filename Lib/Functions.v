@@ -95,3 +95,27 @@ Lemma eq_cardinality_Type : forall A B : Type,
 Proof.
   intros A B [[[f H1] [a [b _]]] | [H1 H2]]; apply eq_cardinality_Full_set; auto. left. split. exists f. auto. exists a, b. auto.
 Qed.
+
+Definition nonnegative_on (f : ℝ -> ℝ) (D : Ensemble ℝ) : Prop :=
+  forall x, x ∈ D -> f x >= 0.
+
+Definition nonnegative (f : ℝ -> ℝ) : Prop :=
+  forall x, f x >= 0.
+
+Definition positive_on (f : ℝ -> ℝ) (D : Ensemble ℝ) : Prop :=
+  forall x, x ∈ D -> f x > 0.
+
+Definition positive (f : ℝ -> ℝ) : Prop :=
+  forall x, f x > 0.
+
+Definition nonpositive_on (f : ℝ -> ℝ) (D : Ensemble ℝ) : Prop :=
+  forall x, x ∈ D -> f x <= 0.
+
+Definition nonpositive (f : ℝ -> ℝ) : Prop :=
+  forall x, f x <= 0.
+
+Definition negative_on (f : ℝ -> ℝ) (D : Ensemble ℝ) : Prop :=
+  forall x, x ∈ D -> f x < 0.
+
+Definition negative (f : ℝ -> ℝ) : Prop :=
+  forall x, f x < 0.

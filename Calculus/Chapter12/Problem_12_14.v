@@ -26,13 +26,13 @@ Proof.
       destruct (Rtotal_order x 0) as [H7 | [H7 | H7]].
       + assert (H8 : 0 < - x + 1) by lra.
         assert (H9 : continuous_on g [0, - x + 1]) by (unfold g; auto_cont).
-        assert (H10 : g (- x + 1) < x < g 0) by (unfold g; nra).
+        assert (H10 : g (- x + 1) <= x <= g 0) by (unfold g; nra).
         pose proof intermediate_value_theorem_decreasing g 0 (- x + 1) x H8 H9 H10 as [y [H11 H12]].
         exists y. split; auto. apply Full_intro.
       + exists 0. split; auto. apply Full_intro. unfold g. rewrite H7. simpl. lra.
       + assert (H8 : - x - 1 < 0) by lra.
         assert (H9 : continuous_on g [- x - 1, 0]) by (unfold g; auto_cont).
-        assert (H10 : g 0 < x < g (- x - 1)) by (unfold g; nra).
+        assert (H10 : g 0 <= x <= g (- x - 1)) by (unfold g; nra).
         pose proof intermediate_value_theorem_decreasing g (- x - 1) 0 x H8 H9 H10 as [y [H11 H12]].
         exists y. split; auto. apply Full_intro.
   }
