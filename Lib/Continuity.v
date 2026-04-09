@@ -19,6 +19,9 @@ Definition uniformly_continuous_on (f : ℝ -> ℝ) (D : Ensemble ℝ) : Prop :=
 Definition continuous (f : ℝ -> ℝ) : Prop :=
   forall a, continuous_at f a.
 
+Definition removably_discontinuous_at (f : ℝ -> ℝ) (a : ℝ) : Prop :=
+  exists L, ⟦ lim a ⟧ f = L /\ L <> f a.
+
 Lemma continuous_on_subset : forall A1 A2 f,
   A1 ⊆ A2 -> continuous_on f A2 -> continuous_on f A1.
 Proof.
@@ -951,6 +954,111 @@ Proof.
     + exists b. split; [solve_R | auto].
     + apply intermediate_value_theorem_zero; auto.
       lra. 
+Qed.
+
+Lemma intermediate_value_theorem_smallest_zero : ∀ f a b,
+  continuous_on f [a, b] ->
+  a < b ->
+  f a < 0 /\ 0 < f b ->
+  ∃ x, x ∈ [a, b] /\ f x = 0 /\ (∀ y, y ∈ [a, b] -> f y = 0 -> x <= y).
+Proof.
+  intros f a b H1 H2 [H3 H4].
+  set (A := (fun x1 => x1 ∈ [a, b] /\ ∀ x2, x2 ∈ [a, x1] -> f x2 < 0)).
+  assert (H5 : forall x, x ∈ A -> forall x2, a <= x2 <= x -> x2 ∈ A).
+  { intros x H5 x2 H6. destruct H5 as [H5 H7]. unfold A. split. solve_R.
+    intros x3 H8. apply H7. split; solve_R. }
+  assert (H6 : a ∈ A).
+  { unfold A. split. solve_R.
+    intros x H6. replace x with a by solve_R. lra. }
+  assert (H7 : A ≠ ∅).
+  { apply not_Empty_In. exists a. auto. }
+  assert (H8 : is_upper_bound A b).
+  { intros x H8. unfold A in *. solve_R. }
+  assert (H9 : has_upper_bound A).
+  { exists b. auto. }
+  destruct (completeness_upper_bound A H9 H7) as [α H10].
+  assert (H11 : α < b).
+  { apply continuous_on_closed_interval_iff in H1 as [_ [_ H1]]; auto.
+    pose proof continuous_at_left_locally_pos f b H1 ltac:(lra) as [δ [H11 H12]].
+    set (x := Rmax a (b - δ/2)).
+    assert (H13 : is_upper_bound A x).
+    { intros x1 H13. unfold A in H13. destruct H13 as [H13 H14].
+      assert (x1 <= x \/ x1 > x) as [H15 | H15] by lra; auto.
+      specialize (H14 x ltac:(split; [ unfold x |]; solve_R)).
+      specialize (H12 x ltac:(unfold x; solve_R)). lra. }
+    assert (H14 : x < b). { unfold x. solve_R. }
+    destruct H10 as [H10 H15]. specialize (H10 a H6). specialize (H15 x H13). lra. }
+  assert (H12 : a < α).
+  { apply continuous_on_closed_interval_iff in H1 as [_ [H1 _]]; auto.
+    pose proof continuous_at_right_locally_neg f a H1 ltac:(lra) as [δ2 [H12 H13]].
+    set (x := Rmin b (a + δ2/2)).
+    assert (H14 : x ∈ A).
+    { unfold A. split. unfold x. solve_R.
+      intros x2 H14. specialize (H13 x2). apply H13. unfold x in H14. solve_R. }
+    assert (H15 : x > a). { unfold x. solve_R. }
+    destruct H10 as [H10 H16]. specialize (H10 x H14). lra. }
+  pose proof total_order_T (f α) 0 as [[H13 | H13] | H13]; [ exfalso | | exfalso].
+  - assert (H14 : continuous_at f α).
+    { apply continuous_on_closed_interval_iff in H1 as [H1 _]; auto. apply H1. solve_R. }
+    pose proof continuous_at_locally_neg f α H14 H13 as [δ [H15 H16]].
+    assert (exists x0, x0 ∈ A /\ α - δ < x0 < α) as [x0 [H17 H18]].
+    { assert (α ∈ A \/ α ∉ A) as [H17 | H17] by apply classic.
+      - exists (Rmax a (α - δ/2)). split.
+        -- apply H5 with (x := α); solve_R.
+        -- solve_R.
+      - pose proof classic (∃ x0 : ℝ, x0 ∈ A ∧ α - δ < x0 < α) as [H18 | H18]; auto.
+        assert (H19 : forall x, α - δ < x < α -> x ∉ A).
+        { intros x H19 H20. destruct H20 as [H20 H21]. apply H18. exists x. split; auto. unfold A. split; solve_R. }
+        assert (H20 : is_upper_bound A (α - δ)).
+        { intros x H20. assert (x <= α - δ \/ x > α - δ) as [H21 | H21] by lra; auto.
+          destruct H10 as [H10 _]. specialize (H10 x H20).
+          assert (x = α \/ x < α) as [H22 | H22] by lra.
+          subst. tauto. specialize (H19 x ltac:(lra)). tauto. }
+        destruct H10 as [_ H10]. specialize (H10 (α - δ) H20). lra. }
+    assert (forall x, x ∈ [a, x0] -> f x < 0) as H19.
+    { intros x H19. unfold A in H17. destruct H17 as [H17 H20]. specialize (H20 x H19). lra. }
+    set (x := Rmin b (α + δ / 2)). assert (H20 : x ∈ A).
+    { unfold A, x; split. solve_R. intros x2 H20.
+      assert (a <= x2 <= x0 \/ x0 < x2 <= Rmin b (α + δ / 2)) as [H21 | H21] by solve_R.
+      - apply H19. auto.
+      - apply H16. solve_R. }
+    assert (x > α) as H21. { unfold x. solve_R. } destruct H10 as [H10 _].
+    specialize (H10 x H20). lra.
+  - exists α. repeat split; try solve [ solve_R ].
+    intros y H14 H15.
+    pose proof classic (α <= y) as [H16 | H16]; auto.
+    apply Rnot_le_lt in H16.
+    destruct H10 as [H17 H18].
+    assert (H19 : ~ is_upper_bound A y).
+    { intros H19. specialize (H18 y H19). lra. }
+    apply not_all_ex_not in H19 as [x0 H19].
+    assert (H20 : x0 ∈ A).
+    { pose proof classic (x0 ∈ A) as [H20 | H20]; auto.
+      exfalso. apply H19. intros H21. exfalso; auto. }
+    assert (H21 : ~ (x0 <= y)).
+    { intros H21. apply H19. intros _. auto. }
+    apply Rnot_le_lt in H21.
+    unfold A in H20. destruct H20 as [H22 H23].
+    specialize (H23 y ltac:(solve_R)). lra.
+  - assert (H14 : continuous_at f α).
+    { apply continuous_on_closed_interval_iff in H1 as [H1 _]; auto. apply H1. solve_R. }
+    pose proof continuous_at_locally_pos f α H14 H13 as [δ [H15 H16]].
+    assert (exists x0, x0 ∈ A /\ α - δ < x0 < α) as [x0 [H17 H18]].
+    { assert (α ∉ A) as H17.
+      { intros H17. unfold A in H17. destruct H17 as [_ H17]. specialize (H17 α ltac:(solve_R)). lra. }
+      pose proof classic (∃ x0 : ℝ, x0 ∈ A ∧ α - δ < x0 < α) as [H18 | H18]; auto.
+      assert (H19 : forall x, α - δ < x < α -> x ∉ A).
+      { intros x H19 H20. destruct H20 as [H20 H21]. apply H18. exists x. split; auto. unfold A. split; solve_R. }
+      assert (H20 : is_upper_bound A (α - δ)).
+      { intros x H20. assert (x <= α - δ \/ x > α - δ) as [H21 | H21] by lra; auto.
+        destruct H10 as [H10 _]. specialize (H10 x H20).
+        assert (x = α \/ x < α) as [H22 | H22] by lra.
+        subst. tauto. specialize (H19 x ltac:(lra)). tauto. }
+      destruct H10 as [_ H10]. specialize (H10 (α - δ) H20). lra. }
+    assert (forall x, x ∈ [a, x0] -> f x < 0) as H19.
+    { intros x H19. unfold A in H17. destruct H17 as [H17 H20]. specialize (H20 x H19). lra. }
+    assert (a <= x0) as H20. { unfold A in H17. destruct H17 as [H17 _]. solve_R. }
+    specialize (H16 x0 ltac:(solve_R)). specialize (H19 x0). solve_R.
 Qed.
 
 Theorem continuous_at_locally_bounded_above : forall f a,

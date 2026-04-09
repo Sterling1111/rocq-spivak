@@ -51,3 +51,5 @@ Export ListNotations.
 
 Open Scope R_scope.
 Open Scope nat_scope.
+
+Global Set Bullet Behavior "Strict Subproofs".

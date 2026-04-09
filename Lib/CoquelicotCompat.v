@@ -63,7 +63,7 @@ Admitted.
 Lemma cos_integral_bound :
   1 / 2 <= ∫ 0 1 Trigonometry.cos <= 1.
 Proof.
-  rewrite RInt_coquelicot_compat.
+  rewrite RInt_coquelicot_compat; try lra.
   - rewrite cos_compat. integral.
-  - lra. apply theorem_13_3; try lra. auto_cont.
+  - apply theorem_13_3; try lra. auto_cont.
 Qed.
