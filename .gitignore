@@ -42,6 +42,9 @@ rocq-mcp/
 
 # Simplex build artifacts
 src/*.cmt
+src/*.cmi
 src/*.cmx
 src/*.cmxa
 src/*.cmxs
+src/*.o
+src/*.a
