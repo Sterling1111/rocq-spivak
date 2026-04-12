@@ -60,11 +60,3 @@ Lemma lemma_18_1_xi : ⟦ der ⟧ (fun x => sin (x^^(sin (x^^(sin x))))) (0, ∞
 Proof.
   auto_diff.
 Qed.
-
-Lemma lemma_18_1_a : forall f f',
-  (forall x, f x > 0) ->
-  ⟦ der ⟧ f = f' ->
-  ⟦ der ⟧ (log ∘ f) = f' / f.
-Proof.
-  auto_diff.
-Qed.

@@ -524,10 +524,33 @@ Ltac auto_limit :=
       ]
   end.
 
+Ltac auto_cont :=
+  intros;
+  try solve [ solve_R ];
+  normalize_math_funs;
+  try (match goal with 
+  | [ |- continuous_on ?f ?I ] => apply continuous_at_imp_continuous_on; let a := fresh "a" in let H := fresh "H" in intros a H 
+  | [ |- continuous ?f ] => let a := fresh "a" in intros a 
+  end);
+  change_fun_to_expr;
+  match goal with
+  | [ |- continuous_at (fun x => eval_expr ?e x) ?a ] =>
+      apply cont_correct;
+      repeat split; try solve [ simpl; try eval_math_constants; try solve_denoms; try lra; solve_R | auto ]
+  end.
+
 Ltac auto_diff :=
   intros;
   try solve [ solve_R ];
   normalize_math_funs;
+  
+  try match goal with 
+  | [ |- ⟦ der ⟧ (fun t => ∫ ?a t ?f) = _ ] => 
+      apply FTC1_global; try auto_cont
+  | [ |- ⟦ der ⟧ (fun t => ∫ t ?b ?f) = _ ] => 
+      apply FTC1'_global; try auto_cont
+  end;
+
   try (match goal with 
        | [ |- ⟦ der ⟧ _ ?D = _ ] => 
            apply derivative_at_imp_derivative_on; 
@@ -535,9 +558,10 @@ Ltac auto_diff :=
              try apply differentiable_domain_closed; 
              try apply differentiable_domain_gt; 
              try apply differentiable_domain_lt; 
-             try solve [ simpl; try eval_math_constants; try solve_denoms; try lra; solve_R ] (* <-- Full chain injected here *)
+             try solve [ simpl; try eval_math_constants; try solve_denoms; try lra; solve_R ]
            | let x := fresh "x" in let H1 := fresh "H" in intros x H1 ] 
        end);
+       
   try change_deriv_to_eval;
   
   match goal with
@@ -556,21 +580,6 @@ Ltac auto_diff :=
         repeat split; 
         try solve [ try solve_denoms; try lra; solve_R | auto ]
       | let x := fresh "x" in extensionality x; unfold compose in *; try diff_simplify ]
-  end.
-
-Ltac auto_cont :=
-  intros;
-  try solve [ solve_R ];
-  normalize_math_funs;
-  try (match goal with 
-  | [ |- continuous_on ?f ?I ] => apply continuous_at_imp_continuous_on; let a := fresh "a" in let H := fresh "H" in intros a H 
-  | [ |- continuous ?f ] => let a := fresh "a" in intros a 
-  end);
-  change_fun_to_expr;
-  match goal with
-  | [ |- continuous_at (fun x => eval_expr ?e x) ?a ] =>
-      apply cont_correct;
-      repeat split; try solve [ simpl; try eval_math_constants; try solve_denoms; try lra; solve_R | auto ]
   end.
 
 Module Tactic_Tests.

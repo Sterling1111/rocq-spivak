@@ -1,0 +1,3 @@
+post-all::
+	@echo 'Generating PNG plots for Problem 18.4...'
+	@bash Calculus/Chapter18/Problem_18_4/generate_plots.sh

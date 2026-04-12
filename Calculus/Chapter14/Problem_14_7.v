@@ -11,7 +11,7 @@ Proof.
   assert (H1 : 0 < 1) by lra.
   assert (H2 : continuous_on f [0, 1]).
   {
-    unfold f. auto_cont. intros H2.
+    unfold f. auto_cont. simpl. intros H2.
     apply Rmult_eq_compat_r with (r := √(1 + a * (a * 1))) in H2.
     rewrite Rmult_0_l, sqrt_sqrt in H2; nra.
   }
@@ -59,9 +59,9 @@ Proof.
   assert (H1 : 0 < 1/2) by lra.
   assert (H2 : continuous_on f [0, 1/2]).
   {
-    unfold f. auto_cont. intros H2.
+    unfold f. auto_cont. simpl. intros H2.
     apply Rmult_eq_compat_r with (r := √(1 - a * (a * 1))) in H2.
-    rewrite Rmult_0_l, sqrt_sqrt in H2; nra.
+    rewrite Rmult_0_l, sqrt_sqrt in H2; solve_R.
   }
   assert (H3 : integrable_on 0 (1/2) g) by (apply theorem_13_3; unfold g; auto_cont).
   assert (H4 : nonnegative_on g [0, 1/2]) by (intros x; unfold g; solve_R).

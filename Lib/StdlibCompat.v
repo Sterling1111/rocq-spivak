@@ -363,7 +363,7 @@ Proof.
   rewrite sin_compat_pt, cos_compat_pt. reflexivity.
 Qed.
 
-Lemma log_compat_pt : forall x, Exponential.log x = Rpower.ln x.
+Lemma log_compat_pt : forall x, Exponential.log x = Stdlib.Reals.Rpower.ln x.
 Proof.
   intros x. destruct (Rle_dec x 0) as [H1 | H1].
   - unfold log. destruct (Rle_dec x 0) as [H2 | H2]; [| exfalso; lra].
@@ -373,14 +373,15 @@ Proof.
     rewrite <- H2 at 1. rewrite log_exp. reflexivity.
 Qed.
 
-Lemma log_compat : Exponential.log = Rpower.ln.
-Proof.
-  extensionality x. apply log_compat_pt.
-Qed.
-
 Lemma ln_compat : Exponential.ln = Rpower.ln.
 Proof.
-  rewrite <- log_compat. extensionality x. apply ln_eq_log.
+  extensionality x.
+  rewrite <- log_compat_pt. apply ln_eq_log.
+Qed.
+
+Lemma log_compat : Exponential.log = Stdlib.Reals.Rpower.ln.
+Proof.
+  extensionality x. rewrite <- ln_eq_log, ln_compat. reflexivity.
 Qed.
 
 Lemma π_compat : π = PI.

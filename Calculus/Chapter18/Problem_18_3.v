@@ -1,6 +1,13 @@
 From Calculus.Chapter18 Require Import Prelude.
 
-(* Problem 3: Find \int_a^b \frac{f'(t)}{f(t)} dt (for f > 0 on [a,b]). *)
-Lemma problem_18_3 : forall f a b,
-  (forall x, a <= x <= b -> 0 < f x) ->
-  ∫ a b (fun t => ⟦ der ⟧ f t / f t) = log (f b) - log (f a). Admitted.
+Lemma lemma_18_3_interval : ∀ f f' a b,
+  a < b ->
+  (∀ x, x ∈ [a, b] -> f x > 0) ->
+  continuous_on (fun t => f' t / f t) [a, b] ->
+  ⟦ der ⟧ f = f' ->
+  ∫ a b (fun t => f' t / f t) = log (f b) - log (f a).
+Proof.
+  intros f f' a b H1 H2 H3 H4.
+  apply FTC2 with (g := fun t => log (f t)); auto.
+  auto_diff.
+Qed.
