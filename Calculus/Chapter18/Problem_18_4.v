@@ -1,6 +1,4 @@
 From Calculus.Chapter18 Require Import Prelude.
-From Interval Require Import Plot Tactic.
-Open Scope R_scope.
 
 Local Notation exp := Rtrigo_def.exp.
 Local Notation sin := Rtrigo_def.sin.

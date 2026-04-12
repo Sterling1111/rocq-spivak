@@ -1,3 +1,5 @@
 post-all::
 	@echo 'Generating PNG plots for Problem 18.4...'
 	@bash Calculus/Chapter18/Problem_18_4/generate_plots.sh
+	@echo 'Generating PNG plots for Problem 18.7...'
+	@bash Calculus/Chapter18/Problem_18_7/generate_plots.sh
