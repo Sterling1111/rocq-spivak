@@ -1,5 +1,18 @@
 From Calculus.Chapter18 Require Import Prelude.
 
+Ltac step_lhopital f_prime g_prime :=
+  apply lhopital_0_0_strong with (f' := f_prime) (g' := g_prime);
+  try solve [auto_limit];
+  try solve [auto_diff];
+  try (exists 1; split; try lra; auto_diff).
+
+Lemma lemma_18_5_i : ⟦ lim 0 ⟧ (fun x => (exp x - 1 - x - x^2 / 2) / x^2) = 0.
+Proof.
+  step_lhopital (λ x, (exp x)-1-x) (λ x, 2*x).
+  step_lhopital ()
+  auto_limit.
+Qed.
+
 Lemma lemma_18_5_i : ⟦ lim 0 ⟧ (fun x => (exp x - 1 - x - x^2 / 2) / x^2) = 0.
 Proof.
   apply lhopital_0_0_strong with (f' := λ x, (exp x)-1-x) (g' := λ x, 2*x);
