@@ -44,10 +44,7 @@ Proof.
   {
     apply first_derivative_test_max with (f' := fun x => (P - 4 * x) / 2).
     - apply A_derivative.
-    - intros x H5. apply Rmult_gt_reg_r with (r := 2); [ lra |]. field_simplify.
-      apply Rplus_gt_reg_r with (r := 4 * x). field_simplify.
-      apply Rmult_gt_reg_r with (r := 1/4); [ lra |]. field_simplify.
-      apply Rlt_gt. exact H5.
+    - intros x H5. lra.
     - intros x H5. lra.
     - apply Full_intro.
   }
