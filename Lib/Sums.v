@@ -805,3 +805,86 @@ Proof.
     apply sum_f_equiv; try lia.
     intros j H1. f_equal. lia.
 Qed.
+
+Lemma sum_insert_split : forall n k (f1 f2 : nat -> R),
+  (k < n)%nat ->
+  (forall i, (i < k)%nat -> f1 i = f2 i) ->
+  f1 k <= f2 k + f2 (S k) ->
+  (forall i, (k < i < n)%nat -> f1 i = f2 (S i)) ->
+  ∑ 0 (n - 1) f1 <= ∑ 0 n f2.
+Proof.
+  induction n as [| n' H1].
+  - intros k f1 f2 H2; lia.
+  - intros k f1 f2 H2 H3 H4 H5.
+    assert (k = n' \/ k < n')%nat as [H6 | H6] by lia.
+    + subst k.
+      replace (S n' - 1)%nat with n' by lia.
+      assert (n' = 0 \/ n' > 0)%nat as [H7 | H7] by lia.
+      * subst n'.
+        repeat rewrite sum_f_0_0.
+        rewrite sum_f_i_Sn_f; [|lia].
+        rewrite sum_f_0_0.
+        apply H4.
+      * rewrite sum_f_Pn with (i:=0%nat) (n:=n'); [|lia].
+        rewrite sum_f_Pn with (i:=0%nat) (n:=S n'); [|lia].
+        rewrite sum_f_Pn with (i:=0%nat) (n:=n'); [|lia].
+        simpl Nat.pred.
+        assert (∑ 0 (Nat.pred n') f1 = ∑ 0 (Nat.pred n') f2) as H8.
+        { apply sum_f_equiv; [lia|].
+          intros j H9. apply H3. lia. }
+        rewrite H8.
+        lra.
+    + replace (S n' - 1)%nat with n' by lia.
+      rewrite sum_f_Pn with (i:=0%nat) (n:=n'); [|lia].
+      rewrite sum_f_Pn with (i:=0%nat) (n:=S n'); [|lia].
+      simpl Nat.pred.
+      assert (f1 n' = f2 (S n')) as H7.
+      { apply H5. lia. }
+      rewrite H7.
+      apply Rplus_le_compat_r.
+      replace (Nat.pred n') with (n' - 1)%nat by lia.
+      apply H1 with (k := k); auto.
+      intros i H8. apply H5. lia.
+Qed.
+
+Lemma sum_insert_split_ge : forall n k (f1 f2 : nat -> R),
+  (k < n)%nat ->
+  (forall i, (i < k)%nat -> f1 i = f2 i) ->
+  f1 k >= f2 k + f2 (S k) ->
+  (forall i, (k < i < n)%nat -> f1 i = f2 (S i)) ->
+  ∑ 0 (n - 1) f1 >= ∑ 0 n f2.
+Proof.
+  induction n as [| n' H1].
+  - intros k f1 f2 H2; lia.
+  - intros k f1 f2 H2 H3 H4 H5.
+    assert (k = n' \/ k < n')%nat as [H6 | H6] by lia.
+    + subst k.
+      replace (S n' - 1)%nat with n' by lia.
+      assert (n' = 0 \/ n' > 0)%nat as [H7 | H7] by lia.
+      * subst n'.
+        repeat rewrite sum_f_0_0.
+        rewrite sum_f_i_Sn_f; [|lia].
+        rewrite sum_f_0_0.
+        apply H4.
+      * rewrite sum_f_Pn with (i:=0%nat) (n:=n'); [|lia].
+        rewrite sum_f_Pn with (i:=0%nat) (n:=S n'); [|lia].
+        rewrite sum_f_Pn with (i:=0%nat) (n:=n'); [|lia].
+        simpl Nat.pred.
+        assert (∑ 0 (Nat.pred n') f1 = ∑ 0 (Nat.pred n') f2) as H8.
+        { apply sum_f_equiv; [lia|].
+          intros j H9. apply H3. lia. }
+        rewrite H8.
+        lra.
+    + replace (S n' - 1)%nat with n' by lia.
+      rewrite sum_f_Pn with (i:=0%nat) (n:=n'); [|lia].
+      rewrite sum_f_Pn with (i:=0%nat) (n:=S n'); [|lia].
+      simpl Nat.pred.
+      assert (f1 n' = f2 (S n')) as H7.
+      { apply H5. lia. }
+      rewrite H7.
+      assert (∑ 0 (Nat.pred n') f1 >= ∑ 0 n' f2) as H8.
+      { replace (Nat.pred n') with (n' - 1)%nat by lia.
+        apply H1 with (k := k); auto.
+        intros i H9. apply H5. lia. }
+      lra.
+Qed.

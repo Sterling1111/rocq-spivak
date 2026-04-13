@@ -1072,3 +1072,25 @@ Proof.
     assert (H6 : |f x| - |L| <= |f x - L|) by apply Rabs_triang_inv.
     lra.
 Qed.
+
+Lemma limit_right_imp_limit_on : forall f a b L,
+  a < b ->
+  ⟦ lim a⁺ ⟧ f = L -> 
+  ⟦ lim a ⟧ f [a, b] = L.
+Proof.
+  intros f a b L H1 H2 ε H3.
+  specialize (H2 ε H3) as [δ [H4 H5]].
+  exists δ. split; auto.
+  intros x H6 H7. apply H5. solve_R.
+Qed.
+
+Lemma limit_left_imp_limit_on : forall f a b L,
+  a < b ->
+  ⟦ lim b⁻ ⟧ f = L -> 
+  ⟦ lim b ⟧ f [a, b] = L.
+Proof.
+  intros f a b L H1 H2 ε H3.
+  specialize (H2 ε H3) as [δ [H4 H5]].
+  exists δ. split; auto.
+  intros x H6 H7. apply H5. solve_R.
+Qed.

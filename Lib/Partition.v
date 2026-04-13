@@ -1,5 +1,5 @@
-From Lib Require Import Imports Notations Sorted_Rlt Completeness Continuity Sets Reals_util Interval.
-Import IntervalNotations SetNotations.
+From Lib Require Import Imports Notations Sorted_Rlt Completeness Continuity Sets Reals_util Interval Sums.
+Import IntervalNotations SetNotations SumNotations.
 
 Local Notation length := List.length.
 Local Notation In := List.In.
@@ -216,42 +216,264 @@ Proof.
     -- left. apply get_all_points_spec; tauto.
 Qed.
 
+Lemma partition_telescope : forall (a b : ℝ) (P : partition a b),
+  ∑ 0 (length (P.(points a b)) - 2) (fun i => (P.(points a b)).[(i+1)] - (P.(points a b)).[i]) = b - a.
+Proof.
+  intros a b P.
+  rewrite sum_f_list_sub_alt; [| apply partition_length].
+  rewrite partition_last, partition_first.
+  reflexivity.
+Qed.
+
+Definition uniform_points (a b : R) (n : nat) : list R :=
+  map (fun i => a + INR i * ((b - a) / INR n)) (seq 0 (n + 1)).
+
+Lemma uniform_is_partition : forall (a b : R) (n : nat),
+  a < b -> (n > 0)%nat ->
+  Sorted Rlt (uniform_points a b n) /\
+  List.In a (uniform_points a b n) /\
+  List.In b (uniform_points a b n) /\
+  (forall x, List.In x (uniform_points a b n) -> a <= x <= b).
+Proof.
+  intros a b n H1 H2. unfold uniform_points. split; [| split; [| split]].
+  - replace (map (fun i : nat => a + INR i * ((b - a) / INR n)) (seq 0 (n + 1)))
+      with (map (fun x : R => ((b - a) / INR n) * x + a) (map INR (seq 0 (n + 1)))).
+    2 : { rewrite map_map. apply map_ext. intros i. lra. }
+    apply Sorted_Rlt_map_mult_plus.
+    + apply Rdiv_pos_pos; [lra | apply lt_0_INR; lia].
+    + apply sorted_Rlt_seq.
+  - apply in_map_iff. exists 0%nat. split.
+    + simpl. lra.
+    + apply in_seq. lia.
+  - apply in_map_iff. exists n. split.
+    + replace (a + INR n * ((b - a) / INR n)) with b.
+      2 : { field. apply not_0_INR. lia. }
+      reflexivity.
+    + apply in_seq. lia.
+  - intros x H3. apply in_map_iff in H3 as [i [H4 H5]]. apply in_seq in H5. subst x.
+    assert (H6 : 0 <= INR i) by apply pos_INR.
+    assert (H7 : INR i <= INR n) by (apply le_INR; lia).
+    assert (H8 : 0 < INR n) by (apply lt_0_INR; lia).
+    assert (H9 : 0 <= (b - a) / INR n) by (apply Rlt_le; apply Rdiv_pos_pos; lra).
+    split.
+    + assert (H10 : 0 <= INR i * ((b - a) / INR n)) by (apply Rmult_le_pos; lra). lra.
+    + assert (H10 : INR i * ((b - a) / INR n) <= INR n * ((b - a) / INR n)) by (apply Rmult_le_compat_r; lra).
+      replace (INR n * ((b - a) / INR n)) with (b - a) in H10.
+      2 : { field. apply not_0_INR. lia. }
+      lra.
+Qed.
+
+Definition uniform_partition (a b : R) (n : nat) (H1 : a < b) (H2 : (n > 0)%nat) : partition a b.
+Proof.
+  pose proof (uniform_is_partition a b n H1 H2) as [H3 [H4 [H5 H6]]].
+  exact (mkpartition a b (uniform_points a b n) H1 H3 H4 H5 H6).
+Defined.
+
+Lemma uniform_partition_nth : forall a b n H1 H2 i,
+  (i < length (points a b (uniform_partition a b n H1 H2)))%nat ->
+  (points a b (uniform_partition a b n H1 H2)).[i] = a + INR i * ((b - a) / INR n).
+Proof.
+  intros a b n H1 H2 i H3.
+  unfold uniform_partition in *.
+  destruct (uniform_is_partition a b n H1 H2) as [H4 [H5 [H6 H7]]].
+  simpl in *.
+  unfold uniform_points in *.
+  rewrite nth_indep with (d' := a + INR 0 * ((b - a) / INR n)).
+  2: { rewrite length_map, length_seq in *. exact H3. }
+  
+  change (a + INR 0 * ((b - a) / INR n)) with ((fun i0 : nat => a + INR i0 * ((b - a) / INR n)) 0%nat).
+  rewrite map_nth.
+  f_equal.
+  rewrite seq_nth.
+  - simpl. reflexivity.
+  - rewrite length_map, length_seq in H3. exact H3.
+Qed.
+
+Lemma uniform_partition_width : forall a b n H1 H2 i,
+  (i < length (points a b (uniform_partition a b n H1 H2)) - 1)%nat ->
+  (points a b (uniform_partition a b n H1 H2)).[(i+1)] - 
+  (points a b (uniform_partition a b n H1 H2)).[i] = (b - a) / INR n.
+Proof.
+  intros a b n H1 H2 i H3.
+  assert (H4 : (i < length (points a b (uniform_partition a b n H1 H2)))%nat) by lia.
+  assert (H5 : (i + 1 < length (points a b (uniform_partition a b n H1 H2)))%nat) by lia.
+  
+  rewrite uniform_partition_nth; [| exact H5].
+  rewrite uniform_partition_nth; [| exact H4].
+  
+  replace (INR (i + 1)) with (INR i + 1) by (rewrite plus_INR; reflexivity).
+  lra.
+Qed.
+
+Definition mesh_lt (a b : R) (P : partition a b) (δ : R) : Prop :=
+  forall i, (i < length (P.(points a b)) - 1)%nat ->
+    (P.(points a b)).[(i+1)] - (P.(points a b)).[i] < δ.
+
+Definition mesh_le (a b : R) (P : partition a b) (δ : R) : Prop :=
+  forall i, (i < length (P.(points a b)) - 1)%nat ->
+    (P.(points a b)).[(i+1)] - (P.(points a b)).[i] <= δ.
+
+Lemma uniform_partition_mesh_eq : forall a b n H1 H2,
+  forall i, (i < length (points a b (uniform_partition a b n H1 H2)) - 1)%nat ->
+  (points a b (uniform_partition a b n H1 H2)).[(i+1)] - 
+  (points a b (uniform_partition a b n H1 H2)).[i] = (b - a) / INR n.
+Proof.
+  intros a b n H1 H2 i H3.
+  apply uniform_partition_width; exact H3.
+Qed.
+
+Lemma uniform_partition_mesh_lt : forall a b n H1 H2 δ,
+  (b - a) / INR n < δ ->
+  mesh_lt a b (uniform_partition a b n H1 H2) δ.
+Proof.
+  intros a b n H1 H2 δ H3 i H4.
+  rewrite uniform_partition_mesh_eq; auto.
+Qed.
+
+Definition geometric_points (a b : R) (n : nat) : list R :=
+  map (fun i => a * Rpower (b / a) (INR i / INR n)) (seq 0 (n + 1)).
+
+Lemma geometric_is_partition : forall (a b : R) (n : nat),
+  0 < a -> a < b -> (n > 0)%nat ->
+  Sorted Rlt (geometric_points a b n) /\
+  List.In a (geometric_points a b n) /\
+  List.In b (geometric_points a b n) /\
+  (forall x, List.In x (geometric_points a b n) -> a <= x <= b).
+Proof.
+  intros a b n H1 H2 H3.
+  unfold geometric_points.
+  set (f := fun i => a * Rpower (b / a) (INR i / INR n)).
+  
+  assert (H4 : 1 < b / a).
+  { apply Rmult_lt_reg_r with (r := a); [lra |].
+    replace (1 * a) with a by lra.
+    replace (b / a * a) with b by (field; lra).
+    lra. }
+  assert (H5 : 0 < b / a) by lra.
+  
+  assert (H6 : forall i, f i < f (S i)).
+  {
+    intros i. unfold f.
+    apply Rmult_lt_compat_l; [lra |].
+    apply Rpower_lt; [exact H4 |].
+    apply Rmult_lt_compat_r.
+    - apply Rinv_pos, lt_0_INR; lia.
+    - rewrite S_INR; lra.
+  }
+  
+  assert (H7 : forall k s, Sorted Rlt (map f (seq s k))).
+  {
+    induction k as [| k IH]; intros s.
+    - simpl. constructor.
+    - simpl. apply Sorted_cons.
+      + apply IH.
+      + destruct k as [| k'].
+        * constructor.
+        * simpl. apply HdRel_cons. apply H6.
+  }
+  
+  assert (H8 : f 0%nat = a).
+  {
+    unfold f. simpl INR.
+    replace (0 / INR n) with 0 by (unfold Rdiv; rewrite Rmult_0_l; reflexivity).
+    rewrite Rpower_O; [lra | exact H5].
+  }
+  
+  assert (H9 : f n = b).
+  {
+    unfold f.
+    replace (INR n / INR n) with 1.
+    2: { destruct n. lia. field. apply lt_INR in H3. rewrite S_INR in *. simpl in H3. lra. }
+    rewrite Rpower_1; [| exact H5].
+    field. lra.
+  }
+  
+  split; [| split; [| split]].
+  - apply H7.
+  - apply in_map_iff. exists 0%nat. split; [exact H8 | apply in_seq; lia].
+  - apply in_map_iff. exists n. split; [exact H9 | apply in_seq; lia].
+  - apply sorted_first_last_in.
+    + exact H2.
+    + apply H7.
+    + rewrite nth_indep with (d' := f 0%nat).
+      2: { rewrite length_map, length_seq. lia. }
+      rewrite map_nth.
+      rewrite seq_nth; [| lia].
+      simpl. exact H8.
+    + rewrite length_map, length_seq.
+      replace (n + 1 - 1)%nat with n by lia.
+      rewrite nth_indep with (d' := f 0%nat).
+      2: { rewrite length_map, length_seq. lia. }
+      rewrite map_nth.
+      rewrite seq_nth; [| lia].
+      replace (0 + n)%nat with n by lia.
+      exact H9.
+Qed.
+
+Definition geometric_partition (a b : R) (n : nat) (H1 : 0 < a) (H2 : a < b) (H3 : (n > 0)%nat) : partition a b.
+Proof.
+  pose proof (geometric_is_partition a b n H1 H2 H3) as [H4 [H5 [H6 H7]]].
+  exact (mkpartition a b (geometric_points a b n) H2 H4 H5 H6 H7).
+Defined.
+
+Lemma geometric_partition_nth : forall a b n H1 H2 H3 i,
+  (i < length (points a b (geometric_partition a b n H1 H2 H3)))%nat ->
+  (points a b (geometric_partition a b n H1 H2 H3)).[i] = a * Rpower (b / a) (INR i / INR n).
+Proof.
+  intros a b n H1 H2 H3 i H4.
+  unfold geometric_partition in *.
+  destruct (geometric_is_partition a b n H1 H2 H3) as [H5 [H6 [H7 H8]]].
+  simpl in *.
+  unfold geometric_points in *.
+  rewrite nth_indep with (d' := a * Rpower (b / a) (INR 0 / INR n)).
+  2: { rewrite length_map, length_seq in *. exact H4. }
+  change (a * Rpower (b / a) (INR 0 / INR n)) 
+    with ((fun i0 : nat => a * Rpower (b / a) (INR i0 / INR n)) 0%nat).
+  rewrite map_nth.
+  f_equal.
+  rewrite seq_nth.
+  - simpl. reflexivity.
+  - rewrite length_map, length_seq in H4. exact H4.
+Qed.
+
+Lemma geometric_partition_ratio : forall a b n H1 H2 H3 i,
+  (i < length (points a b (geometric_partition a b n H1 H2 H3)) - 1)%nat ->
+  (points a b (geometric_partition a b n H1 H2 H3)).[(i+1)] / 
+  (points a b (geometric_partition a b n H1 H2 H3)).[i] = Rpower (b / a) (1 / INR n).
+Proof.
+  intros a b n H1 H2 H3 i H4.
+  assert (H5 : (i < length (points a b (geometric_partition a b n H1 H2 H3)))%nat) by lia.
+  assert (H6 : (i + 1 < length (points a b (geometric_partition a b n H1 H2 H3)))%nat) by lia.
+  rewrite geometric_partition_nth; [| exact H6].
+  rewrite geometric_partition_nth; [| exact H5].
+  assert (H7 : 0 < b / a).
+  { apply Rdiv_pos_pos; lra. }
+  assert (H8 : a <> 0) by lra.
+  unfold Rpower.
+  assert (H9 : exp (INR i / INR n * ln (b / a)) <> 0).
+  { apply Rgt_not_eq. apply exp_pos. }
+  replace ((a * exp (INR (i + 1) / INR n * ln (b / a))) / (a * exp (INR i / INR n * ln (b / a))))
+    with (exp (INR (i + 1) / INR n * ln (b / a)) / exp (INR i / INR n * ln (b / a))).
+  2: { field. split; assumption. }
+  unfold Rdiv at 1.
+  rewrite <- exp_Ropp.
+  rewrite <- exp_plus.
+  f_equal.
+  replace (INR (i + 1)) with (INR i + 1).
+  2: { rewrite plus_INR. simpl. lra. }
+  field.
+  apply not_0_INR; lia.
+Qed.
+
 Lemma exists_partition_delta_lt : forall a b ε,
   a < b -> ε > 0 -> exists (P : partition a b), forall i, (i < length (P.(points a b)) - 1)%nat -> 
     ((P.(points a b)).[(i + 1)] - (P.(points a b)).[i]) < ε.
 Proof.
-  intros a b ε H1 H2. pose proof exists_nat_gt_inv_scale a b ε H1 H2 as [n [H3 H4]].
-  set (l := map (fun x => ((b - a) / INR n) * x + a) (map INR (seq 0 (n+1)))).
-  assert (H5 : Sorted Rlt l). 
-  { 
-    apply Sorted_Rlt_map_mult_plus.
-    - apply Rdiv_pos_pos; solve_R.
-    - apply sorted_Rlt_seq.
-  }
-  assert (H6 : List.In a l). { apply a_In_list_delta_lt; auto. }
-  assert (H7 : List.In b l). { apply b_In_list_delta_lt; lia. } 
-  assert (H8 : forall x, List.In x l -> a <= x <= b). 
-  {
-    intros x H8. pose proof Sorted_Rlt_nth as H9. split.
-    - assert (a <= x \/ a > x) as [H10 | H10] by lra; auto.
-      apply List.In_nth with (d := a) in H8 as [i [H11 H12]]; try lia.
-      assert (H13 : nth 0 l a = a). { apply list_delta_lt_nth_0; auto. }
-      assert (i = 0 \/ i > 0)%nat as [H14 | H14] by lia; try (subst; lra).
-      specialize (H9 l 0%nat i a H5 ltac:(lia)) as H15. lra.
-    - assert (b >= x \/ b < x) as [H10 | H10] by lra; try lra.
-      apply List.In_nth with (d := a) in H8 as [i [H11 H12]]; try lia.
-      assert (H13 : nth n l a = b). { apply list_delta_lt_nth_n; lia. }
-      assert (i > n \/ i = n \/ i < n)%nat as [H14 | [H14 | H14]] by lia.
-      -- unfold l in H11. repeat rewrite length_map in H11. rewrite length_seq in H11. lia.
-      -- rewrite <- H12. rewrite <- H13. rewrite H14. apply Req_le. apply nth_indep. lia.
-      -- assert (n >= length l \/ n < length l)%nat as [H15 | H15] by lia.
-         * rewrite nth_overflow in H13; try lia. lra.
-         * specialize (H9 l i n a H5 ltac:(lia)). rewrite <- H12. rewrite <- H13. lra.
-  }
-  set (P := mkpartition a b l H1 H5 H6 H7 H8).
-  exists P. intros i H9. replace (points a b P) with l in *; auto. apply list_delta_lt; try lia; try lra.
-  unfold l in *.
-  repeat rewrite length_map in *. rewrite length_seq in *. lia.
+  intros a b ε H1 H2.
+  pose proof exists_nat_gt_inv_scale a b ε H1 H2 as [n [H3 H4]].
+  exists (uniform_partition a b n H1 H3).
+  intros i H5.
+  rewrite uniform_partition_width; auto.
 Qed.
 
 Lemma split_partition_in : forall (a b c : R) (P : partition a b),
@@ -505,4 +727,108 @@ Proof.
     assert (H7 : f x <= M1). { apply H2. exists x. split; auto. }
     assert (H8 : g x <= M2). { apply H4. exists x. split; auto. }
     nra.
+Qed.
+
+Lemma partition_insert_spec : forall (a b r : ℝ) (P Q : partition a b),
+  ~ In r (points a b P) ->
+  points a b Q = insert_Sorted_Rlt r (points a b P) ->
+  exists k : ℕ,
+    (k < length (points a b P) - 1)%nat /\
+    nth k (points a b P) 0 < r /\
+    r < nth (k + 1) (points a b P) 0 /\
+    (forall i : ℕ, (i <= k)%nat -> nth i (points a b Q) 0 = nth i (points a b P) 0) /\
+    nth (k + 1) (points a b Q) 0 = r /\
+    (forall i : ℕ, (i > k)%nat -> nth (i + 1) (points a b Q) 0 = nth i (points a b P) 0).
+Proof.
+  intros a b r P Q H1 H2.
+  assert (H3 : Sorted Rlt (points a b P)) by apply partition_P2.
+  pose proof (insert_Sorted_Rlt_nth (points a b P) (points a b Q) r H3 H1 H2) as [i [H4 [H5 [H6 H7]]]].
+  assert (H8 : (i > 0 /\ i < length (points a b Q) - 1)%nat).
+  { eapply insert_Partition_R_not_first_or_last with (a := a) (b := b) (P := P) (Q := Q); eauto. }
+  destruct i as [| k].
+  { lia. }
+  exists k.
+  assert (H9 : length (points a b Q) = S (length (points a b P))).
+  { rewrite H2. apply insert_Sorted_Rlt_length. }
+  assert (H10 : Sorted Rlt (points a b Q)).
+  { rewrite H2. apply insert_Sorted_Rlt_sorted; auto. }
+  split.
+  { lia. }
+  split.
+  { rewrite <- H5.
+    rewrite <- (H6 k) by lia.
+    apply Sorted_Rlt_nth with (d := 0); auto. }
+  split.
+  { rewrite <- H5.
+    replace (k + 1)%nat with (S k) by lia.
+    rewrite <- (H7 (S k)) by lia.
+    replace (S k + 1)%nat with (S (S k)) by lia.
+    apply Sorted_Rlt_nth with (d := 0); auto. lia. }
+  split.
+  { intros j H11. apply H6. lia. }
+  split.
+  { replace (k + 1)%nat with (S k) by lia. exact H5. }
+  { intros j H11. apply H7. lia. }
+Qed.
+
+Lemma partition_inf_eq : forall (a b : ℝ) (bf : bounded_function_R a b) (P Q : partition a b) (i j : ℕ),
+  let f := bounded_f a b bf in
+  let infP := proj1_sig (partition_sublist_elem_has_inf f a b P (bounded_function_R_P2 a b bf)) in
+  let infQ := proj1_sig (partition_sublist_elem_has_inf f a b Q (bounded_function_R_P2 a b bf)) in
+  let l1 := points a b P in
+  let l2 := points a b Q in
+  (i < length l1 - 1)%nat ->
+  (j < length l2 - 1)%nat ->
+  nth i l1 0 = nth j l2 0 ->
+  nth (i + 1) l1 0 = nth (j + 1) l2 0 ->
+  nth i infP 0 = nth j infQ 0.
+Proof.
+  intros a b bf P Q i j f infP infQ l1 l2 H1 H2 H3 H4.
+  unfold infP, infQ, l1, l2.
+  pose proof (proj2_sig (partition_sublist_elem_has_inf f a b P (bounded_function_R_P2 a b bf))) as [H5 H6].
+  pose proof (proj2_sig (partition_sublist_elem_has_inf f a b Q (bounded_function_R_P2 a b bf))) as [H7 H8].
+  assert (H9 : (i < length (` (partition_sublist_elem_has_inf f a b P (bounded_function_R_P2 a b bf))))%nat).
+  { rewrite H5. exact H1. }
+  assert (H10 : (j < length (` (partition_sublist_elem_has_inf f a b Q (bounded_function_R_P2 a b bf))))%nat).
+  { rewrite H7. exact H2. }
+  specialize (H6 i H9).
+  specialize (H8 j H10).
+  unfold l1, l2 in H3, H4.
+  rewrite H3, H4 in H6.
+  destruct H6 as [H11 H12].
+  destruct H8 as [H13 H14].
+  apply Rle_antisym.
+  - apply Rge_le, H14. exact H11.
+  - apply Rge_le, H12. exact H13.
+Qed.
+
+Lemma partition_sup_eq : forall (a b : ℝ) (bf : bounded_function_R a b) (P Q : partition a b) (i j : ℕ),
+  let f := bounded_f a b bf in
+  let supP := proj1_sig (partition_sublist_elem_has_sup f a b P (bounded_function_R_P2 a b bf)) in
+  let supQ := proj1_sig (partition_sublist_elem_has_sup f a b Q (bounded_function_R_P2 a b bf)) in
+  let l1 := points a b P in
+  let l2 := points a b Q in
+  (i < length l1 - 1)%nat ->
+  (j < length l2 - 1)%nat ->
+  nth i l1 0 = nth j l2 0 ->
+  nth (i + 1) l1 0 = nth (j + 1) l2 0 ->
+  nth i supP 0 = nth j supQ 0.
+Proof.
+  intros a b bf P Q i j f supP supQ l1 l2 H1 H2 H3 H4.
+  unfold supP, supQ, l1, l2.
+  pose proof (proj2_sig (partition_sublist_elem_has_sup f a b P (bounded_function_R_P2 a b bf))) as [H5 H6].
+  pose proof (proj2_sig (partition_sublist_elem_has_sup f a b Q (bounded_function_R_P2 a b bf))) as [H7 H8].
+  assert (H9 : (i < length (` (partition_sublist_elem_has_sup f a b P (bounded_function_R_P2 a b bf))))%nat).
+  { rewrite H5. exact H1. }
+  assert (H10 : (j < length (` (partition_sublist_elem_has_sup f a b Q (bounded_function_R_P2 a b bf))))%nat).
+  { rewrite H7. exact H2. }
+  specialize (H6 i H9).
+  specialize (H8 j H10).
+  unfold l1, l2 in H3, H4.
+  rewrite H3, H4 in H6.
+  destruct H6 as [H11 H12].
+  destruct H8 as [H13 H14].
+  apply Rle_antisym.
+  - apply H12. exact H13.
+  - apply H14. exact H11.
 Qed.

@@ -1,7 +1,7 @@
 From Calculus.Chapter18 Require Import Prelude.
 
 Ltac step_lhopital f_prime g_prime :=
-  apply lhopital_0_0_strong with (f' := f_prime) (g' := g_prime);
+  apply lhopital_0_0 with (f' := f_prime) (g' := g_prime);
   try solve [auto_limit];
   try solve [auto_diff];
   try (exists 1; split; try lra; auto_diff).

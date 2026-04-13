@@ -145,7 +145,7 @@ Proof.
     }
     replace 0 with (C - C) by lra.
     apply limit_minus_const.
-    apply lhopital_nth_neighborhood with (n := (n-1)%nat).
+    apply lhopital_nth_neighborhood_0_0 with (n := (n-1)%nat).
     + exists δ. split; auto. 
       destruct H5 as [fn H5].
       assert (nth_differentiable_on (n - 1) Q (a - δ, a + δ)) as [Qn HQ].
