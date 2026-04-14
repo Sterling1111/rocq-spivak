@@ -29,7 +29,9 @@ Lemma lemma_20_1_v : forall n x,
   P(n, 1, exp) x = ∑ 0 n (fun k => exp 1 / INR (fact k) * (x - 1)^k).
 Proof.
   compute_tp.
-Admitted.
+  apply sum_f_equiv; try lia.
+  intros k H1. rewrite nth_derive_exp. lra.
+Qed.
 
 Lemma lemma_20_1_vi : forall n x,
   (n > 0)%nat ->
@@ -60,4 +62,7 @@ Lemma lemma_20_1_x : forall n x,
   P(n, 0, fun x => 1 / (1 + x)) x = ∑ 0 n (fun k => (-1)^k * x^k).
 Proof.
   compute_tp.
+  apply sum_f_equiv; try lia.
+  intros k H1.
+  
 Admitted.
