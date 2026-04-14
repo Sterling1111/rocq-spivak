@@ -7,6 +7,12 @@ COQ_FILE="Calculus/Chapter18/Problem_18_7.v"
 VO_FILE="Calculus/Chapter18/Problem_18_7.vo"
 
 echo "Generaatng PNG plots forproblem 18_7..."
+
+if ! command -v gnuplot >/dev/null 2>&1; then
+    echo "gnuplot not found; skipping plot generation for problem 18_7." >&2
+    exit 0
+fi
+
 mkdir -p "$FOLDER"
 # Avoid deleting the script itself
 find "$FOLDER" -type f ! -name 'generate_plots.sh' -delete
