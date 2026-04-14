@@ -407,6 +407,15 @@ Proof.
   intros e H1 x. apply derive_correct; auto.
 Qed.
 
+Lemma Der_correct_global : forall e,
+  (forall x, wf_derive e x) -> 
+  ⟦ Der ⟧ (fun x => eval_expr e x) = (fun x => eval_expr (derive_expr e) x).
+Proof.
+  intros e H1.
+  apply derivative_imp_derive.
+  apply derive_correct_global; auto.
+Qed.
+
 Ltac reify_constant c :=
   lazymatch type of c with
   | R => constr:(EConst c)
@@ -638,6 +647,42 @@ Ltac auto_diff :=
         try solve [ try solve_denoms; try lra; solve_R | auto ]
       | let x := fresh "x" in extensionality x; unfold compose in *; try diff_simplify ]
   end.
+
+Ltac compute_Der :=
+  repeat match goal with
+  | |- context [ nth_derive_at ?n ?f ?a ] => change (nth_derive_at n f a) with ((nth_derive n f) a)
+  end;
+  repeat rewrite nth_derive_succ;
+  repeat rewrite nth_derive_1;
+  repeat rewrite nth_derive_0;
+
+  repeat match goal with
+  | |- context [ derive ?f ] =>
+      lazymatch f with
+      | context [ derive ] => fail
+      | _ => idtac
+      end;
+      let e_ast := match constr:(fun x : R => ltac:(
+          let fx := eval cbv beta in (f x) in
+          let e := reify_expr x fx in
+          exact e
+      )) with fun _ => ?e => e end in
+      change (derive f) with (derive (fun y => eval_expr e_ast y));
+      rewrite (Der_correct_global e_ast);
+      [ cbv [eval_expr derive_expr] 
+      | intro; simpl; try eval_math_constants; repeat split; 
+        try solve [try solve_denoms; try lra; solve_R]; auto ]
+  end;
+  
+  simpl; try eval_math_constants.
+
+Ltac compute_tp :=
+  intros;
+  autounfold with taylor_polynomial;
+  repeat rewrite sum_f_i_Sn_f; try lia;
+  try rewrite sum_f_0_0; try lia;
+  compute_Der;
+  try solve_R.
 
 Module Tactic_Tests.
 

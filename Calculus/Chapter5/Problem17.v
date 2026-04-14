@@ -1,4 +1,5 @@
 From Calculus.Chapter5 Require Import Prelude.
+From Calculus.Chapter5 Require Import Problem10.
 
 Lemma lemma_5_17_a : ∀ l,
   ¬ ⟦ lim 0 ⟧ (λ x, 1 / x) = l.
@@ -23,4 +24,18 @@ Proof.
     unfold x; apply Rmin_r.
   }
   solve_R.
+Qed.
+
+Lemma lemma_5_17_b : ∀ l,
+  ¬ ⟦ lim 1 ⟧ (λ x, 1 / (x - 1)) = l.
+Proof.
+  intros l1 H1.
+  apply (lemma_5_17_a l1).
+  intros ε H2.
+  specialize (H1 ε H2) as [δ [H3 H4]].
+  exists δ. split; auto.
+  intros x H5.
+  specialize (H4 (x + 1) ltac:(solve_R)).
+  rewrite Rplus_minus_r in H4.
+  exact H4.
 Qed.

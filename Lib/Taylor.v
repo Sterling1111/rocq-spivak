@@ -8,7 +8,7 @@ Local Notation length := List.length.
 
 Definition Taylor_polynomial (n : nat) (f : R -> R) (a : R) (x : R) : R :=
   ∑ 0 n (fun k => ((⟦ Der ^ k a ⟧ f) / (k!)) * ((x - a) ^ k)).
-
+Hint Unfold Taylor_polynomial : taylor_polynomial.
 Notation "'P(' n ',' a ',' f ')'" := (Taylor_polynomial n f a) 
   (at level 10, n, a, f at level 9, format "P( n , a , f )").
 
