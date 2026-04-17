@@ -732,15 +732,7 @@ Proof.
     - apply inf_differentiable_imp_nth_differentiable. apply inf_differentiable_cos.
   }
   pose proof (Taylors_Theorem 6 0 1 cos ltac:(lra) H1) as [t [H2 H3]].
-  assert (H4 : P(6, 0, cos) 1 = 389/720).
-  {
-     unfold Taylor_polynomial.
-     repeat rewrite sum_f_i_Sn_f; try lia.
-     rewrite sum_f_0_0; try lia.
-     simplify_factorials.
-     simplify_nth_derive_trig. repeat rewrite sin_0, cos_0.
-     simpl; lra.
-  }
+  assert (H4 : P(6, 0, cos) 1 = 389/720) by (compute_tp).
   unfold Taylor_remainder in H3.
   rewrite H4 in H3.
   assert (H5 : ⟦ Der ^ (S 6) t ⟧ cos = sin t).
