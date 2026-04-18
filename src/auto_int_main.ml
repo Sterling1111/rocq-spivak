@@ -147,10 +147,7 @@ let run_auto_int env sigma f_term =
   output_string oc expr_str;
   close_out oc;
   
-  let python_exe = 
-    if Sys.file_exists "/home/sij/Calculus-with-Coq/.auto_int_venv/bin/python3" then "/home/sij/Calculus-with-Coq/.auto_int_venv/bin/python3"
-    else "python3" 
-  in
+  let python_exe = "python3" in
   let cmd = Printf.sprintf "%s /home/sij/Calculus-with-Coq/auto_int.py %s %s" python_exe in_file out_file in
   let exit_code = Sys.command cmd in
   if exit_code <> 0 then failwith (Printf.sprintf "auto_int script failed with code %d" exit_code);
