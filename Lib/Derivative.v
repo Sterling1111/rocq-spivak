@@ -6467,3 +6467,15 @@ Proof.
   2: { extensionality x; rewrite Rminus_0_r; reflexivity. }
   apply nth_differentiable_pow_shift.
 Qed.
+Lemma derivative_at_Rabs : forall x, x <> 0 -> ⟦ der x ⟧ Rabs = (fun t => t / Rabs t).
+Proof.
+  intros x H.
+  unfold derivative_at.
+  assert (0 < x \/ x < 0) as [H1 | H1] by lra.
+  - apply limit_eq with (f1 := fun h => 1).
+    + exists x. split; solve_R.
+    + replace (x / |x|) with (1) by solve_R. apply limit_const.
+  - apply limit_eq with (f1 := fun h => -1).
+    + exists (-x). split; solve_R.
+    + replace (x / |x|) with (-1) by solve_R. apply limit_const.
+Qed.
