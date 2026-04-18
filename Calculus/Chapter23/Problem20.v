@@ -12,4 +12,4 @@ Lemma problem_23_20 : forall α x,
   |x| < 1 ->
   (exists S, ∑ 0 ∞ (fun k => generalized_choose α k * x^k) = S) /\
   (exists S, ∑ 0 ∞ (fun k => generalized_choose α k * x^k) = S /\ S = Rpower (1 + x) α). (* assuming x^y for real base is Rpower *)
-Admitted.
+Abort.

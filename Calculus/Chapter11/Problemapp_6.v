@@ -7,4 +7,4 @@ Lemma lemma_11_app_6 : forall f f' f'',
   decreasing_on f [0, ∞) ->
   f' 0 = 0 ->
   exists x, x > 0 /\ f'' x = 0.
-Admitted.
+Abort.

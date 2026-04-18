@@ -41,4 +41,4 @@ Qed.
 
 Lemma lemma_15_16_cos : forall x,
   cos (arctan x) = 1 / √(1 + x^2).
-Admitted.
+Abort.

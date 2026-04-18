@@ -6,7 +6,7 @@ Lemma lemma_11_30_a : forall f f' g g' a,
   (forall x, f' x > g' x) ->
   f a = g a ->
   (forall x, x > a -> f x > g x) /\ (forall x, x < a -> f x < g x).
-Admitted.
+Abort.
 
 Lemma lemma_11_30_c : forall f f' g g' a x0,
   differentiable f -> differentiable g ->
@@ -16,4 +16,4 @@ Lemma lemma_11_30_c : forall f f' g g' a x0,
   x0 > a ->
   f' x0 > g' x0 ->
   (forall x, x >= x0 -> f x > g x).
-Admitted.
+Abort.

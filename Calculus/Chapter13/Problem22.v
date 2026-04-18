@@ -7,4 +7,4 @@ Lemma lemma_13_22 : forall f f_inv a b,
   inverse f f_inv ->
   a > 0 -> b > 0 ->
   a * b <= ∫ 0 a f + ∫ 0 b f_inv /\ (a * b = ∫ 0 a f + ∫ 0 b f_inv <-> b = f a).
-Admitted.
+Abort.

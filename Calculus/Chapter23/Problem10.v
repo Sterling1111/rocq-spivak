@@ -10,4 +10,4 @@ Lemma problem_23_10 :
   let c := cauchy_product a a in
   (forall n, (n > 0)%nat -> |c n| >= 1) /\
   ~ exists S, ∑ 0 ∞ (fun n => if (n =? 0)%nat then 0 else c n) = S.
-Admitted.
+Abort.

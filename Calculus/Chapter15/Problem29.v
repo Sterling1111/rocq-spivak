@@ -8,7 +8,7 @@ Lemma lemma_15_29_a :
   (forall x, α (-x) = - α x) /\
   increasing α /\
   ⟦ lim ∞ ⟧ α = π / 2.
-Admitted.
+Abort.
 
 (* (b) (α⁻¹)'(x) = 1 + (α⁻¹(x))² *)
 Lemma lemma_15_29_b : forall α α_inv,
@@ -16,17 +16,17 @@ Lemma lemma_15_29_b : forall α α_inv,
   inverse_on α α_inv (-π / 2, π / 2) ℝ ->
   forall x, x ∈ (-π / 2, π / 2) ->
   ⟦ der x ⟧ α_inv = (fun x => 1 + (α_inv x)^2).
-Admitted.
+Abort.
 
 (* (c) Properties of sin defined via tan *)
 Lemma lemma_15_29_c_i :
   ⟦ lim (π/2)⁻ ⟧ sin = 1.
-Admitted.
+Abort.
 
 Lemma lemma_15_29_c_ii :
   ⟦ lim (-π/2)⁺ ⟧ sin = -1.
-Admitted.
+Abort.
 
 Lemma lemma_15_29_c_iv : forall x,
   ⟦ Der^2 x ⟧ sin = - sin x.
-Admitted.
+Abort.

@@ -12,4 +12,4 @@ Lemma lemma_15_32_c : forall φ₁ φ₂ g₁ g₂ a b,
   (forall x, ⟦ der x ⟧ (⟦ Der ⟧ φ₂) = (fun x => - g₂ x * φ₂ x)) ->
   (forall x, x ∈ (a, b) -> φ₂ x <> 0) ->
   ~ (φ₁ a = 0 /\ φ₁ b = 0).
-Admitted.
+Abort.

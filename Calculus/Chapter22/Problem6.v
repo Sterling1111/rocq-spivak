@@ -6,4 +6,4 @@ Lemma lemma_22_6 : forall a b,
   (forall n, b (S n) = (a n + b n) / 2) ->
   convergent_sequence a /\ convergent_sequence b /\
   (exists L, ⟦ lim ⟧ a = L /\ ⟦ lim ⟧ b = L).
-Admitted.
+Abort.

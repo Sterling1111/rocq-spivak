@@ -14,4 +14,4 @@ Lemma lemma_12_23_a : forall f g,
   decreasing g ->
   (exists x, f x = g x) ->
   exists! x, f x = g x.
-Admitted.
+Abort.

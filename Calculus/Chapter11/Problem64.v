@@ -5,4 +5,4 @@ Lemma lemma_11_64 : forall f f',
   ⟦ der ⟧ f = f' ->
   increasing f' ->
   increasing_on (fun x => f x / x) (0, ∞).
-Admitted.
+Abort.

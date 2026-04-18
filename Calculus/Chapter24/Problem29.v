@@ -6,7 +6,7 @@ Lemma lemma_24_29_a : forall fn f a b,
   forall (xn : nat -> R) x,
   (forall n, a <= xn n <= b) -> a <= x <= b ->
   ⟦ lim ⟧ xn = x -> ⟦ lim ⟧ (fun n => fn n (xn n)) = f x.
-Admitted.
+Abort.
 
 Lemma lemma_24_29_c : forall fn f a b,
   continuous_on f (fun x => a <= x <= b) ->
@@ -14,4 +14,4 @@ Lemma lemma_24_29_c : forall fn f a b,
     (forall n, a <= xn n <= b) -> a <= x <= b ->
     ⟦ lim ⟧ xn = x -> ⟦ lim ⟧ (fun n => fn n (xn n)) = f x) ->
   uniform_limit fn f (fun x => a <= x <= b).
-Admitted.
+Abort.

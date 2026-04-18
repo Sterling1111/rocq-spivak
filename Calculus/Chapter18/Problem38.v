@@ -4,4 +4,4 @@ From Calculus.Chapter18 Require Import Prelude.
 Lemma problem_18_38 : forall f,
   (forall x, 0 < x -> continuous_at f x) ->
   (forall x y, 0 < x -> 0 < y -> f (x * y) = f x + f y) ->
-  f = (fun _ => 0) \/ (exists c, forall x, 0 < x -> f x = c * log x). Admitted.
+  f = (fun _ => 0) \/ (exists c, forall x, 0 < x -> f x = c * log x). Abort.

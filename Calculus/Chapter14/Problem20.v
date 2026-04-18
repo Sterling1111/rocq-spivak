@@ -8,4 +8,4 @@ Definition f_20 (x : R) : R :=
 
 Lemma lemma_14_20 :
   differentiable_at (fun x => ∫ 0 x f_20) 0.
-Admitted.
+Abort.

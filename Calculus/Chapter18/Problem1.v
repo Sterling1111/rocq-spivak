@@ -39,7 +39,7 @@ Qed.
 Lemma lemma_18_1_vii : ⟦ der ⟧ (fun x => (arcsin (x / sin x))^^(log (sin (e^^x)))) (0, 1) = (fun x => (arcsin (x / sin x))^^(log (sin (e^^x))) * ((cos (e^^x) * e^^x / sin (e^^x)) * log (arcsin (x / sin x)) + log (sin (e^^x)) * ((((1 * sin x - x * cos x) / (sin x)^2) / sqrt (1 - (x / sin x)^2)) / arcsin (x / sin x)))).
 Proof.
   auto_diff.
-Admitted.
+Abort.
 
 Lemma lemma_18_1_viii : ⟦ der ⟧ (fun x => log (3 + e^^4) * e^^(4 * x) + (arcsin x)^^(log 3)) (0, 1) = (fun x => log (3 + e^^4) * (e^^(4 * x) * 4) + log 3 * (arcsin x)^^(log 3 - 1) * (1 / sqrt (1 - x^2))).
 Proof.

@@ -6,4 +6,4 @@ From Calculus.Chapter14 Require Import Prelude.
 Lemma lemma_14_9 : forall f x,
   continuous f ->
   ∫ 0 x (fun u => f u * (x - u)) = ∫ 0 x (fun u => ∫ 0 u f).
-Admitted.
+Abort.

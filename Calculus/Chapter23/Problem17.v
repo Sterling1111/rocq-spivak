@@ -8,4 +8,4 @@ Lemma problem_23_17 :
     (forall x, f x >= 0) /\
     ⟦ lim ∞ ⟧ (fun N => ∫ 0 N f) = L /\
     ~ (exists M, ⟦ lim ∞ ⟧ f = M).
-Admitted.
+Abort.

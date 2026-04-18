@@ -7,15 +7,15 @@ Definition lim_inf (A : Ensemble ℝ) (l : ℝ) :=
 Lemma lemma_8_19_a : ∀ A li ls,
   Infinite_set A -> has_upper_bound A -> has_lower_bound A ->
   lim_inf A li -> lim_sup A ls -> li <= ls.
-Proof. Admitted.
+Proof. Abort.
 
 Lemma lemma_8_19_b : ∀ A ls supa,
   Infinite_set A -> has_upper_bound A -> has_lower_bound A ->
   lim_sup A ls -> is_lub A supa -> ls <= supa.
-Proof. Admitted.
+Proof. Abort.
 
 Lemma lemma_8_19_c : ∀ A ls supa,
   Infinite_set A -> has_upper_bound A -> has_lower_bound A ->
   lim_sup A ls -> is_lub A supa -> ls < supa ->
   supa ∈ A.
-Proof. Admitted.
+Proof. Abort.

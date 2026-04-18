@@ -7,7 +7,7 @@ Lemma lemma_9_19_a : forall f f' g h h' a,
   f' a = h' a ->
   exists g', ⟦ der a ⟧ g = g' /\ g' a = f' a.
 Proof.
-Admitted.
+Abort.
 
 Lemma lemma_9_19_b : ~ (forall f f' g h h' a,
   (forall x, f x <= g x /\ g x <= h x) ->
@@ -15,4 +15,4 @@ Lemma lemma_9_19_b : ~ (forall f f' g h h' a,
   f' a = h' a ->
   exists g', ⟦ der a ⟧ g = g' /\ g' a = f' a).
 Proof.
-Admitted.
+Abort.

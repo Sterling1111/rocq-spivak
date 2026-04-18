@@ -20,10 +20,10 @@ Lemma lemma_19_4_iii : forall c,
   ∫ (λ x, 1 / √(1 + x^2)) = (λ x, log (x + √(1 + x^2)) + c).
 Proof.
   auto_int.
-Admitted.
+Abort.
 
 Lemma lemma_19_4_iv : forall c,
   ∫ (λ x, √(1 + x^2)) = (λ x, x * √(1 + x^2) / 2 + log (x + √(1 + x^2)) / 2 + c).
 Proof.
   auto_int.
-Admitted.
+Abort.

@@ -5,4 +5,4 @@ Definition Abel_summable (a : nat -> R) (L : R) : Prop :=
 
 Lemma lemma_24_20 : exists a L,
   Abel_summable a L /\ ~ series_converges a.
-Admitted.
+Abort.

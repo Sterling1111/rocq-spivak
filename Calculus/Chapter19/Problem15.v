@@ -7,4 +7,4 @@ Lemma lemma_19_15 : forall f,
   f PI = 1 ->
   ∫ 0 PI (fun x => (f x + ⟦ der ⟧ (⟦ der ⟧ f) x) * sin x) = 2 ->
   f 0 = 1.
-Admitted.
+Abort.

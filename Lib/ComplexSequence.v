@@ -27,4 +27,4 @@ Theorem Cseq_limit_component_iff : forall (a : Csequence) (L : C),
   let c := fun n => snd (a n) in
   ⟦ lim ⟧ a = L <-> (⟦ lim ⟧ b = fst L /\ ⟦ lim ⟧ c = snd L)%R.
 Proof.
-Admitted.
+Abort.

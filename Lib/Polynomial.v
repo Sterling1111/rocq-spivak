@@ -1356,7 +1356,7 @@ Proof.
       admit.
   - intros p q H2 H3.
     admit.
-Admitted.
+Abort.
 
 Lemma polynomial_inf_differentiable : forall l,
   let p := polynomial l in

@@ -49,21 +49,26 @@ Lemma integrable_coquelicot_compat : forall f a b,
   a < b -> integrable_on a b f <-> ex_RInt f a b.
 Proof.
   pose proof ex_RInt_Reals_0 as H1. pose proof ex_RInt_Reals_1 as H2.
-  intros f a b. split; intros H3. apply integrable_on_implies_Riemann_integrable in H3 as [H3 _]. specialize (H2 f a b H3). auto. lra. 
+  intros f a b. split; intros H3.
+  (*
+  apply integrable_on_implies_Riemann_integrable in H3 as [H3 _]. specialize (H2 f a b H3). auto. lra. 
   specialize (H1 f a b H3). apply Riemann_integrable_implies_integrable; try lra. exists H1; auto.
-Qed.
+  *)
+Abort.
 
 Lemma RInt_coquelicot_compat : forall f a b,
   a < b -> integrable_on a b f ->
   ∫ a b f = RInt f a b.
 Proof.
   intros f a b H1 H2. admit.
-Admitted.
+Abort.
 
 Lemma cos_integral_bound :
   1 / 2 <= ∫ 0 1 Trigonometry.cos <= 1.
 Proof.
+  (*
   rewrite RInt_coquelicot_compat; try lra.
   - rewrite cos_compat. integral.
   - apply theorem_13_3; try lra. auto_cont.
-Qed.
+  *)
+Abort.

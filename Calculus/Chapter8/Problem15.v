@@ -6,4 +6,4 @@ Lemma lemma_8_15 : ∀ f a b,
   f ((a + b) / 2) = 0 \/
   (f a < 0 /\ 0 < f ((a + b) / 2)) \/
   (f ((a + b) / 2) < 0 /\ 0 < f b).
-Proof. Admitted.
+Proof. Abort.

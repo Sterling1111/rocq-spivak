@@ -16,7 +16,7 @@ Proof.
   step_lhopital (λ x, - sin x + x) (λ x, 12 * x^2).
   step_lhopital (λ x, - cos x + 1) (λ x, 24 * x).
   step_lhopital (λ x, sin x) (λ x : R, 24).
-Admitted.
+Abort.
 
 Lemma lemma_15_2_iii :
   ⟦ lim 0 ⟧ (fun x => (cos x - 1 + x^2 / 2) / x^2) = 0.
@@ -33,7 +33,7 @@ Proof.
   step_lhopital (λ x, - cos x + 1) (λ x, 12 * x^2).
   step_lhopital (λ x, sin x) (λ x, 24 * x).
   step_lhopital (λ x, cos x) (λ x : R, 24).
-Admitted.
+Abort.
 
 Lemma lemma_15_2_v :
   ⟦ lim 0 ⟧ (fun x => (arctan x - x + x^3 / 3) / x^3) = 0.
@@ -42,7 +42,7 @@ Proof.
   admit.
   step_lhopital (λ x, - (2 * x) / (1 + x^2)^2 + 2 * x) (λ x, 6 * x).
   step_lhopital (λ x, -2 / (1 + x^2)^2 + 8 * x^2 / (1 + x^2)^3 + 2) (λ x : R, 6).
-Admitted.
+Abort.
 
 Lemma lemma_15_2_vi :
   ⟦ lim 0 ⟧ (fun x => 1 / x - 1 / sin x) = 0.
@@ -54,4 +54,4 @@ Proof.
   admit.
   step_lhopital (λ x, - sin x) (λ x, 2 * cos x - x * sin x).
   admit.
-Admitted.
+Abort.

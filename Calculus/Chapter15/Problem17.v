@@ -5,9 +5,9 @@ From Calculus.Chapter15 Require Import Prelude.
 Lemma lemma_15_17_sin : forall u,
   cos (u / 2) <> 0 ->
   sin u = 2 * tan (u / 2) / (1 + (tan (u / 2))^2).
-Admitted.
+Abort.
 
 Lemma lemma_15_17_cos : forall u,
   cos (u / 2) <> 0 ->
   cos u = (1 - (tan (u / 2))^2) / (1 + (tan (u / 2))^2).
-Admitted.
+Abort.

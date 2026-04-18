@@ -10,7 +10,7 @@ Lemma lemma_14_24_a : forall f f' f'' f''',
   (forall x, f' x <> 0) ->
   (forall x, f''' x / f' x - 3/2 * (f'' x / f' x)^2 = 0) ->
   exists c, forall x, (f'' x)^2 / (f' x)^3 = c.
-Admitted.
+Abort.
 
 (* (b) Show f is of the form (ax + b) / (cx + d). *)
 Lemma lemma_14_24_b : forall f f' f'' f''',
@@ -20,4 +20,4 @@ Lemma lemma_14_24_b : forall f f' f'' f''',
   (forall x, f' x <> 0) ->
   (forall x, f''' x / f' x - 3/2 * (f'' x / f' x)^2 = 0) ->
   exists a b c d, forall x, c * x + d <> 0 -> f x = (a * x + b) / (c * x + d).
-Admitted.
+Abort.

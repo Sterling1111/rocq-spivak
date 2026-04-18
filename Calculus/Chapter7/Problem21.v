@@ -9,8 +9,8 @@ Definition takes_0_or_2 (f : R -> R) (y : R) :=
 
 Lemma lemma_7_21_a : ~ (exists f,
   continuous f /\ forall y, exactly_twice f y).
-Proof. Admitted.
+Proof. Abort.
 
 Lemma lemma_7_21_b : ~ (exists f,
   continuous f /\ forall y, takes_0_or_2 f y).
-Proof. Admitted.
+Proof. Abort.

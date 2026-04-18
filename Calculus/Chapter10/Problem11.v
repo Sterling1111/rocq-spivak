@@ -6,4 +6,4 @@ Lemma lemma_10_11 : ∀ f g,
   g 0 = 0 ->
   ⟦ Der 0 ⟧ g = 0 ->
   ⟦ Der 0 ⟧ f = 0.
-Proof. Admitted.
+Proof. Abort.

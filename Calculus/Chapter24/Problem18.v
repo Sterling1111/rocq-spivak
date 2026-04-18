@@ -6,4 +6,4 @@ Lemma lemma_24_18 : forall (a : nat -> R) x0,
   exists (b : nat -> R),
     b 0%nat = 1 /\ (forall n, (n > 0)%nat -> b n = - ∑ 0 (n - 1) (fun k => b k * a (n - k)%nat)) /\
     exists x1, x1 <> 0 /\ series_converges (fun n => b n * x1^n).
-Admitted.
+Abort.

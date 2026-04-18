@@ -10,7 +10,7 @@ Lemma lemma_8_20_a : ∀ f a b,
   ~ shadow_point f b ->
   f a > f b ->
   ∀ x, a <= x <= b -> f x <= f a.
-Proof. Admitted.
+Proof. Abort.
 
 Lemma lemma_8_20_b : ∀ f a b,
   continuous f ->
@@ -19,4 +19,4 @@ Lemma lemma_8_20_b : ∀ f a b,
   ~ shadow_point f a ->
   ~ shadow_point f b ->
   f a = f b.
-Proof. Admitted.
+Proof. Abort.

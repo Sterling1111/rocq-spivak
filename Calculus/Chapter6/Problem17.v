@@ -18,4 +18,4 @@ Lemma lemma_6_17_d : forall f g,
   (forall x, exists l, ⟦ lim x ⟧ f = l) ->
   (forall x, ⟦ lim x ⟧ f = g x) ->
   continuous g.
-Proof. Admitted.
+Proof. Abort.

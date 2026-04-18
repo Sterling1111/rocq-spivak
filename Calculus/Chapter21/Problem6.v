@@ -5,4 +5,4 @@ From Calculus.Chapter21 Require Import Prelude.
 
 Lemma lemma_21_6 :
   ~ countable (fun x : R => 0 < x < 1).
-Admitted.
+Abort.

@@ -12,4 +12,4 @@ Lemma lemma_7_18 : forall f,
   limit_pos_infty f 0 ->
   limit_neg_infty f 0 ->
   exists y, forall x, f y >= f x.
-Proof. Admitted.
+Proof. Abort.

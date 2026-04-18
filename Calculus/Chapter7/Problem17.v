@@ -6,4 +6,4 @@ Lemma lemma_7_17 : forall l,
 Proof.
   intros l f. 
   
-Admitted.
+Abort.

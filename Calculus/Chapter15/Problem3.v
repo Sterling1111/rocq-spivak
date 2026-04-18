@@ -11,9 +11,9 @@ Definition f_sinc (x : R) : R :=
 (* (a) Find f'(0). *)
 Lemma lemma_15_3_a :
   ⟦ der 0 ⟧ f_sinc = (fun _ => 0).
-Admitted.
+Abort.
 
 (* (b) Find f''(0). *)
 Lemma lemma_15_3_b :
   ⟦ der^2 0 ⟧ f_sinc = (fun _ => -1/3).
-Admitted.
+Abort.

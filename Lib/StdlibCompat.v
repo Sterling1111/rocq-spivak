@@ -207,13 +207,13 @@ Lemma integrable_on_implies_Riemann_integrable : forall f a b,
   a <= b -> Integral.integrable_on a b f -> 
   {pr : Riemann_integrable f a b | True}.
 Proof.
-Admitted.
+Abort.
 
 Lemma Riemann_integrable_implies_integrable : forall f a b,
   a <= b -> {pr : Riemann_integrable f a b | True} ->
     a <= b -> Integral.integrable_on a b f.
 Proof.
-Admitted.
+Abort.
 
 Lemma definite_integral_compat : forall f a b pr,
   a <= b ->
@@ -223,7 +223,7 @@ Proof.
   unfold definite_integral. destruct (Rle_dec a b) as [H2 | H2]; try lra.
   destruct (integrable_dec a b f) as [H3 | H3].
   - unfold RiemannInt.
-Admitted.
+Abort.
 
 Definition trig_diff (x : R) := 
   (Trigonometry.cos x - Rtrigo_def.cos x)^2 + (Trigonometry.sin x - Rtrigo_def.sin x)^2.

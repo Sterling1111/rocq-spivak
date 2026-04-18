@@ -6,4 +6,4 @@ Lemma lemma_11_61_a : forall f f' a L1 L2,
   ⟦ lim a⁺ ⟧ f' = L1 ->
   ⟦ lim a⁻ ⟧ f' = L2 ->
   False.
-Admitted.
+Abort.

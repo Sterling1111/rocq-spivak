@@ -7,4 +7,4 @@ Lemma problem_23_24 : forall a,
   decreasing a ->
   (exists S, ∑ 0 ∞ (fun n => if (n =? 0)%nat then 0 else a n) = S) ->
   ⟦ lim ⟧ (fun n => INR n * a n) = 0.
-Admitted.
+Abort.

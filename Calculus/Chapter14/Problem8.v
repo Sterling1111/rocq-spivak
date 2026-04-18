@@ -7,4 +7,4 @@ Lemma lemma_14_8 : forall f x,
   continuous f ->
   ⟦ der x ⟧ (fun x => ∫ 0 x (fun t => x * f t)) =
     (fun x => ∫ 0 x f + x * f x).
-Admitted.
+Abort.

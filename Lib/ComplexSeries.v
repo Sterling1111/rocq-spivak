@@ -26,11 +26,11 @@ Theorem Cseries_converges_component_iff : forall (a : Csequence),
   let c := fun n => snd (a n) in
   Cseries_converges a <-> (series_converges b /\ series_converges c).
 Proof.
-Admitted.
+Abort.
 
 Theorem Cseries_converges_absolutely_component_iff : forall (a : Csequence),
   let b := fun n => fst (a n) in
   let c := fun n => snd (a n) in
   Cseries_converges_absolutely a <-> (series_converges_absolutely b /\ series_converges_absolutely c).
 Proof.
-Admitted.
+Abort.

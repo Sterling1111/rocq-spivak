@@ -10,7 +10,7 @@ Lemma problem_23_6_a : forall f a,
   (forall n, (n > 0)%nat -> a n = f (1 / INR n)) ->
   (exists S, ∑ 0 ∞ a = S) ->
   f 0 = 0.
-Admitted.
+Abort.
 
 (* (b) Prove that if f'(0) exists and \sum_{n=1}^{\infty} a_n converges, then f'(0)=0. *)
 Lemma problem_23_6_b : forall f f' a,
@@ -19,7 +19,7 @@ Lemma problem_23_6_b : forall f f' a,
   (forall n, (n > 0)%nat -> a n = f (1 / INR n)) ->
   (exists S, ∑ 0 ∞ a = S) ->
   f' 0 = 0.
-Admitted.
+Abort.
 
 (* (c) Prove that if f''(0) exists and f(0)=f'(0)=0, then \sum_{n=1}^{\infty} a_n converges. *)
 Lemma problem_23_6_c : forall f f' f'' a,
@@ -30,7 +30,7 @@ Lemma problem_23_6_c : forall f f' f'' a,
   f' 0 = 0 ->
   (forall n, (n > 0)%nat -> a n = f (1 / INR n)) ->
   exists S, ∑ 0 ∞ a = S.
-Admitted.
+Abort.
 
 (* (d) Suppose \sum_{n=1}^{\infty} a_n converges. Must f'(0) exist? (No) *)
 Lemma problem_23_6_d :
@@ -39,7 +39,7 @@ Lemma problem_23_6_d :
       (forall n, (n > 0)%nat -> a n = f (1 / INR n)) ->
       (exists S, ∑ 0 ∞ a = S) ->
       exists f', ⟦ der 0 ⟧ f = f').
-Admitted.
+Abort.
 
 (* (e) Suppose f(0)=f'(0)=0. Must \sum_{n=1}^{\infty} a_n converge? (No) *)
 Lemma problem_23_6_e :
@@ -50,4 +50,4 @@ Lemma problem_23_6_e :
       f' 0 = 0 ->
       (forall n, (n > 0)%nat -> a n = f (1 / INR n)) ->
       exists S, ∑ 0 ∞ a = S).
-Admitted.
+Abort.

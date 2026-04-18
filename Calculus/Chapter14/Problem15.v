@@ -8,7 +8,7 @@ Lemma lemma_14_15_a : exists g : R -> R,
   (forall x, x >= 0 ->
     ∫ (x^2) (2*x^2) (fun t => 1) * x =
     ∫ 0 x (fun t => 2*t^2 - g t)).
-Admitted.
+Abort.
 
 (* (b) More generally, find C2 if C1 is the graph of f(x) = x^m
    and C is the graph of f(x) = c*x^m for some c > 1. *)
@@ -18,4 +18,4 @@ Lemma lemma_14_15_b : forall (m : nat) (c : R),
   forall x, x >= 0 ->
     ∫ (x ^ m) (c * x ^ m) (fun t => 1) * x =
     ∫ 0 x (fun t => c * t ^ m - g t).
-Admitted.
+Abort.

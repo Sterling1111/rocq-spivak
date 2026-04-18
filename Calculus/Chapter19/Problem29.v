@@ -7,4 +7,4 @@ Lemma lemma_19_29 : forall u v h a b a_bar b_bar,
   h b_bar = b ->
   ∫ a b (fun t => √((⟦ der ⟧ u t)^2 + (⟦ der ⟧ v t)^2)) =
   ∫ a_bar b_bar (fun t => √((⟦ der ⟧ (u ∘ h)%function t)^2 + (⟦ der ⟧ (v ∘ h)%function t)^2)).
-Admitted.
+Abort.

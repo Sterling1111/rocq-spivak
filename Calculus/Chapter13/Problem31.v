@@ -8,11 +8,11 @@ Lemma lemma_13_31_b : forall f a b x0,
   x0 ∈ [a, b] ->
   f x0 > 0 ->
   ∫ a b f > 0.
-Admitted.
+Abort.
 
 Lemma lemma_13_31_c : forall f a b,
   a < b ->
   integrable_on a b f ->
   (forall x, x ∈ [a, b] -> f x > 0) ->
   ∫ a b f > 0.
-Admitted.
+Abort.

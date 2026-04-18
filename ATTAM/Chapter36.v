@@ -68,7 +68,7 @@ Proof.
   replace (x^3 + x^2 + 2 - 38) with ((x - 3) * (x^2 + 4 * x + 12)) by lra.
   
   solve_R.
-Admitted.
+Abort.
 
 Lemma lemma_36_5' : ⟦ lim 3 ⟧ (fun x => x^3 + x^2 + 2) = 38.
 Proof. solve_lim. Qed.

@@ -5,7 +5,7 @@ Lemma lemma_7_20_a : forall f n,
   continuous_on f [0, 1] ->
   f 0 = f 1 ->
   exists x, x ∈ [0, 1 - 1 / INR n] /\ f x = f (x + 1 / INR n).
-Proof. Admitted.
+Proof. Abort.
 
 Lemma lemma_7_20_b : forall a,
   0 < a < 1 ->
@@ -13,4 +13,4 @@ Lemma lemma_7_20_b : forall a,
   exists f, continuous_on f [0, 1] /\
     f 0 = f 1 /\
     (forall x, x ∈ [0, 1 - a] -> f x <> f (x + a)).
-Proof. Admitted.
+Proof. Abort.

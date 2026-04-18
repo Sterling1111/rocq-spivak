@@ -6,4 +6,4 @@ Lemma lemma_9_29 : forall n f,
   (forall x, x <= 0 -> f x = 0) ->
   differentiable (⟦ Der ^ (n - 1) ⟧ f) /\ ~ differentiable_at (⟦ Der ^ (n - 1) ⟧ f) 0.
 Proof.
-Admitted.
+Abort.

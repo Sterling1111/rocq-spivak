@@ -1326,4 +1326,4 @@ Proof.
   { intros x. destruct x as [val prop]. simpl. apply In_list_to_ensemble. auto. }
   assert (forall x : subType (list_to_ensemble l'), List.In (val (list_to_ensemble l) (f x)) l) as H12.
   { intros x. specialize (H11 (f x)). auto. }
-Admitted.
+Abort.

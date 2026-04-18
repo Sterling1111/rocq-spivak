@@ -4,4 +4,4 @@ From Calculus.Chapter15 Require Import Prelude.
 Lemma lemma_15_22 : forall x y,
   x^2 + y^2 = 1 ->
   exists θ, x = cos θ /\ y = sin θ.
-Admitted.
+Abort.

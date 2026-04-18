@@ -7,4 +7,4 @@ Lemma problem_23_25 :
       bounded (fun n => ∑ 1 n a) ->
       ⟦ lim ⟧ a = 0 ->
       exists S, ∑ 0 ∞ (fun n => if (n =? 0)%nat then 0 else a n) = S).
-Admitted.
+Abort.

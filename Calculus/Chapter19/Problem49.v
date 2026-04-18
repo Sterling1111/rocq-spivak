@@ -7,4 +7,4 @@ Lemma lemma_19_49 : forall f a b,
     Q b = f b /\
     Q ((a + b) / 2) = f ((a + b) / 2) /\
     ⟦ der ⟧ Q ((a + b) / 2) = ⟦ der ⟧ f ((a + b) / 2).
-Admitted.
+Abort.

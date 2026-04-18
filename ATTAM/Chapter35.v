@@ -69,7 +69,7 @@ Section section_35_3.
     unfold series_sum. intros ε H1. pose proof theorem_34_12 ε H1 as [N H2]. exists N. intros n H3.
     specialize (H2 n H3). rewrite lemma_35_3_a. replace (2 - 1 / 2 ^ n - 2) with (- 1 / 2 ^ n) by lra.
     admit.
-  Admitted.
+  Abort.
 End section_35_3.
 
 Section section_35_4.

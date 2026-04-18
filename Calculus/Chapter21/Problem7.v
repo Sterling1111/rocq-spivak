@@ -12,10 +12,10 @@ Lemma lemma_21_7_a : forall f ε,
   ε > 0 ->
   Finite_set (fun a => 0 <= a <= 1 /\ 
     exists L R_val, ⟦ lim a⁻ ⟧ f = L /\ ⟦ lim a⁺ ⟧ f = R_val /\ R_val - L > ε).
-Admitted.
+Abort.
 
 (* (b) Prove that the set of points at which f is discontinuous is countable. *)
 Lemma lemma_21_7_b : forall f,
   nondecreasing_on f (fun x => 0 <= x <= 1) ->
   countable (fun a => 0 <= a <= 1 /\ ~ continuous_at f a).
-Admitted.
+Abort.

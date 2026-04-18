@@ -6,9 +6,9 @@ From Calculus.Chapter23 Require Import Prelude.
 Lemma problem_23_5_a : forall a,
   (exists S, ∑ 0 ∞ (fun n => |a n|) = S) ->
   exists S, ∑ 0 ∞ (fun n => |a n ^ 2|) = S.
-Admitted.
+Abort.
 
 (* (b) Show that this does not hold for conditional convergence. *)
 Lemma problem_23_5_b :
   ~ (forall a, (exists S, ∑ 0 ∞ a = S) -> (exists S, ∑ 0 ∞ (fun n => a n ^ 2) = S)).
-Admitted.
+Abort.

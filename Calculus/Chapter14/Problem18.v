@@ -10,4 +10,4 @@ Lemma lemma_14_18 : forall h f g f' g',
   ⟦ der ⟧ g = g' ->
   ⟦ der ⟧ (fun x => ∫ (f x) (g x) h) =
     (fun x => h (g x) * g' x - h (f x) * f' x).
-Admitted.
+Abort.

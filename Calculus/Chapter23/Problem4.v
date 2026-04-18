@@ -4,4 +4,4 @@ From Calculus.Chapter23 Require Import Prelude.
 
 Lemma problem_23_4 :
   ~ (exists S, ∑ 0 ∞ (fun n => if (n =? 0)%nat then 0 else 1 / (INR n)^(1 + 1 / INR n)) = S).
-Admitted.
+Abort.

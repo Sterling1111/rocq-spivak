@@ -9,7 +9,7 @@ Lemma lemma_22_28_a : forall f I x a,
   (forall n, exists q : Q, a n = Q2R q) ->
   ⟦ lim ⟧ a = x ->
   convergent_sequence (fun n => f (a n)).
-Admitted.
+Abort.
 
 Lemma lemma_22_28_bc : exists P, P = True.
-Admitted.
+Abort.

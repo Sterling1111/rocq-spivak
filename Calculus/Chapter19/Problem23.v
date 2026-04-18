@@ -4,4 +4,4 @@ From Calculus.Chapter19 Require Import Prelude.
 Lemma problem_19_23 : forall x,
   x >= 0 ->
   ∫ 1 (cosh x) (fun t => √(t^2 - 1)) = (cosh x * sinh x) / 2 - x / 2.
-Admitted.
+Abort.

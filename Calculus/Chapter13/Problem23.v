@@ -48,7 +48,7 @@ Lemma lemma_13_23_c : forall a b,
     ~ (exists ξ, ξ ∈ [a, b] /\ ∫ a b f = (b - a) * f ξ).
 Proof.
 
-Admitted.
+Abort.
 
 Lemma lemma_13_23_d : forall f g a b,
   a < b ->
@@ -57,7 +57,7 @@ Lemma lemma_13_23_d : forall f g a b,
   nonnegative_on g [a, b] ->
  exists ξ, ξ ∈ [a, b] /\ ∫ a b (f ⋅ g) = f ξ * ∫ a b g.
 Proof.
-Admitted.
+Abort.
 
 Lemma lemma_13_23_e : forall f g a b,
   a < b ->
@@ -66,7 +66,7 @@ Lemma lemma_13_23_e : forall f g a b,
   nonpositive_on g [a, b] ->
  exists ξ, ξ ∈ [a, b] /\ ∫ a b (f ⋅ g) = f ξ * ∫ a b g.
 Proof.
-Admitted.
+Abort.
 
 Lemma lemma_13_23_f : forall a b,
   a < b ->
@@ -75,4 +75,4 @@ Lemma lemma_13_23_f : forall a b,
     integrable_on a b g /\
     ~ (exists ξ, ξ ∈ [a, b] /\ ∫ a b (f ⋅ g) = f ξ * ∫ a b g).
 Proof.
-Admitted.
+Abort.

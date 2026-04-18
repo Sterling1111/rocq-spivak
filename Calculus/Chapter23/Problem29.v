@@ -12,10 +12,10 @@ Lemma problem_23_29_a : forall x n,
   rational x -> x > 0 ->
   1 / (INR n + 1) < x -> x < 1 / INR n ->
   is_distinct_egyptian_fractions x.
-Admitted.
+Abort.
 
 (* (b) Prove the result for all x by using the divergence of \sum 1/n. *)
 Lemma problem_23_29_b : forall x,
   rational x -> x > 0 ->
   is_distinct_egyptian_fractions x.
-Admitted.
+Abort.

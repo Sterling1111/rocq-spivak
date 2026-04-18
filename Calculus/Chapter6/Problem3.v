@@ -10,7 +10,7 @@ Qed.
 
 Lemma lemma_6_3_b :
   exists f, (forall x, |f x| <= |x|) /\ (forall a, a <> 0 -> ~ continuous_at f a).
-Proof. Admitted.
+Proof. Abort.
 
 Lemma lemma_6_3_c : forall f g,
   continuous_at g 0 -> g 0 = 0 ->

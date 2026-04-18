@@ -7,4 +7,4 @@ Lemma lemma_14_13 : forall (n : nat) b,
   (n > 0)%nat ->
   b > 0 ->
   ∫ 0 b (fun x => Rpower x (1 / INR n)) = Rpower b (1 / INR n + 1) / (1 / INR n + 1).
-Admitted.
+Abort.

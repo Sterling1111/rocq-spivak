@@ -5,4 +5,4 @@ Lemma lemma_5_34 : ∀ f L,
 Proof.
   intros f L. split.
   - intros H1 N H2.
-Admitted.
+Abort.

@@ -17,13 +17,13 @@ Lemma lemma_20_1_iii : forall n x,
 Proof.
   compute_tp.
 
-Admitted.
+Abort.
 
 Lemma lemma_20_1_iv : forall n x,
   P(2 * n, π, cos) x = ∑ 0 n (fun k => (-1)^(k+1) / INR (fact (2 * k)) * (x - π)^(2 * k)).
 Proof.
   compute_tp.
-Admitted.
+Abort.
 
 Lemma lemma_20_1_v : forall n x,
   P(n, 1, exp) x = ∑ 0 n (fun k => exp 1 / INR (fact k) * (x - 1)^k).
@@ -38,7 +38,7 @@ Lemma lemma_20_1_vi : forall n x,
   P(n, 2, log) x = log 2 + ∑ 0 (n-1) (fun k => (-1)^(k) / (INR (k+1) * 2^(k+1)) * (x - 2)^(k+1)).
 Proof.
   compute_tp.
-Admitted.
+Abort.
 
 Lemma lemma_20_1_vii : forall x,
   P(4, 0, fun x => x^5 + x^3 + x) x = x^3 + x.
@@ -56,7 +56,7 @@ Lemma lemma_20_1_ix : forall n x,
   P(2 * n + 1, 0, fun x => 1 / (1 + x^2)) x = ∑ 0 n (fun k => (-1)^k * x^(2 * k)).
 Proof.
   compute_tp.
-Admitted.
+Abort.
 
 Lemma lemma_20_1_x : forall n x,
   P(n, 0, fun x => 1 / (1 + x)) x = ∑ 0 n (fun k => (-1)^k * x^k).
@@ -65,4 +65,4 @@ Proof.
   apply sum_f_equiv; try lia.
   intros k H1.
   induction k as [| k IH]; [ solve_R |].
-Admitted.
+Abort.

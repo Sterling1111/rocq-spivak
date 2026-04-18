@@ -5,7 +5,7 @@ Lemma lemma_9_28_a : forall f f' f'' x,
   ⟦ der ⟧ f = f' -> ⟦ der ⟧ f' = f'' -> 
   f' x = 3 * x * | x | /\ f'' x = 6 * | x |.
 Proof.
-Admitted.
+Abort.
 
 Lemma lemma_9_28_b : forall f f' f'' x,
   (forall x, x >= 0 -> f x = x^4) ->
@@ -13,4 +13,4 @@ Lemma lemma_9_28_b : forall f f' f'' x,
   ⟦ der ⟧ f = f' -> ⟦ der ⟧ f' = f'' -> 
   f' x = 4 * (| x |) ^ 3 /\ f'' x = 12 * x * | x |.
 Proof.
-Admitted.
+Abort.

@@ -6,4 +6,4 @@ Lemma lemma_22_25 : forall b f L,
   differentiable_at f L ->
   continuous_at (⟦ der ⟧ f) L ->
   Rabs (⟦ der ⟧ f L) <= 1.
-Admitted.
+Abort.

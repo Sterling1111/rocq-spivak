@@ -28,4 +28,4 @@ Lemma lemma_12_24_c : forall f,
   increasing f ->
   inverse f f ->
   forall x, f x = x.
-Admitted.
+Abort.

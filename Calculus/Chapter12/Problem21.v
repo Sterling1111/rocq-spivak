@@ -9,4 +9,4 @@ Lemma lemma_12_21 : forall f f_inv F G f',
   ⟦ der ⟧ F = f ->
   G = (fun x => x * f_inv x - F (f_inv x)) ->
   ⟦ der ⟧ G = f_inv.
-Admitted.
+Abort.

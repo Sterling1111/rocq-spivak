@@ -9,4 +9,4 @@ Lemma lemma_14_21 : forall f f',
   integrable_on 0 1 (fun x => (f' x)^2) ->
   forall x, x ∈ [0, 1] ->
   |f x| <= √(∫ 0 1 (fun x => |f' x|^2)).
-Admitted.
+Abort.

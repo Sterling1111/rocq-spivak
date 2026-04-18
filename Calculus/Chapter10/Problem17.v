@@ -5,4 +5,4 @@ Lemma lemma_10_17 : ∃ f g,
   (∀ x, differentiable_at g x) /\
   (∀ x, differentiable_at (f ∘ g) x) /\
   ~ (∀ x, differentiable_at f x).
-Proof. Admitted.
+Proof. Abort.

@@ -13,16 +13,16 @@ Lemma lemma_6_10_b : forall f,
   exists E O, continuous E /\ (forall x, E (-x) = E x) /\
               continuous O /\ (forall x, O (-x) = - O x) /\
               (forall x, f x = E x + O x).
-Proof. Admitted.
+Proof. Abort.
 
 Lemma lemma_6_10_c : forall f g,
   continuous f -> continuous g ->
   continuous (fun x => Rmax (f x) (g x)) /\ continuous (fun x => Rmin (f x) (g x)).
-Proof. Admitted.
+Proof. Abort.
 
 Lemma lemma_6_10_d : forall f,
   continuous f ->
   exists g h, continuous g /\ (forall x, h x >= 0) /\
               continuous h /\ (forall x, g x >= 0) /\
               (forall x, f x = g x - h x).
-Proof. Admitted.
+Proof. Abort.

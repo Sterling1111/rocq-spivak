@@ -7,4 +7,4 @@ Lemma lemma_10_8 : ∀ r1 r2 A1 A2 t,
   ⟦ Der t ⟧ A1 = 10 * π ->
   A2 t = 16 * π ->
   ⟦ Der t ⟧ (λ t, 2 * π * r2 t) = 5 * π / 4.
-Proof. Admitted.
+Proof. Abort.

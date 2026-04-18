@@ -41,14 +41,14 @@ Lemma lemma_7_14_a : forall f c,
   continuous_on f [0, 1] ->
   ‖ (fun x => c * (f x)) ‖ = |c| * ‖ f ‖.
 Proof.
-  Admitted.
+  Abort.
 
 Lemma lemma_7_14_b : forall f g,
   continuous_on f [0, 1] ->
   continuous_on g [0, 1] ->
   ‖ (fun x => f x + g x) ‖ <= ‖ f ‖ + ‖ g ‖.
 Proof.
-  Admitted.
+  Abort.
 
 Lemma lemma_7_14_c : forall h f g,
   continuous_on h [0, 1] ->
@@ -56,4 +56,4 @@ Lemma lemma_7_14_c : forall h f g,
   continuous_on g [0, 1] ->
   ‖ (fun x => h x - f x) ‖ <= ‖ (fun x => h x - g x) ‖ + ‖ (fun x => g x - f x) ‖.
 Proof.
-  Admitted.
+  Abort.

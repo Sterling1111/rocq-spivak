@@ -7,4 +7,4 @@ Lemma lemma_11_48 : forall f f' a b L1 L2,
   ⟦ lim a⁺ ⟧ f = L1 ->
   ⟦ lim b⁻ ⟧ f = L2 ->
   exists x, x ∈ (a, b) /\ f' x = (L2 - L1) / (b - a).
-Admitted.
+Abort.

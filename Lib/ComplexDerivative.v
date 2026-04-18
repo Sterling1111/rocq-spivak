@@ -19,4 +19,4 @@ Definition differentiable_c (f : C -> C) :=
 Lemma derivative_c_at_imp_continuous_c_at : forall f f' a,
   derivative_c_at f f' a -> continuous_c_at f a.
 Proof.
-Admitted.
+Abort.

@@ -8,4 +8,4 @@ Lemma lemma_10_9 : ∀ a b d t,
   √ ((- √ 3 * b t)^2 + (b t)^2) = 3 ->
   ⟦ Der t ⟧ (λ t, √ ((- √ 3 * b t)^2 + (b t)^2)) = 4 ->
   True.
-Proof. Admitted.
+Proof. Abort.

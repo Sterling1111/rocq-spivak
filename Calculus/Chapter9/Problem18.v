@@ -7,4 +7,4 @@ Lemma lemma_9_18 : forall f a,
     f x = 1 / IZR q) ->
   ~ differentiable_at f a.
 Proof.
-Admitted.
+Abort.

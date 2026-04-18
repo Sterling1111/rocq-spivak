@@ -31,4 +31,4 @@ Lemma lemma_8_3_b : ∀ f a b,
 Proof.
   intros f a b H1 H2 H3.
   
-Admitted.
+Abort.

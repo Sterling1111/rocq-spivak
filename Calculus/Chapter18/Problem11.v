@@ -6,4 +6,4 @@ Lemma problem_18_11 : forall f F,
   (forall x, 1 <= x -> F x = ∫ 1 x (fun t => f t / t)) ->
   ((exists M, forall x, 1 <= x -> f x <= M) <->
    (exists M, forall x, 1 <= x -> F x / log x <= M)).
-Admitted.
+Abort.

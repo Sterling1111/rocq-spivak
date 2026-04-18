@@ -10,4 +10,4 @@ Lemma lemma_24_31 : exists fn dfn f df (L_fn : nat -> R) L_f,
   curve_length f df 0 1 L_f /\
   uniform_limit fn f (fun x => 0 <= x <= 1) /\
   ~ (⟦ lim ⟧ L_fn = L_f).
-Admitted.
+Abort.

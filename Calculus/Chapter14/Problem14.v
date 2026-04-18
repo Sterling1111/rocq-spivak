@@ -10,4 +10,4 @@ Lemma lemma_14_14 : forall f a b n,
   (forall x, x ∈ [a, b] -> f x >= 0) ->
   ∫ a b (fun x => (f x) ^ n) = 0 ->
   forall x, x ∈ [a, b] -> f x = 0.
-Admitted.
+Abort.

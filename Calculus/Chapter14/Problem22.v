@@ -9,4 +9,4 @@ Lemma lemma_14_22 : forall f f',
   (forall x, 0 < f' x <= 1) ->
   forall x, x >= 0 ->
   ∫ 0 x (fun t => (f t)^3) <= (∫ 0 x f)^2.
-Admitted.
+Abort.

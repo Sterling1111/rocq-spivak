@@ -7,4 +7,4 @@ Definition cesaro_summable (a : sequence) (l : R) : Prop :=
 
 Lemma problem_23_12 :
   exists a l, cesaro_summable a l /\ ~ (exists S, ∑ 0 ∞ (fun n => if (n =? 0)%nat then 0 else a n) = S).
-Admitted.
+Abort.

@@ -38,17 +38,17 @@ Lemma lemma_8_9_a : ∀ f c,
   ‖ c * f ‖ = | c | * ‖ f ‖.
 Proof.
   intros f c H1.
-Admitted.
+Abort.
 
 Lemma lemma_8_9_b : ∀ f g,
   bounded_on f [0, 1] ->
   bounded_on g [0, 1] ->
   ‖ (fun x => f x + g x) ‖ <= ‖ f ‖ + ‖ g ‖.
-Proof. Admitted.
+Proof. Abort.
 
 Lemma lemma_8_9_c : ∀ h f g,
   bounded_on h [0, 1] ->
   bounded_on f [0, 1] ->
   bounded_on g [0, 1] ->
   ‖ (fun x => h x - f x) ‖ <= ‖ (fun x => h x - g x) ‖ + ‖ (fun x => g x - f x) ‖.
-Proof. Admitted.
+Proof. Abort.

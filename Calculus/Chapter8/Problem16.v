@@ -5,4 +5,4 @@ Lemma lemma_8_16_helper : ∀ f a b,
   ~ has_upper_bound (fun y => ∃ x, x ∈ [a, b] /\ y = f x) ->
   ~ has_upper_bound (fun y => ∃ x, x ∈ [a, (a+b)/2] /\ y = f x) \/
   ~ has_upper_bound (fun y => ∃ x, x ∈ [(a+b)/2, b] /\ y = f x).
-Proof. Admitted.
+Proof. Abort.

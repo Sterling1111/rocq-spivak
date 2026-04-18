@@ -8,7 +8,7 @@ Lemma lemma_8_4_a : ∀ f a b x0,
   ∃ c d, a <= c < x0 < d <= b /\
   f c = f d = 0 /\ ∀ x, x ∈ (c, d) -> f x > 0.
 Proof.
-Admitted.
+Abort.
 
 Lemma lemma_8_4_b : ∀ f a b,
   continuous_on f [a, b] ->
@@ -18,4 +18,4 @@ Lemma lemma_8_4_b : ∀ f a b,
   f c = f a /\ f d = f b /\
   ∀ x, c < x < d -> f a < f x < f b.
 Proof. 
-Admitted.
+Abort.

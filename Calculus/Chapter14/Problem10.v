@@ -7,4 +7,4 @@ Lemma lemma_14_10 : forall f x,
   continuous f ->
   ∫ 0 x (fun u => f u * (x - u)^2) =
   2 * ∫ 0 x (fun u2 => ∫ 0 u2 (fun u1 => ∫ 0 u1 f)).
-Admitted.
+Abort.

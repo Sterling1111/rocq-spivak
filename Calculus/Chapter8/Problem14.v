@@ -5,7 +5,7 @@ Lemma lemma_8_14_a : ∀ a b : sequence,
   (∀ n, b (S n) <= b n) ->
   (∀ n, a n <= b n) ->
   ∃ x, ∀ n, a n <= x <= b n.
-Proof. Admitted.
+Proof. Abort.
 
 Lemma lemma_8_14_b :
   ∃ a b : sequence,
@@ -13,4 +13,4 @@ Lemma lemma_8_14_b :
     (∀ n, b (S n) <= b n) /\
     (∀ n, a n < b n) /\
     ~ (∃ x, ∀ n, a n < x < b n).
-Proof. Admitted.
+Proof. Abort.

@@ -4,4 +4,4 @@ From Calculus.Chapter15 Require Import Prelude.
 
 Lemma lemma_15_6 : forall x y,
   cos (x + y) = cos x * cos y - sin x * sin y.
-Admitted.
+Abort.

@@ -7,4 +7,4 @@ Lemma problem_23_15 : forall a S_abs S_total,
   (∑ 0 ∞ (fun n => if (n =? 0)%nat then 0 else a n) = S_total) ->
   (∑ 0 ∞ (fun n => if (n =? 0)%nat then 0 else |a n|) = S_abs) ->
   |S_total| <= S_abs.
-Admitted.
+Abort.

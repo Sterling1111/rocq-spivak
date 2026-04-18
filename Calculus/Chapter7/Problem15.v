@@ -8,7 +8,7 @@ Lemma lemma_7_15_a : forall φ n,
   exists x, x ^ n + φ x = 0.
 Proof.
   intros φ n H1 [k H2] H3 H4.
-Admitted.
+Abort.
 
 Lemma lemma_7_15_b : forall φ n,
   continuous φ ->
@@ -18,4 +18,4 @@ Lemma lemma_7_15_b : forall φ n,
   exists y, forall x, y ^ n + φ y <= x ^ n + φ x.
 Proof.
   intros φ n H1 [k H2] H3 H4.
-Admitted.
+Abort.

@@ -14,9 +14,9 @@ Lemma transcendental_e : transcendental e.
 Proof.
   intros [l [H1 [H2 H3]]]. rewrite Forall_forall in H1.
   (* good luck *)
-Admitted.
+Abort.
 
 Lemma transcendental_π : transcendental π.
 Proof.
   (* you are super cooked. lol. *)
-Admitted.
+Abort.

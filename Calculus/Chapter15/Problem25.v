@@ -4,4 +4,4 @@ From Calculus.Chapter15 Require Import Prelude.
 Lemma lemma_15_25 : forall x y,
   x <> y ->
   |sin x - sin y| < |x - y|.
-Admitted.
+Abort.

@@ -13,23 +13,23 @@ Definition local_min (f : R -> R) (x : R) : Prop :=
 Lemma lemma_21_8_a : forall f,
   (forall x, local_max f x) ->
   countable (image f).
-Admitted.
+Abort.
 
 (* (b) Deduce the previous result for continuous functions as a corollary. *)
 Lemma lemma_21_8_b : forall f,
   continuous f ->
   (forall x, local_max f x) ->
   exists c, forall x, f x = c.
-Admitted.
+Abort.
 
 (* (c) Prove the analogous result for local minimum points similarly. *)
 Lemma lemma_21_8_c : forall f,
   (forall x, local_min f x) ->
   countable (image f).
-Admitted.
+Abort.
 
 Lemma lemma_21_8_c' : forall f,
   continuous f ->
   (forall x, local_min f x) ->
   exists c, forall x, f x = c.
-Admitted.
+Abort.

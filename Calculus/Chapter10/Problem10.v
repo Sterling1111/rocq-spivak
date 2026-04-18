@@ -9,4 +9,4 @@ Lemma lemma_10_10 : ∀ f h k,
   k 0 = 0 ->
   ∀ α, α = (λ x, h (x^2)) ->
   (⟦ Der 0 ⟧ (f ∘ h) = 0) /\ (⟦ Der 0 ⟧ (k ∘ f) = 0) /\ (⟦ Der 0 ⟧ α = 0).
-Proof. Admitted.
+Proof. Abort.

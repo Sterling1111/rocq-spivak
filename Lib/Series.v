@@ -182,65 +182,65 @@ Definition sequence_contains_all_products (c a b : sequence) :=
 Theorem theorem_23_cauchy_criterion : forall a,
   series_converges a <-> cauchy_sequence (partial_sum a).
 Proof.
-Admitted.
+Abort.
 
 Theorem theorem_23_vanishing_condition : forall a,
   series_converges a -> ⟦ lim ⟧ a = 0.
 Proof.
-Admitted.
+Abort.
 
 Theorem theorem_23_boundedness_criterion : forall a,
   (forall n, a n >= 0) -> (series_converges a <-> Sequence.bounded_above (partial_sum a)).
 Proof.
-Admitted.
+Abort.
 
 Theorem theorem_23_1 : forall a b,
   (forall n, 0 <= a n /\ a n <= b n) -> series_converges b -> series_converges a.
 Proof.
-Admitted.
+Abort.
 
 Theorem theorem_23_2 : forall a b c,
   (forall n, a n > 0) -> (forall n, b n > 0) -> c <> 0 ->
   ⟦ lim ⟧ (fun n => a n / b n) = c ->
   (series_converges a <-> series_converges b).
 Proof.
-Admitted.
+Abort.
 
 Theorem theorem_23_3 : forall a r,
   (forall n, a n > 0) -> ⟦ lim ⟧ (fun n => a (S n) / a n) = r ->
   (r < 1 -> series_converges a) /\ (r > 1 -> series_diverges a).
 Proof.
-Admitted.
+Abort.
 
 Theorem theorem_23_4 : forall f a,
   (forall x, f x > 0) -> (forall x y, 1 <= x -> x <= y -> f y <= f x) ->
   (forall n, (n >= 1)%nat -> a n = f n) ->
   (series_converges a <-> exists L, ⟦ lim ⟧ (fun N => ∫ 1 N f) = L).
 Proof.
-Admitted.
+Abort.
 
 Theorem theorem_23_5 : forall a,
   series_converges_absolutely a -> series_converges a.
 Proof.
-Admitted.
+Abort.
 
 Theorem theorem_23_6 : forall a,
   nonincreasing a -> (forall n, a n >= 0) -> ⟦ lim ⟧ a = 0 ->
   series_converges (fun n => (-1)^(n+1) * a n).
 Proof.
-Admitted.
+Abort.
 
 Theorem theorem_23_7 : forall a α,
   series_converges a -> ~ series_converges_absolutely a ->
   exists b, rearrangement b a /\ ∑ 0 ∞ b = α.
 Proof.
-Admitted.
+Abort.
 
 Theorem theorem_23_8 : forall a b L,
   series_converges_absolutely a -> ∑ 0 ∞ a = L -> rearrangement b a ->
   series_converges_absolutely b /\ ∑ 0 ∞ b = L.
 Proof.
-Admitted.
+Abort.
 
 Theorem theorem_23_9 : forall a b c La Lb,
   series_converges_absolutely a -> ∑ 0 ∞ a = La ->
@@ -248,7 +248,7 @@ Theorem theorem_23_9 : forall a b c La Lb,
   sequence_contains_all_products c a b ->
   ∑ 0 ∞ c = (La * Lb).
 Proof.
-Admitted.
+Abort.
 
 Definition pointwise_limit (fn : ℕ -> ℝ -> ℝ) (f : ℝ -> ℝ) (D : Ensemble ℝ) : Prop :=
   ∀ x, x ∈ D -> ⟦ lim ⟧ (fun n => fn n x) = f x.
@@ -265,14 +265,14 @@ Theorem theorem_24_1 : forall (fn : ℕ -> ℝ -> ℝ) (f : ℝ -> ℝ) a b,
   uniform_limit fn f [a, b] ->
   ⟦ lim ⟧ (fun n => ∫ a b (fn n)) = ∫ a b f.
 Proof.
-Admitted.
+Abort.
 
 Theorem theorem_24_2 : forall (fn : ℕ -> ℝ -> ℝ) (f : ℝ -> ℝ) a b,
   (forall n, continuous_on (fn n) [a, b]) ->
   uniform_limit fn f [a, b] ->
   continuous_on f [a, b].
 Proof.
-Admitted.
+Abort.
 
 Theorem theorem_24_3 : forall (fn fn' : ℕ -> ℝ -> ℝ) (f g : ℝ -> ℝ) a b,
   (forall n, ⟦ der ⟧ (fn n) [a, b] = fn' n) ->
@@ -282,14 +282,14 @@ Theorem theorem_24_3 : forall (fn fn' : ℕ -> ℝ -> ℝ) (f g : ℝ -> ℝ) a 
   uniform_limit fn' g [a, b] ->
   ⟦ der ⟧ f [a, b] = g.
 Proof.
-Admitted.
+Abort.
 
 Corollary corollary_24_1_1 : forall (fn : ℕ -> ℝ -> ℝ) (f : ℝ -> ℝ) a b,
   (forall n, continuous_on (fn n) [a, b]) ->
   uniform_series_limit fn f [a, b] ->
   continuous_on f [a, b].
 Proof.
-Admitted.
+Abort.
 
 Corollary corollary_24_1_2 : forall (fn : ℕ -> ℝ -> ℝ) (f : ℝ -> ℝ) a b,
   (forall n, integrable_on a b (fn n)) ->
@@ -297,7 +297,7 @@ Corollary corollary_24_1_2 : forall (fn : ℕ -> ℝ -> ℝ) (f : ℝ -> ℝ) a 
   uniform_series_limit fn f [a, b] ->
   ∑ 0 ∞ (fun n => ∫ a b (fn n)) = ∫ a b f.
 Proof.
-Admitted.
+Abort.
 
 Corollary corollary_24_1_3 : forall (fn fn' : ℕ -> ℝ -> ℝ) (f g : ℝ -> ℝ) a b,
   (forall n, ⟦ der ⟧ (fn n) [a, b] = fn' n) ->
@@ -307,7 +307,7 @@ Corollary corollary_24_1_3 : forall (fn fn' : ℕ -> ℝ -> ℝ) (f g : ℝ -> �
   uniform_series_limit fn' g [a, b] ->
   ⟦ der ⟧ f [a, b] = g.
 Proof.
-Admitted.
+Abort.
 
 Theorem theorem_24_4_Weierstrass_M_test : forall (fn : ℕ -> ℝ -> ℝ) (M : sequence) (A : Ensemble ℝ),
   (forall n x, x ∈ A -> |fn n x| <= M n) ->
@@ -316,7 +316,7 @@ Theorem theorem_24_4_Weierstrass_M_test : forall (fn : ℕ -> ℝ -> ℝ) (M : s
     uniform_series_limit fn f A /\
     (forall x, x ∈ A -> series_converges_absolutely (fun n => fn n x)).
 Proof.
-Admitted.
+Abort.
 
 Parameter dist_to_nearest_integer : ℝ -> ℝ.
 
@@ -324,7 +324,7 @@ Theorem theorem_24_5 : exists f : ℝ -> ℝ,
   (forall x, ∑ 0 ∞ (fun n => 1 / 10^n * dist_to_nearest_integer (10^n * x)) = (f x)) /\
   continuous f /\ (~ exists f', ⟦ der ⟧ f = f').
 Proof.
-Admitted.
+Abort.
 
 Theorem theorem_24_6 : forall (a : sequence) (x0 c : ℝ),
   x0 <> 0 -> 0 < c < |x0| ->
@@ -336,4 +336,4 @@ Theorem theorem_24_6 : forall (a : sequence) (x0 c : ℝ),
      (forall x, |x| < |x0| -> ∑ 0 ∞ (fun n => INR n * a n * x^(n-1)%nat) = (g x)) ->
      ⟦ der ⟧ f (-|x0|, |x0|) = g).
 Proof.
-Admitted.
+Abort.

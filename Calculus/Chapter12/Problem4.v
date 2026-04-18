@@ -4,10 +4,10 @@ Lemma lemma_12_4_a : forall f g,
   increasing f ->
   increasing g ->
   increasing (fun x => f x + g x).
-Admitted.
+Abort.
 
 Lemma lemma_12_4_b : forall f g,
   increasing f ->
   increasing g ->
   increasing (f ∘ g).
-Admitted.
+Abort.

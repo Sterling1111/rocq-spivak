@@ -122,4 +122,4 @@ Proof.
   pose proof closed_interval_method_max f f' (-1) (1/2) ltac:(lra) H1 H2 as [c [H3 H4]].
   pose proof closed_interval_method_min f f' (-1) (1/2) ltac:(lra) H1 H2 as [d [H5 H6]].
   split; admit.
-Admitted.
+Abort.

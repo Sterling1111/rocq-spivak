@@ -6,11 +6,11 @@ Lemma lemma_11_app_5_a : forall f f' a b,
   convex_on f (a, b) ->
   increasing_on f (a, b) \/ decreasing_on f (a, b) \/
   exists c, c ∈ (a, b) /\ decreasing_on f (a, c) /\ increasing_on f (c, b).
-Admitted.
+Abort.
 
 Lemma lemma_11_app_5_c : forall f a b,
   a < b ->
   convex_on f (a, b) ->
   increasing_on f (a, b) \/ decreasing_on f (a, b) \/
   exists c, c ∈ (a, b) /\ decreasing_on f (a, c) /\ increasing_on f (c, b).
-Admitted.
+Abort.

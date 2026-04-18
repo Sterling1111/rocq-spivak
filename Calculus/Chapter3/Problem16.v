@@ -17,4 +17,4 @@ Lemma lemma_3_16_b : forall f : R -> R,
   (forall x y, f (x + y) = f x + f y) -> 
   exists c : R, forall x, rational x -> f x = c * x.
 Proof.
-Admitted.
+Abort.

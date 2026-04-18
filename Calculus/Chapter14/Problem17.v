@@ -8,4 +8,4 @@ Lemma lemma_14_17 : forall f a b,
   continuous_on f [a, b] ->
   forall y, Rmin (f a) (f b) <= y <= Rmax (f a) (f b) ->
   exists c, c ∈ [a, b] /\ f c = y.
-Admitted.
+Abort.

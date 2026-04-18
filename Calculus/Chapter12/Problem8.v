@@ -7,4 +7,4 @@ Lemma lemma_12_8 : forall f f_inv f' f_inv' f_inv'',
   ⟦ der ⟧ f_inv = f_inv' ->
   ⟦ der ⟧ f_inv' = f_inv'' ->
   forall x, f_inv'' x = (3/2) * (f_inv x)^2.
-Admitted.
+Abort.

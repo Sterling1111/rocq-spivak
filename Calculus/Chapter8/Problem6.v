@@ -5,12 +5,12 @@ Definition dense (A : Ensemble ℝ) :=
 
 Lemma lemma_8_6_a : ∀ f A,
   continuous f -> dense A -> (∀ x, x ∈ A -> f x = 0) -> ∀ x, f x = 0.
-Proof. Admitted.
+Proof. Abort.
 
 Lemma lemma_8_6_b : ∀ f g A,
   continuous f -> continuous g -> dense A -> (∀ x, x ∈ A -> f x = g x) -> ∀ x, f x = g x.
-Proof. Admitted.
+Proof. Abort.
 
 Lemma lemma_8_6_c : ∀ f g A,
   continuous f -> continuous g -> dense A -> (∀ x, x ∈ A -> f x >= g x) -> ∀ x, f x >= g x.
-Proof. Admitted.
+Proof. Abort.

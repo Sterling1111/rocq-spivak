@@ -4,4 +4,4 @@ From Calculus.Chapter14 Require Import Prelude.
 
 Lemma lemma_14_11 : exists f : R -> R,
   ⟦ der^2 ⟧ f = (fun x => 1 / √(1 + (sin x)^2)).
-Admitted.
+Abort.
