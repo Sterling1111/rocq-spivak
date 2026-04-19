@@ -25,6 +25,9 @@ Inductive expr :=
 | EArccos (e : expr)
 | EArctan (e : expr)
 | ESqrt (e : expr)
+| ESinh (e : expr)
+| ECosh (e : expr)
+| ETanh (e : expr)
 | EExp (e : expr)
 | ELog (e : expr)
 | ERabs (e : expr)
@@ -52,6 +55,9 @@ Fixpoint eval_expr (e : expr) (x : R) : R :=
   | EArccos e => arccos (eval_expr e x)
   | EArctan e => arctan (eval_expr e x)
   | ESqrt e => sqrt (eval_expr e x)
+  | ESinh e => sinh (eval_expr e x)
+  | ECosh e => cosh (eval_expr e x)
+  | ETanh e => tanh (eval_expr e x)
   | EExp e => exp (eval_expr e x)
   | ELog e => log (eval_expr e x)
   | ERabs e => Rabs (eval_expr e x)
@@ -66,7 +72,7 @@ Fixpoint wf_limit (e : expr) (a : R) : Prop :=
   | EVar | EConst _ => True
   | EAdd e1 e2 | ESub e1 e2 | EMul e1 e2 => wf_limit e1 a /\ wf_limit e2 a
   | EDiv e1 e2 => wf_limit e1 a /\ wf_limit e2 a /\ eval_expr e2 a <> 0
-  | ENeg e | ESin e | ECos e | EExp e | EPow e _ | EArctan e | ERabs e => wf_limit e a
+  | ENeg e | ESin e | ECos e | EExp e | EPow e _ | EArctan e | ERabs e | ESinh e | ECosh e | ETanh e => wf_limit e a
   | ELog e => wf_limit e a /\ eval_expr e a > 0
   | ERpow e _ => wf_limit e a /\ eval_expr e a > 0
   | ERpower e1 e2 => wf_limit e1 a /\ wf_limit e2 a /\ eval_expr e1 a > 0
@@ -82,7 +88,7 @@ Fixpoint wf_limit_right (e : expr) (a : R) : Prop :=
   | EVar | EConst _ => True
   | EAdd e1 e2 | ESub e1 e2 | EMul e1 e2 => wf_limit_right e1 a /\ wf_limit_right e2 a
   | EDiv e1 e2 => wf_limit_right e1 a /\ wf_limit_right e2 a /\ eval_expr e2 a <> 0
-  | ENeg e | ESin e | ECos e | EExp e | EPow e _ | EArctan e | ERabs e => wf_limit_right e a
+  | ENeg e | ESin e | ECos e | EExp e | EPow e _ | EArctan e | ERabs e | ESinh e | ECosh e | ETanh e => wf_limit_right e a
   | ELog e => wf_limit_right e a /\ eval_expr e a > 0
   | ERpow e _ => wf_limit_right e a /\ eval_expr e a > 0
   | ERpower e1 e2 => wf_limit_right e1 a /\ wf_limit_right e2 a /\ eval_expr e1 a > 0
@@ -98,7 +104,7 @@ Fixpoint wf_limit_left (e : expr) (a : R) : Prop :=
   | EVar | EConst _ => True
   | EAdd e1 e2 | ESub e1 e2 | EMul e1 e2 => wf_limit_left e1 a /\ wf_limit_left e2 a
   | EDiv e1 e2 => wf_limit_left e1 a /\ wf_limit_left e2 a /\ eval_expr e2 a <> 0
-  | ENeg e | ESin e | ECos e | EExp e | EPow e _ | EArctan e | ERabs e => wf_limit_left e a
+  | ENeg e | ESin e | ECos e | EExp e | EPow e _ | EArctan e | ERabs e | ESinh e | ECosh e | ETanh e => wf_limit_left e a
   | ELog e => wf_limit_left e a /\ eval_expr e a > 0
   | ERpow e _ => wf_limit_left e a /\ eval_expr e a > 0
   | ERpower e1 e2 => wf_limit_left e1 a /\ wf_limit_left e2 a /\ eval_expr e1 a > 0
@@ -114,7 +120,7 @@ Fixpoint wf_cont (e : expr) (a : R) : Prop :=
   | EVar | EConst _ => True
   | EAdd e1 e2 | ESub e1 e2 | EMul e1 e2 => wf_cont e1 a /\ wf_cont e2 a
   | EDiv e1 e2 => wf_cont e1 a /\ wf_cont e2 a /\ eval_expr e2 a <> 0
-  | ENeg e | ESin e | ECos e | EExp e | EPow e _ | EArctan e | ERabs e => wf_cont e a
+  | ENeg e | ESin e | ECos e | EExp e | EPow e _ | EArctan e | ERabs e | ESinh e | ECosh e | ETanh e => wf_cont e a
   | ELog e => wf_cont e a /\ eval_expr e a > 0
   | ERpow e _ => wf_cont e a /\ eval_expr e a > 0
   | ERpower e1 e2 => wf_cont e1 a /\ wf_cont e2 a /\ eval_expr e1 a > 0
@@ -130,7 +136,7 @@ Fixpoint wf_derive (e : expr) (x : R) : Prop :=
   | EVar | EConst _ => True
   | EAdd e1 e2 | ESub e1 e2 | EMul e1 e2 => wf_derive e1 x /\ wf_derive e2 x
   | EDiv e1 e2 => wf_derive e1 x /\ wf_derive e2 x /\ eval_expr e2 x <> 0
-  | ENeg e | ESin e | ECos e | EExp e | EPow e _ | EArctan e => wf_derive e x
+  | ENeg e | ESin e | ECos e | EExp e | EPow e _ | EArctan e | ESinh e | ECosh e | ETanh e => wf_derive e x
   | ELog e => wf_derive e x /\ eval_expr e x > 0
   | ERabs e => wf_derive e x /\ eval_expr e x <> 0
   | ERpow e _ => wf_derive e x /\ eval_expr e x > 0
@@ -162,6 +168,9 @@ Fixpoint derive_expr (e : expr) : expr :=
   | EArccos e => EDiv (ENeg (derive_expr e)) (ESqrt (ESub (EConst 1) (EPow e 2)))
   | EArctan e => EDiv (derive_expr e) (EAdd (EConst 1) (EPow e 2))
   | ESqrt e => EDiv (derive_expr e) (EMul (EConst 2) (ESqrt e))
+  | ESinh e => EMul (ECosh e) (derive_expr e)
+  | ECosh e => EMul (ESinh e) (derive_expr e)
+  | ETanh e => EDiv (derive_expr e) (EPow (ECosh e) 2)
   | EExp e => EMul (EExp e) (derive_expr e)
   | ELog e => EDiv (derive_expr e) e
   | ERabs e => EMul (EDiv e (ERabs e)) (derive_expr e)
@@ -191,6 +200,9 @@ Proof.
   - destruct H as [H1 H2]. apply limit_right_continuous_comp; auto. apply continuous_at_arccos; auto.
   - apply limit_right_continuous_comp; auto. apply continuous_at_arctan.
   - destruct H as [H1 H2]. apply limit_right_continuous_comp; auto. apply continuous_sqrt.
+  - apply limit_right_continuous_comp; auto. apply continuous_sinh.
+  - apply limit_right_continuous_comp; auto. apply continuous_cosh.
+  - apply limit_right_continuous_comp; auto. apply continuous_tanh.
   - apply limit_right_continuous_comp; auto. apply continuous_exp.
   - destruct H as [H1 H2]. apply limit_right_continuous_comp; auto. apply continuous_at_log; exact H2.
   - apply limit_right_continuous_comp with (f := Rabs); auto. apply continuous_at_Rabs.
@@ -219,6 +231,9 @@ Proof.
   - destruct H1 as [H2 H3]. apply limit_left_continuous_comp; auto. apply continuous_at_arccos; auto.
   - apply limit_left_continuous_comp; auto. apply continuous_at_arctan.
   - destruct H1 as [H2 H3]. apply limit_left_continuous_comp; auto. apply continuous_sqrt.
+  - apply limit_left_continuous_comp; auto. apply continuous_sinh.
+  - apply limit_left_continuous_comp; auto. apply continuous_cosh.
+  - apply limit_left_continuous_comp; auto. apply continuous_tanh.
   - apply limit_left_continuous_comp; auto. apply continuous_exp.
   - destruct H1 as [H2 H3]. apply limit_left_continuous_comp; auto. apply continuous_at_log; exact H3.
   - apply limit_left_continuous_comp with (f := Rabs); auto. apply continuous_at_Rabs.
@@ -247,6 +262,9 @@ Proof.
   - destruct H1 as [H2 H3]. apply limit_continuous_comp; auto. apply continuous_at_arccos; auto.
   - apply limit_continuous_comp; auto. apply continuous_at_arctan.
   - destruct H1 as [H2 H3]. apply limit_continuous_comp; auto. apply continuous_sqrt.
+  - apply limit_continuous_comp; auto. apply continuous_sinh.
+  - apply limit_continuous_comp; auto. apply continuous_cosh.
+  - apply limit_continuous_comp; auto. apply continuous_tanh.
   - apply limit_continuous_comp; auto. apply continuous_exp.
   - destruct H1 as [H2 H3]. apply limit_continuous_comp; auto. apply continuous_at_log; exact H3.
   - apply limit_continuous_comp with (f := Rabs); auto. apply continuous_at_Rabs.
@@ -291,6 +309,12 @@ Proof.
     apply continuous_at_comp; [apply IHe | apply continuous_at_arctan]; auto.
   - destruct H as [H1 H2]. replace (λ t : ℝ, √ eval_expr e t) with ((R_sqrt.sqrt) ∘ (λ t : ℝ, eval_expr e t))%function by reflexivity.
     apply continuous_at_comp; [apply IHe | apply continuous_at_sqrt]; auto.
+  - replace (λ t : ℝ, sinh (eval_expr e t)) with ((sinh) ∘ (λ t : ℝ, eval_expr e t))%function by reflexivity.
+    apply continuous_at_comp; [apply IHe | apply continuous_sinh]; auto.
+  - replace (λ t : ℝ, cosh (eval_expr e t)) with ((cosh) ∘ (λ t : ℝ, eval_expr e t))%function by reflexivity.
+    apply continuous_at_comp; [apply IHe | apply continuous_cosh]; auto.
+  - replace (λ t : ℝ, tanh (eval_expr e t)) with ((tanh) ∘ (λ t : ℝ, eval_expr e t))%function by reflexivity.
+    apply continuous_at_comp; [apply IHe | apply continuous_tanh]; auto.
   - replace (λ t : ℝ, exp (eval_expr e t)) with ((exp) ∘ (λ t : ℝ, eval_expr e t))%function by reflexivity.
     apply continuous_at_comp; [apply IHe | apply continuous_exp]; auto.
   - destruct H as [H1 H2]. replace (λ t : ℝ, log (eval_expr e t)) with ((log) ∘ (λ t : ℝ, eval_expr e t))%function by reflexivity.
@@ -347,7 +371,7 @@ Proof.
                                     (g' := fun y => - (csc y) ^ 2).
       * apply IHe; auto.
       * apply derivative_at_cot; auto.
-    + unfold compose. reflexivity.
+    + unfold compose. lra.
     
   - intros x [H1 H2].
     change (fun t : R => csc (eval_expr e t)) with (compose csc (fun t => eval_expr e t)).
@@ -364,7 +388,7 @@ Proof.
                                     (g' := fun y => sec y * tan y).
       * apply IHe; auto.
       * apply derivative_at_sec; auto.
-    + unfold compose. reflexivity.
+    + unfold compose. lra.
   - intros x [H1 H2].
     replace (λ t : ℝ, arcsin (eval_expr e t)) with ((arcsin) ∘ (λ t:ℝ, eval_expr e t))%function by reflexivity.
     replace (λ t : ℝ, eval_expr (derive_expr e) t / √(1 - (eval_expr e t * (eval_expr e t * 1)))) with ((fun x => (1 / √(1 - x ^ 2))%R) ∘ (λ t : ℝ, eval_expr e t) ⋅ (λ t, eval_expr (derive_expr e) t))%function.
@@ -382,6 +406,25 @@ Proof.
     + extensionality t. unfold compose, Rdiv. simpl. lra.
   - intros x [H1 H2].
     apply derivative_at_sqrt_comp; auto.
+  - intros x H1.
+    replace (λ t : ℝ, sinh (eval_expr e t)) with ((sinh) ∘ (λ t:ℝ, eval_expr e t))%function by reflexivity.
+    replace (λ t : ℝ, cosh (eval_expr e t) * eval_expr (derive_expr e) t) with ((cosh) ∘ (λ t : ℝ, eval_expr e t) ⋅ (λ t, eval_expr (derive_expr e) t))%function by reflexivity.
+    apply derivative_at_comp.
+    + apply IHe; auto.
+    + apply derivative_sinh.
+  - intros x H1.
+    replace (λ t : ℝ, cosh (eval_expr e t)) with ((cosh) ∘ (λ t:ℝ, eval_expr e t))%function by reflexivity.
+    replace (λ t : ℝ, sinh (eval_expr e t) * eval_expr (derive_expr e) t) with ((sinh) ∘ (λ t : ℝ, eval_expr e t) ⋅ (λ t, eval_expr (derive_expr e) t))%function by reflexivity.
+    apply derivative_at_comp.
+    + apply IHe; auto.
+    + apply derivative_cosh.
+  - intros x H1.
+    replace (λ t : ℝ, tanh (eval_expr e t)) with ((tanh) ∘ (λ t:ℝ, eval_expr e t))%function by reflexivity.
+    replace (λ t : ℝ, eval_expr (derive_expr e) t / (cosh (eval_expr e t) * (cosh (eval_expr e t) * 1))) with (((fun y : R => (1 / (cosh y) ^ 2)%R) ∘ (λ t : ℝ, eval_expr e t)) ⋅ (λ t, eval_expr (derive_expr e) t))%function.
+    2: { extensionality t. unfold compose. simpl. lra. }
+    apply derivative_at_comp with (g := tanh) (g' := fun y => (1 / (cosh y) ^ 2)%R).
+    + apply IHe. exact H1.
+    + apply derivative_tanh.
   - intros x H1.
     replace (λ t : ℝ, exp (eval_expr e t)) with ((exp) ∘ (λ t:ℝ, eval_expr e t))%function by reflexivity.
     replace (λ t : ℝ, exp (eval_expr e t) * eval_expr (derive_expr e) t) with ((exp) ∘ (λ t : ℝ, eval_expr e t) ⋅ (λ t, eval_expr (derive_expr e) t))%function by reflexivity.
@@ -467,6 +510,9 @@ Ltac reify_expr x t :=
       | arccos ?u => let e := reify_expr x u in constr:(EArccos e)
       | arctan ?u => let e := reify_expr x u in constr:(EArctan e)
       | sqrt ?u => let e := reify_expr x u in constr:(ESqrt e)
+      | sinh ?u => let e := reify_expr x u in constr:(ESinh e)
+      | cosh ?u => let e := reify_expr x u in constr:(ECosh e)
+      | tanh ?u => let e := reify_expr x u in constr:(ETanh e)
       | exp ?u  => let e := reify_expr x u in constr:(EExp e)
       | log ?u  => let e := reify_expr x u in constr:(ELog e)
       | ln ?u   => let e := reify_expr x u in constr:(ELog e)

@@ -71,6 +71,9 @@ let rec parse_prefix lines =
       | "EExp" -> mk_App "EExp" [parse_prefix lines]
       | "ELog" -> mk_App "ELog" [parse_prefix lines]
       | "ESqrt" -> mk_App "ESqrt" [parse_prefix lines]
+      | "ESinh" -> mk_App "ESinh" [parse_prefix lines]
+      | "ECosh" -> mk_App "ECosh" [parse_prefix lines]
+      | "ETanh" -> mk_App "ETanh" [parse_prefix lines]
       | "EArcsin" -> mk_App "EArcsin" [parse_prefix lines]
       | "EArccos" -> mk_App "EArccos" [parse_prefix lines]
       | "EArctan" -> mk_App "EArctan" [parse_prefix lines]
@@ -124,6 +127,9 @@ let rec convert_coq_expr_to_python_string env sigma t =
        | "EExp" | "@EExp" -> "exp(" ^ convert_coq_expr_to_python_string env sigma args.(len - 1) ^ ")"
        | "ELog" | "@ELog" -> "log(" ^ convert_coq_expr_to_python_string env sigma args.(len - 1) ^ ")"
        | "ESqrt" | "@ESqrt" -> "sqrt(" ^ convert_coq_expr_to_python_string env sigma args.(len - 1) ^ ")"
+       | "ESinh" | "@ESinh" -> "sinh(" ^ convert_coq_expr_to_python_string env sigma args.(len - 1) ^ ")"
+       | "ECosh" | "@ECosh" -> "cosh(" ^ convert_coq_expr_to_python_string env sigma args.(len - 1) ^ ")"
+       | "ETanh" | "@ETanh" -> "tanh(" ^ convert_coq_expr_to_python_string env sigma args.(len - 1) ^ ")"
        | "EArcsin" | "@EArcsin" -> "asin(" ^ convert_coq_expr_to_python_string env sigma args.(len - 1) ^ ")"
        | "EArccos" | "@EArccos" -> "acos(" ^ convert_coq_expr_to_python_string env sigma args.(len - 1) ^ ")"
        | "EArctan" | "@EArctan" -> "atan(" ^ convert_coq_expr_to_python_string env sigma args.(len - 1) ^ ")"

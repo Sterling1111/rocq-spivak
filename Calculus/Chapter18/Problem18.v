@@ -5,6 +5,6 @@ Local Notation ln := Rpower.ln.
 
 Definition f x := exp (x * ln (1 + 1/x)).
 
-Definition p_f := ltac:(plot f (1/10) 20).
+Definition p_f := ltac:(plot f (1/10) 20 with (i_size 2000 1000)).
 
 Plot p_f as "Calculus/Chapter18/Problem18/f.gp".

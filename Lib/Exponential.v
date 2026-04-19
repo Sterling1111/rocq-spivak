@@ -1356,6 +1356,82 @@ Definition sinh (x : R) : R := (exp x - exp (- x)) / 2.
 Definition cosh (x : R) : R := (exp x + exp (- x)) / 2.
 Definition tanh (x : R) : R := sinh x / cosh x.
 
+Lemma derivative_sinh : ⟦ der ⟧ sinh = cosh.
+Proof.
+  unfold sinh, cosh. intros x.
+  apply derivative_at_eq with (f1 := fun x0 => (exp x0 - exp (-x0)) * (/ 2)).
+  - exists 1. split; [lra |]. intros t H. lra.
+  - apply derivative_at_ext_val with (f' := fun x0 => (exp x0 - exp (-x0) * -1) * (/ 2)).
+    + apply derivative_at_mult_const_r.
+      apply derivative_at_minus.
+      * apply derivative_at_exp.
+      * apply derivative_at_comp with (g := exp) (g' := exp).
+        -- apply derivative_at_neg. apply derivative_at_id.
+        -- apply derivative_at_exp.
+    + simpl. lra.
+Qed.
+
+Lemma derivative_cosh : ⟦ der ⟧ cosh = sinh.
+Proof.
+  unfold sinh, cosh. intros x.
+  apply derivative_at_eq with (f1 := fun x0 => (exp x0 + exp (-x0)) * (/ 2)).
+  - exists 1. split; [lra |]. intros t H. lra.
+  - apply derivative_at_ext_val with (f' := fun x0 => (exp x0 + exp (-x0) * -1) * (/ 2)).
+    + apply derivative_at_mult_const_r.
+      apply derivative_at_plus.
+      * apply derivative_at_exp.
+      * apply derivative_at_comp with (g := exp) (g' := exp).
+        -- apply derivative_at_neg. apply derivative_at_id.
+        -- apply derivative_at_exp.
+    + simpl. lra.
+Qed.
+
+Lemma derivative_tanh : ⟦ der ⟧ tanh = (fun x => 1 / (cosh x) ^ 2).
+Proof.
+  unfold tanh. intros x.
+  apply derivative_at_eq with (f1 := fun x0 => sinh x0 / cosh x0).
+  - exists 1. split; [lra |]. intros t H. reflexivity.
+  - apply derivative_at_ext_val with (f' := fun x0 => (cosh x0 * cosh x0 - sinh x0 * sinh x0) / (cosh x0 * cosh x0)).
+    + apply derivative_at_div.
+      * pose proof derivative_sinh as H. apply H.
+      * pose proof derivative_cosh as H. apply H.
+      * apply Rgt_not_eq. pose proof exp_pos x. pose proof exp_pos (-x). unfold cosh; lra.
+    + unfold sinh, cosh. simpl.
+      replace ( (exp x + exp (- x)) / 2 * ((exp x + exp (- x)) / 2) - (exp x - exp (- x)) / 2 * ((exp x - exp (- x)) / 2) ) with (exp x * exp (-x)) by lra.
+      rewrite <- theorem_18_3.
+      replace (x + - x) with 0 by lra.
+      rewrite exp_0.
+      replace (((exp x + exp (- x)) / 2 * ((exp x + exp (- x)) / 2 * 1))) with (((exp x + exp (- x)) / 2 * ((exp x + exp (- x)) / 2))) by lra.
+      reflexivity.
+Qed.
+
+Lemma continuous_sinh : continuous sinh.
+Proof.
+  intros x. apply differentiable_at_imp_continuous_at.
+  apply derivative_at_imp_differentiable_at with (f' := cosh).
+  pose proof derivative_sinh as H. apply H.
+Qed.
+
+Lemma continuous_cosh : continuous cosh.
+Proof.
+  intros x. apply differentiable_at_imp_continuous_at.
+  apply derivative_at_imp_differentiable_at with (f' := sinh).
+  pose proof derivative_cosh as H. apply H.
+Qed.
+
+Lemma continuous_tanh : continuous tanh.
+Proof.
+  intros x. apply differentiable_at_imp_continuous_at.
+  apply derivative_at_imp_differentiable_at with (f' := fun x => 1 / (cosh x) ^ 2).
+  pose proof derivative_tanh as H. apply H.
+Qed.
+
+Lemma cosh_pos : forall x, cosh x > 0.
+Proof.
+  intros x. unfold cosh.
+  pose proof exp_pos x. pose proof exp_pos (-x). lra.
+Qed.
+
 Lemma continuous_at_right_Rpower_comp : forall f g a,
   ⟦ lim a⁺ ⟧ f = f a ->
   ⟦ lim a⁺ ⟧ g = g a ->

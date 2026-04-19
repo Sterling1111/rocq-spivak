@@ -72,6 +72,12 @@ def to_prefix_lines(expr):
         return ["EArctan"] + to_prefix_lines(expr.args[0])
     elif isinstance(expr, sympy.exp):
         return ["EExp"] + to_prefix_lines(expr.args[0])
+    elif isinstance(expr, sympy.sinh):
+        return ["ESinh"] + to_prefix_lines(expr.args[0])
+    elif isinstance(expr, sympy.cosh):
+        return ["ECosh"] + to_prefix_lines(expr.args[0])
+    elif isinstance(expr, sympy.tanh):
+        return ["ETanh"] + to_prefix_lines(expr.args[0])
     elif isinstance(expr, sympy.log):
         return ["ELog"] + to_prefix_lines(expr.args[0])
     elif isinstance(expr, sympy.StrictGreaterThan):

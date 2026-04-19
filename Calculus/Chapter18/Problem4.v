@@ -12,14 +12,14 @@ Definition fe x := (fd x) / (fc x).
 Definition fc_prime x := exp x - exp(-x).
 Definition fd_prime x := exp x + exp(-x).
 
-Definition pa := ltac:(plot fa (-3) 1).
-Definition pb := ltac:(plot fb (-10) 5).
-Definition pc := ltac:(plot fc (-2) 2).
-Definition pd := ltac:(plot fd (-2) 2).
-Definition pe := ltac:(plot fe (-3) 3).
+Definition pa := ltac:(plot fa (-3) 1 with (i_size 2000 1000)).
+Definition pb := ltac:(plot fb (-10) 5 with (i_size 2000 1000)).
+Definition pc := ltac:(plot fc (-2) 2 with (i_size 2000 1000)).
+Definition pd := ltac:(plot fd (-2) 2 with (i_size 2000 1000)).
+Definition pe := ltac:(plot fe (-3) 3 with (i_size 2000 1000)).
 
-Definition pc_prime := ltac:(plot fc_prime (-3) 3).
-Definition pd_prime := ltac:(plot fd_prime (-3) 3).
+Definition pc_prime := ltac:(plot fc_prime (-3) 3 with (i_size 2000 1000)).
+Definition pd_prime := ltac:(plot fd_prime (-3) 3 with (i_size 2000 1000)).
 
 Plot pa as "Calculus/Chapter18/Problem4/fa.gp".
 Plot pb as "Calculus/Chapter18/Problem4/fb.gp".
