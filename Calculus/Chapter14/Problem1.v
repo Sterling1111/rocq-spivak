@@ -6,6 +6,7 @@ From Calculus.Chapter14 Require Import Prelude.
 Lemma lemma_14_1_i : forall a x,
   ⟦ der x ⟧ (fun x => ∫ a (x^3) (fun t => (sin t)^3)) =
     (fun x => 3 * x^2 * (sin (x^3))^3).
+Proof.
 Abort.
 
 (* (ii) F(x) = ∫ 3 (∫ 1 x (sin t)^3 dt) (1 / (1 + (sin t)^6 + t^2)) dt *)

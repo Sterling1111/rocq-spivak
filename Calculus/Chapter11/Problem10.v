@@ -42,10 +42,8 @@ Proof.
   replace x1 with (P / 4) by (unfold Perimeter in H2; lra).
   assert (H5 : A x2 <= A (P / 4)).
   {
-    apply first_derivative_test_max with (f' := fun x => (P - 4 * x) / 2).
+    apply first_derivative_test_max with (f' := fun x => (P - 4 * x) / 2); solve_R.
     - apply A_derivative.
-    - intros x H5. lra.
-    - intros x H5. lra.
     - apply Full_intro.
   }
   lra.

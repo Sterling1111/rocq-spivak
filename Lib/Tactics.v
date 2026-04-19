@@ -593,10 +593,19 @@ Ltac solve_denoms :=
   end;
   try (nra || lra || solve_R).
 
+Ltac simp_zero :=
+  repeat (
+    rewrite Rmult_0_l || rewrite Rmult_0_r || rewrite Rplus_0_l ||
+    rewrite Rplus_0_r || rewrite Rminus_0_r || rewrite Rminus_0_l ||
+    rewrite Rmult_1_l || rewrite Rmult_1_r
+  ).
+
 Ltac diff_simplify :=
   simpl; 
   try unfold e in *;
+  try simp_zero;
   try eval_math_constants;
+  try simp_zero;
   try rewrite <- ln_fun_eq in *;
   try rewrite ln_exp in *;
   try solve [lra | nra]; 

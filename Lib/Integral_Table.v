@@ -9,6 +9,7 @@ Lemma integral_1 : forall n c,
   n <> -1 -> 
   ∫ (fun x => x ^^ n) (0, ∞) = (fun x => 1 / (n + 1) * x ^^ (n + 1) + c).
 Proof.
+  intros n c H1.
   auto_int. solve_R. rewrite Rplus_minus_r. reflexivity.
 Qed.
 
@@ -35,16 +36,25 @@ Lemma integral_7 : forall a n c,
   n <> -1 -> 
   ∫ (fun x => (x + a) ^^ n) (-a, ∞) = (fun x => (x + a) ^^ n * (a / (1 + n) + x / (1 + n)) + c).
 Proof.
-  auto_int.
-Abort.
+  intros a n c H1.
+  auto_int. solve_R. f_equal. rewrite <- Rmult_plus_distr_l, Rplus_comm, Rmult_assoc. f_equal.
+  rewrite <- Rpower_1 with (x := (a + x)) at 2; try lra. rewrite <- Rpower_plus; try lra.
+  replace (n - 1 + 1) with n by lra. reflexivity.
+Qed.
 
 Lemma integral_8 : forall a n c, 
   n <> -1 -> 
   n <> -2 -> 
   ∫ (fun x => x * (x + a) ^^ n) (-a, ∞) = (fun x => (x + a) ^^ (1 + n) * (n * x + x - a) / ((n + 2) * (n + 1)) + c).
 Proof.
-  auto_int.
-Abort.
+  intros a n c H1 H2.
+  auto_int. field_simplify. 2 : { solve_R. }
+  replace (1 + n - 1) with n by lra.
+  apply Rmult_eq_reg_r with (r := (n ^ 2 + 3 * n + 2)); solve_R.
+  field_simplify. 
+  replace ((x + a)^^(1 + n)) with ((x + a) * (x + a)^^n) by (rewrite Rpower_plus, Rpower_1; lra).
+  lra.
+Qed.
 
 Lemma integral_9 : forall c, 
   ∫ (fun x => 1 / (1 + x ^ 2)) = (fun x => arctan x + c).
@@ -85,7 +95,17 @@ Lemma integral_14 : forall a b c0 c,
   4 * a * c0 - b ^ 2 > 0 -> 
   ∫ (fun x => 1 / (a * x ^ 2 + b * x + c0)) = (fun x => 2 / √(4 * a * c0 - b ^ 2) * arctan ((2 * a * x + b) / √(4 * a * c0 - b ^ 2)) + c).
 Proof.
-  auto_int.
+  intros a b c0 c H1 H2.
+  auto_int. field_simplify.
+  2 : {
+    assert (H3 : 4 * a * (a * (x * x) + b * x + c0) = (2 * a * x + b) ^ 2 + (4 * a * c0 - b ^ 2)) by lra.
+    intro H4.
+    rewrite H4 in H3.
+    field_simplify in H3.
+    assert (H5 : 4 * a ^ 2 * x ^ 2 + 4 * a * x * b + 4 * a * c0 = (2 * a * x + b) ^ 2 + (4 * a * c0 - b ^ 2)) by ring.
+    rewrite H5 in H3.
+    pose proof pow2_ge_0 (2 * a * x + b). lra.
+  }
 Abort.
 
 Lemma integral_15 : forall a b c, 
@@ -106,14 +126,17 @@ Lemma integral_17 : forall a b c0 c,
   4 * a * c0 - b ^ 2 > 0 -> 
   ∫ (fun x => x / (a * x ^ 2 + b * x + c0)) = (fun x => ln (a * x ^ 2 + b * x + c0) / (2 * a) - b / (a * √(4 * a * c0 - b ^ 2)) * arctan ((2 * a * x + b) / √(4 * a * c0 - b ^ 2)) + c).
 Proof.
-  auto_int.
+  intros a b c0 c H1 H2.
+  auto_int. 
 Abort.
 
 Lemma integral_18 : forall a c, 
   ∫ (fun x => √(x - a)) (a, ∞) = (fun x => 2 / 3 * (x - a) ^^ (3 / 2) + c).
 Proof.
-  auto_int.
-Abort.
+  auto_int. field_simplify.
+  replace (3 / 2 - 1) with (1 / 2) by lra.
+  apply Rpower_sqrt; solve_R.
+Qed.
 
 Lemma integral_19_plus : forall a c, 
   ∫ (fun x => 1 / √(x + a)) (-a, ∞) = (fun x => 2 * √(x + a) + c).
@@ -134,44 +157,87 @@ Proof.
 Qed.
 
 Lemma integral_21 : forall a c, 
-∫ (fun x => x * √(x - a)) (a, ∞) = (fun x => 2 / 3 * a * (x - a) ^^ (3 / 2) + 2 / 5 * (x - a) ^^ (5 / 2) + c).
+  ∫ (fun x => x * √(x - a)) (a, ∞) = (fun x => 2 / 3 * a * (x - a) ^^ (3 / 2) + 2 / 5 * (x - a) ^^ (5 / 2) + c).
 Proof.
-  auto_int.
-Abort.
+  auto_int. field_simplify.
+  assert (H1 : 0 < x - a) by solve_R.
+  replace (3 / 2 - 1) with (1 / 2) by lra.
+  replace (5 / 2 - 1) with (1 + 1 / 2) by lra.
+  rewrite Rpower_plus; auto.
+  rewrite Rpower_1; try lra.
+  repeat rewrite Rpower_sqrt; auto.
+  lra.
+Qed.
 
 Lemma integral_22 : forall a b c, 
 a > 0 -> 
 ∫ (fun x => √(a * x + b)) (-b/a, ∞) = (fun x => (2 * b / (3 * a) + 2 * x / 3) * √(b + a * x) + c).
 Proof.
+  intros a b c H1.
   auto_int.
-Abort.
+  - solve_R. apply Rmult_lt_compat_r with (r := a) in H; field_simplify in H; nra.
+  - assert (H2 : a * x + b > 0).
+    { solve_R. apply Rmult_lt_compat_r with (r := a) in H; field_simplify in H; nra. }
+    pose proof sqrt_lt_R0 (b + a * x) ltac:(lra) as H3.
+    field_simplify; try lra.
+    apply Rmult_eq_reg_r with (r := (54 * √(b + a * x))); try lra. field_simplify; try lra.
+    replace (a * x + b) with (b + a * x) by lra.
+    rewrite pow2_sqrt; try lra.
+    replace (54 * √(b + a * x) * √(b + a * x)) with (54 * (b + a * x)).
+    2 : { rewrite Rmult_assoc, sqrt_sqrt; nra. }
+    lra.
+Qed.
 
 Lemma integral_23 : forall a b c, 
 a > 0 -> 
 ∫ (fun x => (a * x + b) ^^ (3 / 2)) (-b/a, ∞) = (fun x => √(b + a * x) * (2 * b ^ 2 / (5 * a) + 4 * b * x / 5 + 2 * a * x ^ 2 / 5) + c).
 Proof.
+  intros a b c H1.
   auto_int.
-Abort.
+  - solve_R. apply Rmult_lt_compat_r with (r := a) in H; field_simplify in H; nra.
+  - assert (H2 : a * x + b > 0).
+    { solve_R. apply Rmult_lt_compat_r with (r := a) in H; field_simplify in H; nra. }
+    pose proof sqrt_lt_R0 (b + a * x) ltac:(lra) as H3.
+    replace (3 / 2) with (1 + 1 / 2) by lra.
+    rewrite Rpower_plus; auto.
+    rewrite Rpower_1; try lra.
+    rewrite Rpower_sqrt; auto.
+    replace (a * x + b) with (b + a * x) by lra.
+    field_simplify; try lra.
+    replace (√(b + a * x) ^ 2) with (√(b + a * x) * √(b + a * x)) by ring.
+    repeat rewrite sqrt_sqrt; try lra.
+    apply Rmult_eq_reg_r with (r := 250 * √(b + a * x)); try lra.
+    field_simplify; try lra.
+    rewrite pow2_sqrt; lra.
+Qed.
 
 Lemma integral_24_plus : forall a c, 
 a > 0 -> 
 ∫ (fun x => x / √(x + a)) (-a, ∞) = (fun x => 2 / 3 * (x - 2 * a) * √(x + a) + c).
 Proof.
+  intros a c H1.
   auto_int.
-Abort.
+  solve_R.
+  - rewrite Rmult_1_r, sqrt_sqrt; solve_R.
+  - pose proof sqrt_lt_R0 (x + a) ltac:(lra). lra.
+Qed.
 
 Lemma integral_24_minus : forall a c, 
 a > 0 -> 
 ∫ (fun x => x / √(x - a)) (a, ∞) = (fun x => 2 / 3 * (x + 2 * a) * √(x - a) + c).
 Proof.
+  intros a c H1.
   auto_int.
-Abort.
+  solve_R.
+  - rewrite Rmult_1_r, sqrt_sqrt; solve_R.
+  - pose proof sqrt_lt_R0 (x - a) ltac:(lra). lra.
+Qed.
 
 Lemma integral_25 : forall a c, 
 a > 0 -> 
 ∫ (fun x => √(x / (a - x))) (0, a) = (fun x => - √(x) * √(a - x) - a * arctan (√(x) * √(a - x) / (x - a)) + c).
 Proof.
-  auto_int.
+  auto_int. field_simplify.
 Abort.
 
 Lemma integral_26 : forall a c, 
@@ -179,6 +245,10 @@ a > 0 ->
 ∫ (fun x => √(x / (x + a))) (0, ∞) = (fun x => √(x) * √(x + a) - a * ln (√(x) + √(x + a)) + c).
 Proof. 
   auto_int.
+  - pose proof sqrt_lt_R0 x ltac:(solve_R) as H3.
+    pose proof sqrt_lt_R0 (x + a) ltac:(solve_R) as H4.
+    lra.
+  - admit.
 Abort.
 
 Lemma integral_27 : forall a b c, 
@@ -186,6 +256,15 @@ a > 0 ->
 ∫ (fun x => x * √(a * x + b)) (-b/a, ∞) = (fun x => (-4 * b ^ 2 / (15 * a ^ 2) + 2 * b * x / (15 * a) + 2 * x ^ 2 / 5) * √(b + a * x) + c).
 Proof.
   auto_int.
+  - solve_R. apply Rmult_lt_compat_r with (r := a) in H0; field_simplify in H0; nra.
+  - assert (H1 : b + a * x > 0).
+    { solve_R. apply Rmult_lt_compat_r with (r := a) in H0; field_simplify in H0; nra. }
+    assert (H2 : √(b + a * x) > 0) by (apply sqrt_lt_R0; lra).
+    assert (H3 : √(b + a * x) ≠ 0) by lra.
+    replace (a * x + b) with (b + a * x) by ring.
+    apply Rmult_eq_reg_r with (r := 2 * √(b + a * x)); try nra.
+    repeat rewrite sqrt_sqrt; try lra.
+    field_simplify; solve_R.
 Abort.
 
 Lemma integral_28 : forall a b c, 
@@ -193,6 +272,12 @@ a > 0 -> b > 0 ->
 ∫ (fun x => √(x) * √(a * x + b)) (0, ∞) = (fun x => (b * √(x) / (4 * a) + x ^^ (3 / 2) / 2) * √(b + a * x) - b ^ 2 * ln (2 * √(a) * √(x) + 2 * √(b + a * x)) / (4 * a ^^ (3 / 2)) + c).
 Proof.
   auto_int.
+  - assert (H4 : √a > 0) by (apply sqrt_lt_R0; lra).
+    assert (H5 : √x > 0) by (apply sqrt_lt_R0; solve_R).
+    assert (H6 : √(b + a * x) > 0) by (apply sqrt_lt_R0; solve_R).
+    nra.
+  - assert (H2 : a^^(3 / 2) > 0) by (apply Rpower_gt_0; lra). lra.
+  - admit.
 Abort.
 
 Lemma integral_29 : forall a b c, 
@@ -238,7 +323,7 @@ Abort.
 Lemma integral_33_plus : forall a c, 
 ∫ (fun x => 1 / √(x ^ 2 + a ^ 2)) = (fun x => ln (x + √(x ^ 2 + a ^ 2)) + c).
 Proof.
-  auto_int.
+  auto_int. 
 Abort.
 
 Lemma integral_33_minus : forall a c, 
@@ -246,7 +331,12 @@ a > 0 ->
 ∫ (fun x => 1 / √(x ^ 2 - a ^ 2)) (a, ∞) = (fun x => ln (x + √(x ^ 2 - a ^ 2)) + c).
 Proof.
   auto_int.
-Abort.
+  - assert (H1 : x ^ 2 > a^2) by (simpl; solve_R).
+    pose proof sqrt_lt_R0 (x * (x * 1) - a * (a * 1)) ltac:(solve_R); solve_R.
+  - assert (H1 : x ^ 2 > a^2) by (simpl; solve_R). 
+    pose proof sqrt_lt_R0 (x * (x * 1) - a * (a * 1)) ltac:(solve_R); solve_R.
+    repeat rewrite Rmult_1_r in H2. solve_R.
+Qed.
 
 Lemma integral_34 : forall a c, 
 a > 0 -> 
