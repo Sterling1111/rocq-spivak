@@ -944,6 +944,11 @@ Proof.
   admit.
 Abort.
 
+Lemma test_int_poly_0 : ∫ 0 1 (λ x, x^10 - 5 * x^9 + 12 * x^8 - 10 * x^7 + 20 * x^6 - 10 * x^5 + 12 * x^4 - 5 * x^3 + x^2) = 781056 / 332640.
+Proof.
+  auto_int.
+Qed.
+
 Lemma test_int_poly_1 : ∫ 0 1 (λ x, x^2 + x + 1) = 11/6.
 Proof. auto_int. Qed.
 
