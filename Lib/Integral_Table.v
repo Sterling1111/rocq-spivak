@@ -621,7 +621,7 @@ Lemma integral_93 : forall a c,
 a <> 0 -> 
 ∫ (fun x => x ^ 3 * sin (a * x)) = (fun x => (3 * a ^ 2 * x ^ 2 - 6) / a ^ 4 * sin (a * x) + (6 * x - a ^ 2 * x ^ 3) / a ^ 3 * cos (a * x) + c).
 Proof.
-  auto_int. all: repeat (apply Rmult_integral_contrapositive; split; solve_R).
+  auto_int. all: repeat (apply Rmult_integral_contrapositive; split); solve_R.
 Qed.
 
 Lemma integral_95 : forall c, 
