@@ -1,5 +1,10 @@
 From Calculus.Chapter18 Require Import Prelude.
 
-Lemma lemma_18_18 : forall x y,
-  x > 0 -> y > 0 -> log (x * y) = log x + log y.
-Abort.
+Local Notation exp := Rtrigo_def.exp.
+Local Notation ln := Rpower.ln.
+
+Definition f x := exp (x * ln (1 + 1/x)).
+
+Definition p_f := ltac:(plot f (1/10) 20).
+
+Plot p_f as "Calculus/Chapter18/Problem18/f.gp".

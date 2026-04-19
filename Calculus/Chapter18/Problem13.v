@@ -1,5 +1,7 @@
 From Calculus.Chapter18 Require Import Prelude.
 
-Lemma lemma_18_13 : exists f,
-  integrable_on 0 1 f.
-Abort.
+(* Problem 13: Find
+   (a) \lim_{x \to \infty} a^x for 0 < a < 1. (Remember the definition!)
+   ...
+   (e) \lim_{x \to 0^+} x^x. *)
+Lemma problem_18_13_e : ⟦ lim 0⁺ ⟧ (fun x => exp (x * log x)) = 1. Abort.
