@@ -837,12 +837,22 @@ Proof.
   auto_int.
 Qed.
 
+Example FTC2_test2 : ∫ 0 1 (fun x => x^2) = 1/3.
+Proof.
+  get_antiderivative g.
+  auto_int.
+Qed.
+
+
 Lemma integral_sin5_cos : ∫ (λ x, sin x ^ 5 * cos x) = (λ x, sin x ^ 6 / 6).
 Proof.
   auto_int.
 Qed.
 
 Lemma test_def_int_poly : ∫ 0 2 (λ x : ℝ, 3 * x^2) = 8.
+Proof. auto_int. Qed.
+
+Example indef_integral_test_poly : ∫ (fun x => x^2) = (fun x => x^ 3 / 3).
 Proof. auto_int. Qed.
 
 Lemma test_def_int_exp : ∫ 0 1 (λ x : ℝ, exp x) = e - 1.
@@ -933,5 +943,80 @@ Proof.
   field.
   admit.
 Abort.
+
+Lemma test_int_poly_1 : ∫ 0 1 (λ x, x^2 + x + 1) = 11/6.
+Proof. auto_int. Qed.
+
+Lemma test_int_poly_2 : ∫ 1 2 (λ x, x^3 - x) = 9/4.
+Proof. auto_int. Qed.
+
+Lemma test_int_poly_3 : ∫ 0 1 (λ x, (2*x + 1)^3) = 10.
+Proof. auto_int. Qed.
+
+Lemma test_int_trig_1 : ∫ 0 (π/2) (λ x, sin x) = 1.
+Proof. auto_int. all : pose proof π_pos; lra. Qed.
+
+Lemma test_int_trig_2 : ∫ 0 π (λ x, cos x) = 0.
+Proof. auto_int. pose proof π_pos; lra. Qed.
+
+Lemma test_int_trig_3 : ∫ 0 (π/4) (λ x, sec x ^ 2) = 1.
+Proof.
+  auto_int. 1, 3 : pose proof π_pos; lra.
+  - simpl. admit.
+  - rewrite Rmult_1_r. admit.
+  - admit.
+  - field. interval.
+Admitted.
+
+Lemma test_int_trig_4 : ∫ 0 π (λ x, sin x * cos x) = 0.
+Proof. auto_int. apply π_pos. Qed.
+
+Lemma test_int_exp_1 : ∫ 0 1 (λ x, exp x) = e - 1.
+Proof. auto_int. Qed.
+
+Lemma test_int_exp_2 : ∫ 0 (log 2) (λ x, exp x) = 1.
+Proof. auto_int. pose proof log_pos 2. lra. Admitted.
+
+Lemma test_int_exp_3 : ∫ 0 1 (λ x, exp (2 * x)) = (exp 2 - 1) / 2.
+Proof. auto_int. rewrite Rmult_0_r, Rmult_1_r, exp_0. lra. Qed.
+
+Lemma test_int_log_1 : ∫ 1 e (λ x, 1 / x) = 1.
+Proof. auto_int. Admitted.
+
+Lemma test_int_log_2 : ∫ 1 2 (λ x, log x) = 2 * log 2 - 1.
+Proof. auto_int. Qed.
+
+Lemma test_int_sqrt_1 : ∫ 0 1 (λ x, sqrt x) = 2 / 3.
+Proof. auto_int. simpl. Admitted.
+
+Lemma test_int_sqrt_2 : ∫ 0 3 (λ x, 1 / sqrt (x + 1)) = 2.
+Proof.
+  auto_int.
+  - rewrite Rplus_comm. solve_R.
+    pose proof sqrt_lt_R0 (x + 1). lra.  
+  - rewrite Rplus_0_r, sqrt_1. replace (1 + 3) with (2 * 2) by lra.
+    rewrite sqrt_square; lra.
+Qed.
+
+Lemma test_int_invtrig_1 : ∫ 0 1 (λ x, 1 / (x^2 + 1)) = π / 4.
+Proof. auto_int. rewrite arctan_1, arctan_0. lra. Qed.
+
+Lemma test_int_invtrig_2 : ∫ 0 (1/2) (λ x, 1 / sqrt (1 - x^2)) = π / 6.
+Proof. auto_int. Admitted.
+
+Lemma test_int_subst_1 : ∫ 0 1 (λ x, x * exp (x^2)) = (e - 1) / 2.
+Proof. auto_int. rewrite pow1, pow_i; try lia. rewrite exp_0. unfold e. lra. Qed.
+
+Lemma test_int_subst_2 : ∫ 0 1 (λ x, x / (x^2 + 1)) = log 2 / 2.
+Proof.
+  auto_int. rewrite pow1, pow_i; try lia. rewrite Rplus_0_r, log_1.
+  replace (1 + 1) with 2 by lra. lra.
+Qed.
+
+Lemma test_int_parts_1 : ∫ 0 1 (λ x, x * exp x) = 1.
+Proof. auto_int. Qed.
+
+Lemma test_int_rational_1 : ∫ 1 2 (λ x, 1 / x^2) = 1/2.
+Proof. auto_int. Qed.
 
 End Tactic_Tests_Advanced.

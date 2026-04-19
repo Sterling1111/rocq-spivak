@@ -1,0 +1,9 @@
+EMul
+EDiv
+EConst
+1
+EConst
+3
+EPow
+EVar
+3
