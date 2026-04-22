@@ -130,7 +130,7 @@ let run_dummy_executable expr_list =
     output_string oc (s ^ "\n")
   ) expr_list;
   close_out oc;
-  let cmd = Printf.sprintf "/home/sij/Calculus-with-Coq/src/simplex_solver %s %s" in_file out_file in
+  let cmd = Printf.sprintf "%s/src/simplex_solver %s %s" (Sys.getcwd ()) in_file out_file in
   
   let exit_code = Sys.command cmd in
   

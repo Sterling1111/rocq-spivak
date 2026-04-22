@@ -466,6 +466,42 @@ Proof.
     -- tauto.
 Qed.
 
+Fixpoint derive_expr_n (n : nat) (e : expr) : expr :=
+  match n with
+  | 0%nat => e
+  | S k => derive_expr_n k (derive_expr e)
+  end.
+
+Fixpoint wf_derive_n (n : nat) (e : expr) (x : R) : Prop :=
+  match n with
+  | 0%nat => True
+  | S k => wf_derive e x /\ wf_derive_n k (derive_expr e) x
+  end.
+
+Lemma derive_expr_n_comm : forall n e,
+  derive_expr_n n (derive_expr e) = derive_expr (derive_expr_n n e).
+Proof.
+  induction n; intros e; simpl; auto.
+Qed.
+
+Lemma wf_derive_n_implies : forall n e x,
+  wf_derive_n (S n) e x -> wf_derive (derive_expr_n n e) x.
+Proof.
+  induction n; intros e x H; simpl in *.
+  - destruct H as [H1 H2]. exact H1.
+  - destruct H as [H1 H2]. apply IHn. exact H2.
+Qed.
+
+Lemma wf_derive_n_S : forall n e x,
+  wf_derive_n (S n) e x -> wf_derive_n n e x.
+Proof.
+  induction n; intros e x H; simpl in *.
+  - destruct H as [H1 H2]. exact I.
+  - destruct H as [H1 H2]. split.
+    + exact H1.
+    + apply IHn. exact H2.
+Qed.
+
 Lemma derive_correct_global : forall e,
   (forall x, wf_derive e x) -> ⟦ der ⟧ (fun x => eval_expr e x) = (fun x => eval_expr (derive_expr e) x).
 Proof.
@@ -479,6 +515,63 @@ Proof.
   intros e H1.
   apply derivative_imp_derive.
   apply derive_correct_global; auto.
+Qed.
+
+Lemma nth_derive_correct : forall n e,
+  (forall x, wf_derive_n n e x) ->
+  nth_derive n (fun x => eval_expr e x) = (fun x => eval_expr (derive_expr_n n e) x).
+Proof.
+  induction n; intros e H.
+  - simpl. reflexivity.
+  - simpl. rewrite IHn.
+    + rewrite derive_expr_n_comm. apply Der_correct_global. intros x. apply wf_derive_n_implies. apply H.
+    + intros x. apply wf_derive_n_S. apply H.
+Qed.
+
+Lemma nth_derivative_correct : forall n e,
+  (forall x, wf_derive_n n e x) ->
+  nth_derivative n (fun x => eval_expr e x) (fun x => eval_expr (derive_expr_n n e) x).
+Proof.
+  induction n; intros e H.
+  - simpl. reflexivity.
+  - simpl. exists (fun x => eval_expr (derive_expr_n n e) x).
+    split.
+    + apply IHn. intros x. apply wf_derive_n_S. apply H.
+    + rewrite derive_expr_n_comm. apply derive_correct_global.
+      intros x. apply wf_derive_n_implies. apply H.
+Qed.
+
+Lemma nth_derive_eq : forall n f1 f2,
+  (forall x, f1 x = f2 x) -> nth_derive n f1 = nth_derive n f2.
+Proof.
+  induction n; intros f1 f2 H.
+  - extensionality x. apply H.
+  - simpl. f_equal. apply IHn. exact H.
+Qed.
+
+Lemma nth_derivative_eq : forall n f1 f2 fn,
+  (forall x, f1 x = f2 x) -> nth_derivative n f1 fn -> nth_derivative n f2 fn.
+Proof.
+  induction n; intros f1 f2 fn H1 H2.
+  - simpl in *. extensionality x. rewrite <- H2. symmetry. apply H1.
+  - simpl in *. destruct H2 as [fk [H3 H4]].
+    exists fk. split.
+    + eapply IHn; eauto.
+    + exact H4.
+Qed.
+
+Lemma nth_derivative_ext : forall n f f' g',
+  nth_derivative n f f' -> f' = g' -> nth_derivative n f g'.
+Proof.
+  intros n f f' g' H1 H2. rewrite <- H2. exact H1.
+Qed.
+
+
+
+Lemma nth_derive_eq' : forall n f1 f2 f',
+  (forall x, f1 x = f2 x) -> nth_derive n f1 = f' -> nth_derive n f2 = f'.
+Proof.
+  intros n f1 f2 f' H1 H2. rewrite <- H2. apply nth_derive_eq. symmetry. auto.
 Qed.
 
 Ltac reify_constant c :=
@@ -554,10 +647,20 @@ Ltac change_fun_to_expr :=
   | |- continuous_at ?f ?a => eapply continuous_at_ext; [ reify_current f | ]
   end.
 
+Lemma derivative_ext'' : forall f g f' g',
+  f = g -> derivative f f' -> f' = g' -> derivative g g'.
+Proof. intros. subst. auto. Qed.
+
+Lemma nth_derivative_S : forall k f f',
+  nth_derivative (S k) f f' <-> exists fk, nth_derivative k f fk /\ derivative fk f'.
+Proof. intros. reflexivity. Qed.
+
 Ltac change_deriv_to_eval :=
   match goal with
   | [ |- ⟦ der ⟧ _ = _ ] => eapply derivative_eq
   | [ |- ⟦ der _ ⟧ _ = _ ] => eapply derivative_at_eq'
+  | [ |- nth_derive _ _ = _ ] => eapply nth_derive_eq'
+  | [ |- nth_derivative _ _ _ ] => eapply nth_derivative_eq
   end;
   [ let x := fresh "x" in intros x;
     match goal with 
@@ -684,7 +787,10 @@ Ltac solve_denoms :=
   try (nra || lra || solve_R || interval).
 
 Create HintDb simp_zero_db.
-Hint Rewrite Rmult_0_l Rmult_0_r Rplus_0_l Rplus_0_r Rminus_0_r Rminus_0_l Rmult_1_l Rmult_1_r : simp_zero_db.
+Lemma Rdiv_0_l : forall r, 0 / r = 0.
+Proof. intros. unfold Rdiv. apply Rmult_0_l. Qed.
+
+Hint Rewrite Rmult_0_l Rmult_0_r Rplus_0_l Rplus_0_r Rminus_0_r Rminus_0_l Rmult_1_l Rmult_1_r Rdiv_0_l : simp_zero_db.
 
 Ltac simp_zero :=
   autorewrite with simp_zero_db.
@@ -750,6 +856,41 @@ Ltac auto_cont :=
       try (cbn -[Rabs pow] in *; try eval_math_constants; try simp_zero)
   end.
 
+Ltac prove_nth_derivative n e :=
+  lazymatch n with
+  | 0%nat => 
+      reflexivity
+  | S ?k =>
+      apply nth_derivative_S;
+      eexists; split;
+      [ prove_nth_derivative k e 
+      | match goal with
+        | |- derivative ?fk ?rhs =>
+            let ek := lazymatch fk with
+                      | eval_expr ?ek => ek
+                      | (fun t => eval_expr ?ek t) => ek
+                      end in
+            eapply derivative_ext'';
+            [ reflexivity
+            | apply derive_correct_global; intros x; repeat split; try solve_denoms; auto
+            | let x := fresh "x" in extensionality x;
+              let RHS_var := fresh "RHS_var" in
+              match goal with |- ?L = ?R => set (RHS_var := R) end;
+              cbn [derive_expr eval_expr]; diff_simplify;
+              subst RHS_var;
+              match goal with
+              | |- ?simp_term = ?R =>
+                  first [ has_evar R;
+                          let new_e := reify_expr x simp_term in
+                          instantiate (1 := fun t => eval_expr new_e t);
+                          reflexivity
+                        | diff_simplify; reflexivity ]
+              end
+            ]
+        end
+      ]
+  end.
+
 Ltac auto_diff_core :=
   try change_deriv_to_eval;
   try match goal with
@@ -770,6 +911,18 @@ Ltac auto_diff_core :=
         try solve [ try solve_denoms; try lra; solve_R | auto ];
         try (cbn -[Rabs pow] in *; try eval_math_constants; try simp_zero)
       | let x := fresh "x" in extensionality x; unfold compose in *; try diff_simplify ]
+      
+  | [ |- nth_derive ?n (fun t => eval_expr ?e t) = ?rhs ] =>
+      replace rhs with (fun t => eval_expr (derive_expr_n n e) t);
+      [ apply nth_derive_correct; 
+        simpl in *; try eval_math_constants;
+        repeat split; 
+        try solve [ try solve_denoms; try lra; solve_R | auto ];
+        try (cbn -[Rabs pow] in *; try eval_math_constants; try simp_zero)
+      | let x := fresh "x" in extensionality x; unfold compose in *; try diff_simplify ]
+
+  | [ |- nth_derivative ?n (fun t => eval_expr ?e t) ?rhs ] =>
+      prove_nth_derivative n e
   end.
 
 Ltac auto_diff :=
@@ -974,6 +1127,11 @@ Proof.
 Qed.
 
 Lemma test_exp : ⟦ der ⟧ (fun x => e ^^ x) = (fun x => e ^^ x).
+Proof.
+  auto_diff.
+Qed.
+
+Lemma test_exp_n : ⟦ der ^ 10 ⟧ (fun x => e ^^ x) = (fun x => e ^^ x).
 Proof.
   auto_diff.
 Qed.
