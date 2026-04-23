@@ -6,7 +6,6 @@ Lemma lemma_15_1_i : forall x,
               (1 / (1 + (arctan x)^2)) *
               (1 / (1 + x^2))).
 Proof.
-  intros x.
   auto_diff.
 Qed.
 

@@ -1,4 +1,5 @@
-From Lib Require Import Imports Notations Reals_util Sets Limit Continuity Derivative Integral Trigonometry Functions Interval Sums Exponential StdlibCompat.
+From Lib Require Import Imports Notations Reals_util Sets Limit Continuity Derivative Integral Trigonometry 
+                        Functions Interval Sums Exponential StdlibCompat.
 Import IntervalNotations SetNotations FunctionNotations DerivativeNotations LimitNotations IntegralNotations SumNotations.
 
 Declare ML Module "auto_int_plugin.plugin".
@@ -795,7 +796,7 @@ Hint Rewrite Rmult_0_l Rmult_0_r Rplus_0_l Rplus_0_r Rminus_0_r Rminus_0_l Rmult
 Ltac simp_zero :=
   autorewrite with simp_zero_db.
 
-Ltac diff_simplify :=
+Ltac diff_simplify var :=
   simpl; 
   try unfold e in *;
   try simp_zero;
@@ -876,7 +877,7 @@ Ltac prove_nth_derivative n e :=
             | let x := fresh "x" in extensionality x;
               let RHS_var := fresh "RHS_var" in
               match goal with |- ?L = ?R => set (RHS_var := R) end;
-              cbn [derive_expr eval_expr]; diff_simplify;
+              cbn [derive_expr eval_expr]; diff_simplify x;
               subst RHS_var;
               match goal with
               | |- ?simp_term = ?R =>
@@ -884,7 +885,7 @@ Ltac prove_nth_derivative n e :=
                           let new_e := reify_expr x simp_term in
                           instantiate (1 := fun t => eval_expr new_e t);
                           reflexivity
-                        | diff_simplify; reflexivity ]
+                        | diff_simplify x; reflexivity ]
               end
             ]
         end
@@ -901,7 +902,7 @@ Ltac auto_diff_core :=
         repeat split; 
         try solve [ try solve_denoms; try lra; solve_R | auto ];
         try (cbn -[Rabs pow] in *; try eval_math_constants; try simp_zero)
-      | unfold compose in *; try diff_simplify ]
+      | unfold compose in *; try (diff_simplify y) ]
 
   | [ |- ⟦ der ⟧ (fun t => eval_expr ?e t) = ?rhs ] =>
       replace rhs with (fun t => eval_expr (derive_expr e) t);
@@ -910,7 +911,7 @@ Ltac auto_diff_core :=
         repeat split; 
         try solve [ try solve_denoms; try lra; solve_R | auto ];
         try (cbn -[Rabs pow] in *; try eval_math_constants; try simp_zero)
-      | let x := fresh "x" in extensionality x; unfold compose in *; try diff_simplify ]
+      | let x := fresh "x" in extensionality x; unfold compose in *; try (diff_simplify x) ]
       
   | [ |- nth_derive ?n (fun t => eval_expr ?e t) = ?rhs ] =>
       replace rhs with (fun t => eval_expr (derive_expr_n n e) t);
@@ -919,7 +920,7 @@ Ltac auto_diff_core :=
         repeat split; 
         try solve [ try solve_denoms; try lra; solve_R | auto ];
         try (cbn -[Rabs pow] in *; try eval_math_constants; try simp_zero)
-      | let x := fresh "x" in extensionality x; unfold compose in *; try diff_simplify ]
+      | let x := fresh "x" in extensionality x; unfold compose in *; try (diff_simplify x) ]
 
   | [ |- nth_derivative ?n (fun t => eval_expr ?e t) ?rhs ] =>
       prove_nth_derivative n e
@@ -1104,8 +1105,7 @@ Module Tactic_Tests_Advanced.
 
 Lemma test_auto_diff_rpower : ⟦ der ⟧ (fun x => x ^^ 5) (1, 2) = (fun x => 5 * x ^^ 4).
 Proof.
-  auto_diff.
-  replace (5 - 1) with 4 by lra. lra.
+  auto_diff. replace (5-1) with 4 by lra. reflexivity.
 Qed.
 
 Lemma test_auto_diff_ln : ⟦ der ⟧ (fun x => ln (x + 1)) (0, 1) = (fun x => 1 / (x + 1)).
