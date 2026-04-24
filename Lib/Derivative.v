@@ -2702,6 +2702,21 @@ Proof.
   - intros x y H4 H5. apply Full_intro.
 Qed.
 
+Lemma first_derivative_test_strict_max : forall f f' c,
+  ⟦ der ⟧ f = f' ->
+  (forall x, x < c -> f' x > 0) ->
+  (forall x, c < x -> f' x < 0) ->
+  maximum_point_strict f R c.
+Proof.
+  intros f f' c H1 H2 H3. apply first_derivative_test_domain_strict_max with (f' := f') (D := ℝ : Ensemble ℝ); auto.
+  - apply Full_intro.
+  - apply differentiable_imp_differentiable_on. apply derivative_imp_differentiable with (f' := f'); auto.
+    intros x H4; left. exists 1. split; [lra | intros y H5; apply Full_intro].
+  - apply derivative_imp_derivative_on; auto.
+    intros x H4; left. exists 1. split; [lra | intros y H5; apply Full_intro].
+  - intros x y H4 H5. apply Full_intro.
+Qed.
+
 Lemma second_derivative_test_local_min : forall f f' f'' A a δ,
   δ > 0 ->
   a ∈ A ->

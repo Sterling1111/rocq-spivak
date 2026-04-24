@@ -56,27 +56,10 @@ Proof.
   intros x1 y1 x2 y2 H2 H3 H4 H5.
   rewrite (Area_subst x1 y1 H2), (Area_subst x2 y2 H3).
   replace x1 with (P / 4) by (unfold Perimeter in H2; lra).
-  assert (H6 : maximum_point_strict A (Full_set ℝ) (P / 4)).
-  { 
-    apply first_derivative_test_domain_strict_max with (f' := fun x => (P - 4 * x) / 2).
-    - apply Full_intro.
-    - apply differentiable_imp_differentiable_on.
-      + apply A_differentiable.
-      + intros x H6. left. exists 1. split; [lra | intros y H7; apply Full_intro].
-    - apply derivative_imp_derivative_on.
-      + intros x H6. left. exists 1. split; [lra | intros y H7; apply Full_intro].
-      + apply A_derivative.
-    - intros x H6 H7. apply Rmult_gt_reg_r with (r := 2); [ lra |]. field_simplify.
-      apply Rplus_gt_reg_r with (r := 4 * x). field_simplify.
-      apply Rmult_gt_reg_r with (r := 1/4); [ lra |]. field_simplify.
-      apply Rlt_gt. exact H7.
-    - intros x H6 H7. lra.
-    - intros x y H6 H7. apply Full_intro.
-  }
-  destruct H6 as [_ H6].
-  apply H6.
+  apply first_derivative_test_strict_max with (f' := fun x => (P - 4 * x) / 2); solve_R.
+  - apply A_derivative.
   - apply Full_intro.
-  - unfold Perimeter in H2, H3. lra.
+  - unfold Perimeter in H3. lra.
 Qed.
 
 End Rectangle.
