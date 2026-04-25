@@ -4238,7 +4238,7 @@ Proof.
   rewrite arctan_neg, arctan_sqrt3. lra.
 Qed.
 
-Lemma sin_n_pi : forall n:nat, sin (INR n * π) = 0.
+Lemma sin_n_pi : ∀ n : ℕ, sin (n * π) = 0.
 Proof.
   induction n.
   - simpl. rewrite Rmult_0_l. apply sin_0.

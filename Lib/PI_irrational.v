@@ -43,7 +43,7 @@ Proof.
   intros n. unfold f. auto_cont; apply INR_fact_neq_0.
 Qed.
 
-Lemma one_minus_x_pow_n : forall n x,
+Lemma one_minus_x_pow_n : ∀ n x,
   (1 - x) ^ n = ∑ 0 n (fun k => ((-1) ^ k * INR (n ∁ k)) * x ^ k).
 Proof.
   intros n x.
@@ -58,7 +58,7 @@ Proof.
   lra.
 Qed.
 
-Lemma x_n_mult_one_minus_x_pow_n : forall n x,
+Lemma x_n_mult_one_minus_x_pow_n : ∀ n x,
   x ^ n * (1 - x) ^ n = ∑ n (2 * n) (fun i => ((-1) ^ (i - n) * INR (n ∁ (i - n))) * x ^ i).
 Proof.
   intros n x.
