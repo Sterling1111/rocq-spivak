@@ -583,7 +583,6 @@ Proof.
       apply Nat.Div0.mul_div_le; auto.
     + apply Rlt_div_l; solve_R.
       rewrite Rmult_plus_distr_r, Rmult_1_l, <- mult_INR, <- plus_INR.
-      Set Printing Coercions.
       apply lt_INR.
       rewrite Nat.mul_comm.
       assert (H2 : (d > 0)%nat).
@@ -1429,5 +1428,3 @@ Proof.
   intros a b n H.
   f_equal. exact H.
 Qed.
-
-Search (_ ^ _ = _ ^ _).
