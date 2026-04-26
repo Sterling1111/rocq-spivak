@@ -177,7 +177,7 @@ Proof. auto_cont. Qed.
 ## Repository structure
 
 - `Lib/`: Core theory (limits, continuity, derivatives, integrals, sequences/series, completeness, sets, polynomials, etc.). Reusable across problem sets.
-- `Calculus/`: Chapter- and problem-indexed files with worked formal proofs from the Calculus text. Currently features 603 stated problems, with **145 problems fully verified** (zero admitted lemmas).
+- `Calculus/`: Chapter- and problem-indexed files with worked formal proofs from the Calculus text. Currently features 606 stated problems, with **149 problems fully verified** (zero admitted lemmas). The repository contains over 61,000 lines of code across all `.v` files.
 
 - `ATTAM/`: Companion chapters depending only on `Lib/`.
 - `_CoqProject`: Coq project configuration (logical roots and file list).
