@@ -26,11 +26,17 @@ Proof.
       * intros H13. specialize (H10 x ltac:(solve_R)). rewrite H4, H13 in *. solve_R. 
     + auto_diff. rewrite H4. lra.
   - assert (H9 : ⟦ der 0 ⟧ f = λ _, 0).
-    { admit. }
+    {
+      apply limit_eq with (f1 := fun h => h * sin (1 / h)).
+      - exists 1. split; [lra |].
+        intros x H9. simp_zero. rewrite H1, H2; solve_R.
+      - apply limit_squeeze with (a := -1) (b := 1) (f1 := fun x => - Rabs x) (f3 := fun x => Rabs x); try auto_limit.
+        intros x H9.
+        pose proof (sin_bounds (1 / x)) as [H11 H12]. solve_R.
+    }
     assert (H10 : ⟦ der f 0 ⟧ k = λ x : ℝ, f (x + 1)).
     { rewrite H2. apply H5. }
-    pose proof (derivative_at_comp f k (fun _ => 0) (fun x => f (x+1)) 0 H9 H10) as H11.
-    rewrite <- H12 in H11.
-    apply derivative_at_eq_refl.
+    replace (λ _ : ℝ, 0) with (((λ x0 : ℝ, f (x0 + 1)%R) ∘ f)%function ⋅ λ _ : ℝ, 0) by (extensionality x; lra).
+    apply derivative_at_comp; auto_diff.
   - subst α. auto_diff.
 Qed.
