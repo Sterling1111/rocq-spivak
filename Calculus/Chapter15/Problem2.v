@@ -48,9 +48,21 @@ Qed.
 Lemma lemma_15_2_vi :
   ⟦ lim 0 ⟧ (fun x => 1 / x - 1 / sin x) = 0.
 Proof.
-  replace (fun x => 1 / x - 1 / sin x) with (fun x => (sin x - x) / (x * sin x)) by admit.
+  apply limit_eq with (f1 := λ x : ℝ, (sin x - x) / (x * sin x)).
+  {
+    exists (π / 2). split; [solve_denoms |].
+    intros x H1. assert (H2 : sin x <> 0); solve_denoms.
+  }
   step_lhopital (λ x, cos x - 1) (λ x, sin x + x * cos x).
-  admit.
+  {
+    exists 1. split; [lra|]. intros x H1 H2. assert (x > 0 \/ x < 0) as [H4 | H4] by solve_R.
+    - assert (sin x > 0 /\ cos x > 0) by (split; solve_denoms); nra.
+    - assert (sin x < 0 /\ cos x > 0) by (split; solve_denoms); nra.
+  }
   step_lhopital (λ x, - sin x) (λ x, 2 * cos x - x * sin x).
-  admit.
-Abort.
+  {
+    exists 1. split; [lra|]. intros x H1 H2.
+    rewrite StdlibCompat.sin_compat, StdlibCompat.cos_compat.
+    unfold Ensembles.In in *. interval.
+  }
+Qed.

@@ -1,7 +1,5 @@
 From Calculus.Chapter10 Require Import Prelude.
 
-From Calculus.Chapter10 Require Import Prelude.
-
 Lemma lemma_10_10 : ∀ f h k,
   (∀ x, x ≠ 0 -> f x = x^2 * sin (1 / x)) ->
   f 0 = 0 ->

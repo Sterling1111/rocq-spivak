@@ -110,7 +110,7 @@ Proof.
 Qed.
 
 Lemma lemma_11_1_v : let f := (λ x, (x + 1) / (x^2 + 1)) in
-  minimum_value f [-1, 1/2] 0 /\ maximum_value f [-1, 1/2] ((sqrt 2 + 1) / 2).
+  minimum_value f [-1, 1/2] 0 /\ maximum_value f [-1, 1/2] ((√2 + 1) / 2).
 Proof.
   intro. set (f' := λ x, (1 - 2 * x - x^2) / (x^2 + 1)^2).
   assert (H1 : continuous_on f [-1, 1/2]).
@@ -121,5 +121,48 @@ Proof.
   }
   pose proof closed_interval_method_max f f' (-1) (1/2) ltac:(lra) H1 H2 as [c [H3 H4]].
   pose proof closed_interval_method_min f f' (-1) (1/2) ltac:(lra) H1 H2 as [d [H5 H6]].
-  split; admit.
+  split.
+  - exists d. split; auto.
+    destruct H6 as [H6 | [H6 | [H6 H7]]]; subst.
+    + unfold f. lra.
+    + destruct H5 as [_ H5]. specialize (H5 (-1) ltac:(solve_R)). unfold f in *. lra.
+    + destruct H5 as [_ H5]. specialize (H5 (-1) ltac:(solve_R)). unfold f in *.
+      assert (H8 : 0 < (d + 1) / (d^2 + 1)) by (apply Rdiv_pos_pos; nra).
+      nra.
+  - exists c. split; auto.
+    destruct H4 as [H4 | [H4 | [H4 H7]]]; subst.
+    + destruct H3 as [_ H3]. specialize (H3 0 ltac:(solve_R)). unfold f in *; lra. 
+    + destruct H3 as [_ H3]. specialize (H3 (2/5) ltac:(solve_R)). unfold f in *; lra. 
+    + unfold f. unfold f' in H7.
+      apply Rmult_eq_compat_r with (r := (c^2 + 1)^2) in H7; field_simplify in H7; try nra.
+      assert (H8 : (c + 1)^2 = 2) by nra.
+      assert (H9 : c^2 + 1 = 2 - 2 * c) by nra.
+      pose proof (sqrt_pow2 (c + 1) ltac:(lra)) as H11.
+      rewrite H8 in H11. symmetry in H11.
+      rewrite H9.
+      replace (2 - 2 * c) with (4 - 2 * (c + 1)) by lra.
+      rewrite H11.
+      apply Rmult_eq_reg_l with (r := 4 - 2 * √2); try lra. field_simplify; try lra.
+      
+
+Qed.
+
+Lemma lemma_11_1_vi : let f := (λ x, 4 / x) in
+  minimum_value f [1, 2] 2 /
+  maximum_value f [1, 2] 4.
+Proof.
+  intro. set (f' := λ x, -4 / x^2).
+  assert (H1 : continuous_on f [1, 2]) by (unfold f; auto_cont).
+  assert (H2 : ⟦ der ⟧ f (1, 2) = f').
+  { apply derivative_imp_derivative_on; try (unfold f, f'; auto_diff). apply differentiable_domain_open; lra. }
+  pose proof closed_interval_method_max f f' 1 2 ltac:(lra) H1 H2 as [c [H3 H4]].
+  pose proof closed_interval_method_min f f' 1 2 ltac:(lra) H1 H2 as [d [H5 H6]].
+  split.
+  - exists d. split; auto.
+    destruct H6 as [H6 | [H6 | [H6 H7]]]; subst.
+    + unfold f. lra.
+    + destruct H5 as [_ H5]. specialize (H5 1 ltac:(solve_R)). unfold f in *. lra.
+    + unfold f' in H7. unfold f in H6; rewrite <- H7; field_simplify in H6; try nra.
+      
+  - exists c.
 Abort.

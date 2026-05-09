@@ -21,9 +21,9 @@ End FunctionNotations.
 
 Import FunctionNotations.
 
-Definition even_f (f : R -> R) : Prop := ∀ x, f (-x) = f x.
+Definition even (f : R -> R) : Prop := ∀ x, f (-x) = f x.
 
-Definition odd_f (f : R -> R) : Prop := ∀ x, f (-x) = - (f x).
+Definition odd (f : R -> R) : Prop := ∀ x, f (-x) = - (f x).
 
 Lemma f_subtype_independent {U V} (P : Ensemble U) (f : subType P -> V) (x : U) (H1 H2 : In _ P x) :
   f {| val := x; property := H1 |} = f {| val := x; property := H2 |}.

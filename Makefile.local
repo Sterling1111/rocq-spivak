@@ -1,6 +1,16 @@
-post-all::
-	@bash Calculus/Chapter18/Problem4/generate_plots.sh
-	@bash Calculus/Chapter18/Problem7/generate_plots.sh
-	@bash Calculus/Chapter18/Problem14/generate_plots.sh
-	@bash Calculus/Chapter18/Problem16/generate_plots.sh
-	@bash Calculus/Chapter18/Problem18/generate_plots.sh
+PLOT_SCRIPTS = \
+	Calculus/Chapter11/Problem3/generate_plots.sh \
+	Calculus/Chapter18/Problem4/generate_plots.sh \
+	Calculus/Chapter18/Problem7/generate_plots.sh \
+	Calculus/Chapter18/Problem14/generate_plots.sh \
+	Calculus/Chapter18/Problem16/generate_plots.sh \
+	Calculus/Chapter18/Problem18/generate_plots.sh
+
+PLOT_DONES = $(PLOT_SCRIPTS:generate_plots.sh=.plots_done)
+
+%/.plots_done: %.v %/generate_plots.sh
+	@echo "Generating plots for $*..."
+	@bash $*/generate_plots.sh
+	@touch $@
+
+post-all:: $(PLOT_DONES)
