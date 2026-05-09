@@ -6,7 +6,7 @@ Proof.
   intros f. set (f' := λ x, (3*x + 4) * (x - 2)).
   assert (H1 : continuous_on f [-2, 2]). { unfold f; auto_cont. }
   assert (H2 : ⟦ der ⟧ f (-2, 2) = f').
-  { apply derivative_imp_derivative_on. apply differentiable_domain_open; lra. unfold f, f'. auto_diff. }
+  { unfold f, f'; auto_diff. }
   pose proof closed_interval_method_max f f' (-2) 2 ltac:(lra) H1 H2 as [c [H3 H4]].
   pose proof closed_interval_method_min f f' (-2) 2 ltac:(lra) H1 H2 as [d [H5 H6]].
   split.
@@ -29,7 +29,7 @@ Proof.
   intro. set (f' := λ x, 5 * x^4 + 1).
   assert (H1 : continuous_on f [-1, 1]) by (unfold f; auto_cont).
   assert (H2 : ⟦ der ⟧ f (-1, 1) = f').
-  { apply derivative_imp_derivative_on; try (unfold f, f'; auto_diff). apply differentiable_domain_open; lra. }
+  { unfold f, f'; auto_diff. }
   pose proof closed_interval_method_max f f' (-1) 1 ltac:(lra) H1 H2 as [c [H3 H4]].
   pose proof closed_interval_method_min f f' (-1) 1 ltac:(lra) H1 H2 as [d [H5 H6]].
   split.
@@ -53,7 +53,7 @@ Proof.
   intro. set (f' := λ x, 12 * x^3 - 24 * x^2 + 12 * x).
   assert (H1 : continuous_on f [-1/2, 1/2]) by (unfold f; auto_cont).
   assert (H2 : ⟦ der ⟧ f (-1/2, 1/2) = f').
-  { apply derivative_imp_derivative_on; try (unfold f, f'; auto_diff). apply differentiable_domain_open; lra. }
+  { unfold f, f'; auto_diff. }
   pose proof closed_interval_method_max f f' (-1/2) (1/2) ltac:(lra) H1 H2 as [c [H3 H4]].
   pose proof closed_interval_method_min f f' (-1/2) (1/2) ltac:(lra) H1 H2 as [d [H5 H6]].
   split.
@@ -116,9 +116,7 @@ Proof.
   assert (H1 : continuous_on f [-1, 1/2]).
   { unfold f. apply continuous_on_div; auto_cont. }
   assert (H2 : ⟦ der ⟧ f (-1, 1/2) = f').
-  { apply derivative_imp_derivative_on; try (unfold f, f'; auto_diff). 
-    apply differentiable_domain_open; lra. 
-  }
+  { unfold f, f'; auto_diff. }
   pose proof closed_interval_method_max f f' (-1) (1/2) ltac:(lra) H1 H2 as [c [H3 H4]].
   pose proof closed_interval_method_min f f' (-1) (1/2) ltac:(lra) H1 H2 as [d [H5 H6]].
   split.
@@ -142,27 +140,33 @@ Proof.
       rewrite H9.
       replace (2 - 2 * c) with (4 - 2 * (c + 1)) by lra.
       rewrite H11.
-      apply Rmult_eq_reg_l with (r := 4 - 2 * √2); try lra. field_simplify; try lra.
-      
-
+      solve_R.
 Qed.
 
 Lemma lemma_11_1_vi : let f := (λ x, 4 / x) in
-  minimum_value f [1, 2] 2 /
+  minimum_value f [1, 2] 2 /\
   maximum_value f [1, 2] 4.
 Proof.
   intro. set (f' := λ x, -4 / x^2).
-  assert (H1 : continuous_on f [1, 2]) by (unfold f; auto_cont).
+  assert (H1 : continuous_on f [1, 2]).
+  { unfold f. auto_cont. }
   assert (H2 : ⟦ der ⟧ f (1, 2) = f').
-  { apply derivative_imp_derivative_on; try (unfold f, f'; auto_diff). apply differentiable_domain_open; lra. }
+  { unfold f, f'; auto_diff. }
   pose proof closed_interval_method_max f f' 1 2 ltac:(lra) H1 H2 as [c [H3 H4]].
   pose proof closed_interval_method_min f f' 1 2 ltac:(lra) H1 H2 as [d [H5 H6]].
   split.
   - exists d. split; auto.
     destruct H6 as [H6 | [H6 | [H6 H7]]]; subst.
+    + destruct H5 as [_ H5]. specialize (H5 2 ltac:(solve_R)). unfold f in *. lra.
     + unfold f. lra.
-    + destruct H5 as [_ H5]. specialize (H5 1 ltac:(solve_R)). unfold f in *. lra.
-    + unfold f' in H7. unfold f in H6; rewrite <- H7; field_simplify in H6; try nra.
-      
-  - exists c.
-Abort.
+    + unfold f' in H7. 
+      assert (H8 : d^2 > 0) by nra.
+      apply Rmult_eq_compat_l with (r := d^2) in H7; field_simplify in H7; nra.
+  - exists c. split; auto.
+    destruct H4 as [H4 | [H4 | [H4 H7]]]; subst.
+    + unfold f. lra.
+    + destruct H3 as [_ H3]. specialize (H3 1 ltac:(solve_R)). unfold f in *. lra.
+    + unfold f' in H7. 
+      assert (H8 : c^2 > 0) by nra.
+      apply Rmult_eq_compat_l with (r := c^2) in H7; field_simplify in H7; nra.
+Qed.
