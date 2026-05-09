@@ -12,11 +12,12 @@ Lemma lemma_15_2_ii :
   ⟦ lim 0 ⟧ (fun x => (sin x - x + x^3 / 6) / x^4) = 0.
 Proof.
   step_lhopital (λ x, cos x - 1 + x^2 / 2) (λ x, 4 * x^3).
-  admit.
+  exists 1. split; [lra |]. intros x H1 H2.
+  repeat (apply Rmult_integral_contrapositive; split; try lra).
   step_lhopital (λ x, - sin x + x) (λ x, 12 * x^2).
   step_lhopital (λ x, - cos x + 1) (λ x, 24 * x).
   step_lhopital (λ x, sin x) (λ x : R, 24).
-Abort.
+Qed.
 
 Lemma lemma_15_2_iii :
   ⟦ lim 0 ⟧ (fun x => (cos x - 1 + x^2 / 2) / x^2) = 0.
@@ -29,11 +30,12 @@ Lemma lemma_15_2_iv :
   ⟦ lim 0 ⟧ (fun x => (cos x - 1 + x^2 / 2) / x^4) = 1/24.
 Proof.
   step_lhopital (λ x, - sin x + x) (λ x, 4 * x^3).
-  admit.
+  exists 1. split; [lra |]. intros x H1 H2.
+  repeat (apply Rmult_integral_contrapositive; split; try lra).
   step_lhopital (λ x, - cos x + 1) (λ x, 12 * x^2).
   step_lhopital (λ x, sin x) (λ x, 24 * x).
   step_lhopital (λ x, cos x) (λ x : R, 24).
-Abort.
+Qed.
 
 Lemma lemma_15_2_v :
   ⟦ lim 0 ⟧ (fun x => (arctan x - x + x^3 / 3) / x^3) = 0.
