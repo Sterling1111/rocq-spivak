@@ -1,4 +1,4 @@
-Require Import Imports Notations Sets Field.
+Require Import Imports Notations Sets Field WI_SI_WO.
 From Stdlib Require Import Lqa.
 Import SetNotations.
 
@@ -370,6 +370,26 @@ Definition Ropp (α : Real) : Real :=
 
 Notation "- α" := (Ropp α) : Real_scope.
 
+Definition Rminus (α β : Real) : Real := α + (- β).
+Infix "-" := Rminus : Real_scope.
+
+Definition nat_to_Q (n : nat) : ℚ := (Z.of_nat n # 1).
+
+Lemma nat_to_Q_S : forall n, nat_to_Q (S n) == nat_to_Q n + 1.
+Proof.
+  intros. unfold nat_to_Q. unfold Qeq, Qplus. simpl.
+  nia.
+Qed.
+
+Lemma archimedean_Q : forall (q : ℚ), exists n : nat, (q < nat_to_Q n)%Q.
+Proof.
+  intros [n d].
+  exists (Z.to_nat (Z.abs n + 1)).
+  unfold nat_to_Q, Qlt. simpl.
+  pose proof (Pos2Z.is_pos d).
+  nia.
+Qed.
+
 Lemma lemma_29_1 : ∀ (α : Real) (z : ℚ),
   (0 < z)%Q ->
   ∃ x y : ℚ,
@@ -378,7 +398,26 @@ Lemma lemma_29_1 : ∀ (α : Real) (z : ℚ),
     (y - x == z)%Q /\
     (∃ w : ℚ, w ∉ α.(alpha) /\ (w < y)%Q).
 Proof.
-  intros α z H1.
+  (*
+  Informal proof:
+  Because alpha is a real number (a Dedekind cut), we know it is non-empty and is not the entire
+  set of rational numbers. Thus, there exists some rational a in alpha, and some b not in alpha.
+  
+  Consider the sequence of rational numbers a + n*z for n = 0, 1, 2, ...
+  Since z > 0, by the Archimedean property of the rationals, there is some integer M such that
+  M*z > b - a, which means a + M*z > b. Since b is not in alpha, this implies a + M*z is not in alpha.
+  
+  Because a + 0*z = a is in alpha, and a + M*z is not in alpha, there must be some smallest natural
+  number k > 0 such that a + k*z is not in alpha.
+  Let x0 = a + (k-1)*z and y0 = a + k*z. Then x0 is in alpha, y0 is not in alpha, and y0 - x0 = z.
+  
+  Now we need y not to be the smallest element of Q \ alpha.
+  Since alpha has no greatest element, there exists some x in alpha with x > x0.
+  Let y = y0 + (x - x0). Then y - x = y0 - x0 = z.
+  Since y > y0 and y0 is not in alpha, y is not in alpha. 
+  Furthermore, y0 is a rational strictly smaller than y that is also not in alpha, so y cannot be
+  the smallest element of Q \ alpha. We can choose w = y0 to witness this fact.
+  *)
 Admitted.
 
 Theorem theorem_29_8 : ∀ α : Real,
@@ -435,3 +474,275 @@ Lemma lemma_29_2 : ∀ α β,
 Proof.
   intros α β H1 H2.
 Admitted.
+
+Theorem theorem_29_9 : ∀ α,
+  one_and_only_one_3 (α = 0) (α ∈ P) (-α ∈ P).
+Proof.
+Admitted.
+
+Theorem theorem_29_10 : ∀ α β γ,
+  α > β -> α + γ > β + γ.
+Proof.
+Admitted.
+
+Lemma Rtotal_order_dec : ∀ α β : Real,
+  {α < β} + {α = β} + {α > β}.
+Proof.
+  intros α β.
+  destruct (excluded_middle_informative (α < β)) as [H1 | H1].
+  - exact (inleft (left H1)).
+  - destruct (excluded_middle_informative (α = β)) as [H2 | H2].
+    + exact (inleft (right H2)).
+    + right.
+      unfold Rgt, Rlt in *.
+      split.
+      * intros x Hx. apply NNPP. intros Hnot.
+        assert (H_subset : α.(alpha) ⊆ β.(alpha)).
+        { intros y Hy.
+          destruct (Q_dec y x) as [[H_lt | H_gt] | H_eq].
+          - apply (Real_P1 β x y); auto.
+          - apply (Real_P1 α y x) in H_gt; auto. contradiction.
+          - pose proof (Real_P4 β x Hx) as [z [Hz1 Hz2]].
+            assert (Hyz : (y < z)%Q) by lra.
+            apply (Real_P1 β z y Hz1 Hyz). }
+        assert (H_neq : α.(alpha) <> β.(alpha)).
+        { intros Heq. apply H2. apply Real_equiv. auto. }
+        apply H1. split; auto.
+      * intros Heq. apply H2. apply Real_equiv. symmetry. exact Heq.
+Qed.
+
+Lemma Rlt_dec : ∀ α β : Real, {α < β} + {~ (α < β)}.
+Proof.
+  intros α β. apply excluded_middle_informative.
+Qed.
+
+Lemma Rle_dec : ∀ α β : Real, {α <= β} + {~ (α <= β)}.
+Proof.
+  intros α β. apply excluded_middle_informative.
+Qed.
+
+Lemma Rgt_dec : ∀ α β : Real, {α > β} + {~ (α > β)}.
+Proof.
+  intros α β. apply excluded_middle_informative.
+Qed.
+
+Lemma Rge_dec : ∀ α β : Real, {α >= β} + {~ (α >= β)}.
+Proof.
+  intros α β. apply excluded_middle_informative.
+Qed.
+
+Definition Rabs (α : Real) : Real :=
+  match Rle_dec 0 α with
+  | left _ => α
+  | right _ => -α
+  end.
+
+Notation "| α |" := (Rabs α)
+  (at level 35, α at level 0, format "| α |", no associativity) : Real_scope.
+
+Definition Rmult_set_pos (α β : Real) : Ensemble ℚ :=
+  fun z => (z < 0)%Q \/ ∃ x y : ℚ, x ∈ α.(alpha) /\ y ∈ β.(alpha) /\ (x > 0)%Q /\ (y > 0)%Q /\ (z == x * y)%Q.
+
+Theorem theorem_29_11 : ∀ α β : Real,
+  ∃ γ : Real, γ.(alpha) = Rmult_set_pos α β.
+Proof.
+Admitted.
+
+Definition Rmult_pos (α β : Real) : Real :=
+  proj1_sig (constructive_indefinite_description _ (theorem_29_11 α β)).
+
+Definition Rmult (α β : Real) : Real :=
+  match Rle_dec 0 α, Rle_dec 0 β with
+  | left _, left _ => Rmult_pos α β
+  | left _, right _ => - (Rmult_pos α (Rabs β))
+  | right _, left _ => - (Rmult_pos (Rabs α) β)
+  | right _, right _ => Rmult_pos (Rabs α) (Rabs β)
+  end.
+
+Infix "*" := Rmult : Real_scope.
+
+Theorem theorem_29_12 : ∀ α β : Real,
+  α * β = β * α.
+Proof.
+Admitted.
+
+Theorem theorem_29_13 : ∀ α β γ : Real,
+  α * (β * γ) = (α * β) * γ.
+Proof.
+Admitted.
+
+Definition Rone_set : Ensemble ℚ :=
+  λ x, (x < 1)%Q.
+
+Theorem theorem_29_15 : 
+  ∃ α : Real, α.(alpha) = Rone_set.
+Proof.
+Admitted.
+
+Definition Rone : Real := 
+  proj1_sig (constructive_indefinite_description _ (theorem_29_15)).
+
+Notation "1" := (Rone) : Real_scope.
+
+Lemma theorem_29_14 : ∀ α : Real,
+  α * 1 = α.
+Proof.
+Admitted.
+
+Definition Rinv_set_pos (α : Real) : Ensemble ℚ :=
+  fun z => (z < 0)%Q \/ (α > 0 /\ ∃ r : ℚ, (r > 0)%Q /\ r ∉ α.(alpha) /\ (z < / r)%Q).
+
+Theorem theorem_29_16 : ∀ α : Real,
+  ∃ γ : Real, γ.(alpha) = Rinv_set_pos α.
+Proof.
+Admitted.
+
+Definition Rinv_pos (α : Real) : Real :=
+  proj1_sig (constructive_indefinite_description _ (theorem_29_16 α)).
+
+Definition Rinv (α : Real) : Real :=
+  match Rtotal_order_dec α 0 with
+  | inleft (left _) => - (Rinv_pos (-α))
+  | inleft (right _) => 0  
+  | inright _ => Rinv_pos α
+  end.
+
+Notation "/ α" := (Rinv α) : Real_scope.
+
+Definition Rdiv (α β : Real) : Real :=
+  α * (/ β).
+
+Infix "/" := Rdiv : Real_scope.
+
+Theorem theorem_29_17 : ∀ α : Real,
+  α ≠ 0 -> α * (/ α) = 1.
+Proof.
+Admitted.
+
+Theorem theorem_29_18 : ∀ α β γ : Real,
+  α * (β + γ) = (α * β) + (α * γ).
+Proof.
+Admitted.
+
+Lemma Rone_neq_Rzero : Rone <> Rzero.
+Proof.
+Admitted.
+
+Lemma theorem_29_13_sym : ∀ α β γ : Real,
+  (α * β) * γ = α * (β * γ).
+Proof.
+  intros. symmetry. apply theorem_29_13.
+Qed.
+
+Instance Field_Real : Field Real.
+Proof.
+  apply (Build_Field Real Rplus Rmult Rzero Rone Ropp Rinv).
+  - exact theorem_29_3.
+  - exact theorem_29_6.
+  - exact theorem_29_8.
+  - exact theorem_29_4.
+  - intros a b c. rewrite theorem_29_13 . reflexivity.
+  - exact Rone_neq_Rzero.
+  - exact theorem_29_14.
+  - exact theorem_29_17.
+  - exact theorem_29_12.
+  - exact theorem_29_18.
+Defined.
+
+Theorem theorem_29_19 : ∀ α β : Real,
+  α ∈ P -> β ∈ P -> (α * β) ∈ P.
+Proof.
+Admitted.
+
+Instance OrderedField_Real : OrderedField Real.
+Proof.
+  apply (Build_OrderedField Real Field_Real P).
+  - exact theorem_29_9.
+  - exact lemma_29_2.
+  - exact theorem_29_19.
+Defined.
+
+Theorem theorem_29_20 : ∀ A : Ensemble Real,
+  (∃ a, a ∈ A) -> Field.bounded_above A -> ∃ x, Field.is_least_upper_bound A x.
+Proof.
+Admitted.
+
+Instance CompleteOrderedField_Real : CompleteOrderedField Real.
+Proof.
+  apply (Build_CompleteOrderedField Real Field_Real OrderedField_Real).
+  - exact theorem_29_20.
+Defined.
+
+From Stdlib Require Import Ring Field Lra Zify ZifyClasses.
+
+Lemma Real_plus_0_l : ∀ α : Real, 0 + α = α.
+Proof.
+  intros α. rewrite theorem_29_4. apply theorem_29_6.
+Qed.
+
+Lemma Real_mult_1_l : ∀ α : Real, 1 * α = α.
+Proof.
+  intros α. rewrite theorem_29_12. apply theorem_29_14.
+Qed.
+
+Lemma Real_plus_assoc_sym : ∀ α β γ : Real, α + (β + γ) = (α + β) + γ.
+Proof.
+  intros α β γ. symmetry. apply theorem_29_3.
+Qed.
+
+Lemma Real_mult_assoc_sym : ∀ α β γ : Real, α * (β * γ) = (α * β) * γ.
+Proof.
+  intros α β γ. apply theorem_29_13.
+Qed.
+
+Lemma Real_distr_r : ∀ α β γ : Real, (α + β) * γ = (α * γ) + (β * γ).
+Proof.
+  intros α β γ. rewrite theorem_29_12. rewrite theorem_29_18. f_equal; apply theorem_29_12.
+Qed.
+
+Lemma Real_sub_def : ∀ α β : Real, α - β = α + - β.
+Proof.
+  intros α β. reflexivity.
+Qed.
+
+Lemma Real_opp_def : ∀ α : Real, α + - α = 0.
+Proof.
+  intros α. apply theorem_29_8.
+Qed.
+
+Lemma Real_ring_theory : ring_theory 0 1 Rplus Rmult Rminus Ropp eq.
+Proof.
+  constructor.
+  - exact Real_plus_0_l.
+  - exact theorem_29_4.
+  - exact Real_plus_assoc_sym.
+  - exact Real_mult_1_l.
+  - exact theorem_29_12.
+  - exact Real_mult_assoc_sym.
+  - exact Real_distr_r.
+  - exact Real_sub_def.
+  - exact Real_opp_def.
+Qed.
+
+Add Ring Real_ring : Real_ring_theory.
+
+Lemma Real_div_def : ∀ α β : Real, α / β = α * / β.
+Proof.
+  intros α β. reflexivity.
+Qed.
+
+Lemma Real_inv_l : ∀ α : Real, α <> 0 -> / α * α = 1.
+Proof.
+  intros α H1. rewrite theorem_29_12. apply theorem_29_17. exact H1.
+Qed.
+
+Lemma Real_field_theory : field_theory 0 1 Rplus Rmult Rminus Ropp Rdiv Rinv eq.
+Proof.
+  constructor.
+  - exact Real_ring_theory.
+  - exact Rone_neq_Rzero.
+  - exact Real_div_def.
+  - exact Real_inv_l.
+Qed.
+
+Add Field Real_field : Real_field_theory.
