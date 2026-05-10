@@ -1,4 +1,5 @@
-Require Import Imports Notations Sets.
+Require Import Imports Notations Sets Field.
+From Stdlib Require Import Lqa.
 Import SetNotations.
 
 Open Scope Q_scope.
@@ -323,4 +324,114 @@ Proof.
 Qed.
 
 Definition Ropp_set (α : Real) : Ensemble ℚ :=
-  λ x : ℚ, (-x)%Q ∉ α.(alpha) /\ ∃ y : ℚ, y ∉ α.(alpha) /\ (y < -x)%Q.
+  λ x : ℚ, ∃ y : ℚ, y ∉ α.(alpha) /\ (y < -x)%Q.
+
+Theorem theorem_29_7 : ∀ α : Real, 
+  ∃ β : Real, β.(alpha) = Ropp_set α.
+Proof.
+  intros α.
+  pose (S := Ropp_set α).
+  assert (H1 : ∀ x y : ℚ, x ∈ S -> (y < x)%Q -> y ∈ S).
+  { intros x y [r [H1 H2]] H3. exists r; split; auto; lra. }
+  assert (H2 : S ≠ ∅).
+  {
+    pose proof (Real_P3 α) as H3.
+    assert (exists x, x ∉ alpha α) as [r H4].
+    { 
+      apply not_all_ex_not. intros H4. apply H3. apply Extensionality_Ensembles.
+      split; intros x _. apply Full_intro. apply H4. 
+    }
+    apply not_Empty_In. exists (-r - 1)%Q, r. split; auto; lra.
+  }
+  assert (H3 : S ≠ ℚ).
+  {
+    intros H3.
+    pose proof (Real_P2 α) as H4.
+    apply not_Empty_In in H4 as [x H5].
+    assert (H6 : (-x)%Q ∈ S).
+    { rewrite H3. apply Full_intro. }
+    destruct H6 as [y [H6 H7]].
+    apply H6.
+    apply (Real_P1 α x y H5).
+    lra.
+  }
+  assert (H4 : ∀ x : ℚ, x ∈ S -> ∃ y : ℚ, y ∈ S /\ (x < y)%Q).
+  {
+    intros x [y [H4 H5]].
+    exists ((x + -y) * (1#2))%Q.
+    split; [ exists y; split; auto; lra | lra].
+  }
+  exists {| alpha := S; Real_P1 := H1; Real_P2 := H2; Real_P3 := H3; Real_P4 := H4 |}.
+  reflexivity.
+Qed.
+
+Definition Ropp (α : Real) : Real :=
+  proj1_sig (constructive_indefinite_description _ (theorem_29_7 α)).
+
+Notation "- α" := (Ropp α) : Real_scope.
+
+Lemma lemma_29_1 : ∀ (α : Real) (z : ℚ),
+  (0 < z)%Q ->
+  ∃ x y : ℚ,
+    x ∈ α.(alpha) /\
+    y ∉ α.(alpha) /\
+    (y - x == z)%Q /\
+    (∃ w : ℚ, w ∉ α.(alpha) /\ (w < y)%Q).
+Proof.
+  intros α z H1.
+Admitted.
+
+Theorem theorem_29_8 : ∀ α : Real,
+  α + (- α) = 0.
+Proof.
+  intros α.
+  apply Real_equiv.
+  unfold Rplus.
+  destruct (constructive_indefinite_description _ (theorem_29_2 α (- α))) as [α_opp H1]; simpl.
+  rewrite H1.
+  assert (H2 : alpha 0 = Rzero_set).
+  { apply (proj2_sig (constructive_indefinite_description _ theorem_29_5)). }
+  rewrite H2.
+  apply Extensionality_Ensembles.
+  split; intros z H3.
+  - destruct H3 as [x [y [H4 [H5 H6]]]].
+    unfold Ensembles.In, Rzero_set.
+    assert (H7 : alpha (- α) = Ropp_set α).
+    { apply (proj2_sig (constructive_indefinite_description _ (theorem_29_7 α))). }
+    rewrite H7 in H5.
+    unfold Ropp_set, Ensembles.In in H5.
+    destruct H5 as [w [H8 H9]].
+    assert (H10 : (x < w)%Q).
+    {
+      destruct (Q_dec x w) as [[H11 | H12] | H13].
+      - exact H11.
+      - apply (Real_P1 α x w) in H12; auto. contradiction.
+      - pose proof (Real_P4 α x H4) as [x' [Hx1 Hx2]].
+        assert (H14 : (w < x')%Q) by lra.
+        apply (Real_P1 α x' w Hx1) in H14.
+        contradiction.
+    }
+    rewrite H6. lra.
+  - unfold Ensembles.In, Rzero_set in H3.
+    assert (H4 : (0 < -z)%Q) by lra.
+    pose proof (lemma_29_1 α (-z)%Q H4) as [x [y [H5 [H6 [H7 [w [H8 H9]]]]]]].
+    exists x, (-y)%Q.
+    split; auto.
+    split.
+    + assert (H10 : alpha (- α) = Ropp_set α).
+      { apply (proj2_sig (constructive_indefinite_description _ (theorem_29_7 α))). }
+      rewrite H10.
+      unfold Ropp_set, Ensembles.In.
+      exists w. split; auto.
+      assert (H11 : (- - y == y)%Q) by ring.
+      rewrite H11. exact H9.
+    + lra.
+Qed.
+
+Definition P := λ α, α > 0.
+
+Lemma lemma_29_2 : ∀ α β, 
+  α ∈ P -> β ∈ P -> (α + β) ∈ P.
+Proof.
+  intros α β H1 H2.
+Admitted.

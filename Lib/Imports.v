@@ -6,7 +6,6 @@ From Interval Require Export Tactic Plot.
 From Stdlib Require Export 
   (* Real numbers *)
   Reals 
-  Lra 
   
   (* Arithmetic *)
   ZArith
@@ -15,6 +14,7 @@ From Stdlib Require Export
   Arith.PeanoNat
   Arith.Compare_dec
   Lia
+  Lra
   
   (* Logic *)
   Logic.Classical
