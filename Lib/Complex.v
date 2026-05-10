@@ -10,6 +10,8 @@ Definition RtoC (r : R) : C := (r,0).
 
 Coercion RtoC : R >-> C.
 
+Notation ℂ := C.
+
 Definition Cplus (c1 c2 : C) : C := (fst c1 + fst c2, snd c1 + snd c2).
 Definition Copp (c : C) : C := (- fst c, - snd c).
 Definition Cminus (c1 c2 : C) : C := Cplus c1 (Copp c2).

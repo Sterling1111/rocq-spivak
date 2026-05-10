@@ -24,6 +24,7 @@ Lib/Products.v
 Lib/WI_SI_WO.v
 Lib/QRT.v
 Lib/Fibonacci.v
+Lib/Field.v
 Lib/Sets.v
 Lib/Binomial.v
 Lib/Prime.v
@@ -59,6 +60,7 @@ Lib/ComplexSequence.v
 Lib/ComplexSeries.v
 Lib/ComplexFunctions.v
 Lib/Integral_Table.v
+Lib/Real.v
 
 
 # ==========================
@@ -151,6 +153,8 @@ Calculus/Chapter22/Prelude.v
 Calculus/Chapter23/Prelude.v
 
 Calculus/Chapter24/Prelude.v
+
+Calculus/Chapter28/Prelude.v
 
 -I src
 

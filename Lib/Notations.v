@@ -4,7 +4,6 @@ Notation ℕ := nat.
 Notation ℤ := Z.
 Notation ℚ := Q.
 Notation ℝ := R.
-Notation ℂ := C.
 
 Notation "| x |" := (Rabs x)
   (at level 35, x at level 0, format "| x |", no associativity) : R_scope.
