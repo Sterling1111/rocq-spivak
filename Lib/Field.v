@@ -8,16 +8,16 @@ Class Field (F : Type) := {
   one : F;
   opp : F -> F;
   inv : F -> F;
-  H1 : ∀ a b c, add (add a b) c = add a (add b c);
-  H2 : ∀ a, add a zero = a;
-  H3 : ∀ a, add a (opp a) = zero;
-  H4 : ∀ a b, add a b = add b a;
-  H5 : ∀ a b c, mul (mul a b) c = mul a (mul b c);
-  H6 : one <> zero;
-  H7 : ∀ a, mul a one = a;
-  H8 : ∀ a, a <> zero -> mul a (inv a) = one;
-  H9 : ∀ a b, mul a b = mul b a;
-  H10 : ∀ a b c, mul a (add b c) = add (mul a b) (mul a c)
+  Field_P1 : ∀ a b c, add (add a b) c = add a (add b c);
+  Field_P2 : ∀ a, add a zero = a;
+  Field_P3 : ∀ a, add a (opp a) = zero;
+  Field_P4 : ∀ a b, add a b = add b a;
+  Field_P5 : ∀ a b c, mul (mul a b) c = mul a (mul b c);
+  Field_P6 : one <> zero;
+  Field_P7 : ∀ a, mul a one = a;
+  Field_P8 : ∀ a, a <> zero -> mul a (inv a) = one;
+  Field_P9 : ∀ a b, mul a b = mul b a;
+  Field_P10 : ∀ a b c, mul a (add b c) = add (mul a b) (mul a c)
 }.
 
 Definition one_and_only_one_3 (P1 P2 P3 : Prop) : Prop :=
