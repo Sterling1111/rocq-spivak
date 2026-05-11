@@ -1095,7 +1095,6 @@ Abort.
 Lemma integral_113 : forall n : ℕ, (n > 0)%nat -> ∫ (-π) π (λ x, cos (n * x) ^ 2) = π.
 Proof.
   intros n H1.
-
   replace (λ x : ℝ, cos (n * x) ^ 2) with (λ x : ℝ, 1 / 2 + 1 / 2 * cos (2 * n * x)).
   2 : { extensionality x. replace (2 * n * x) with (2 * (n * x)) by lra. rewrite cos_2x_2. lra. }
   assert (H2: -π < π) by solve_denoms.

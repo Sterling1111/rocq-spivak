@@ -4245,3 +4245,136 @@ Proof.
   - rewrite S_INR. replace ((INR n + 1) * π) with (INR n * π + π) by lra.
     rewrite sin_plus. rewrite IHn. rewrite sin_π. lra.
 Qed.
+
+Lemma abs_cos_eq_1 : forall x, |cos x| = 1 -> exists k : Z, x = k * π.
+Proof.
+  intros x H1.
+  assert (H2 : cos x = 1 \/ cos x = -1).
+  { destruct (Rlt_le_dec (cos x) 0) as [H_lt | H_ge].
+    - rewrite Rabs_left in H1; lra.
+    - rewrite Rabs_right in H1; lra. }
+  destruct H2 as [H2 | H2].
+  - unfold cos in H2. destruct (red_0_2π_spec x) as [H3 [k H4]].
+    set (y := proj1_sig (red_0_2π x)) in *.
+    unfold cos_0_2π in H2. destruct (Rle_dec y π) as [H5 | H5].
+    + assert (A (cos_0_π y) = A 1) as H6 by (rewrite H2; reflexivity).
+      rewrite cos_0_π_spec in H6; [| lra]. rewrite A_at_1 in H6.
+      assert (Hy : y = 0) by lra.
+      exists (2 * k)%Z. rewrite Hy in H4. rewrite mult_IZR. lra.
+    + assert (A (cos_0_π (2 * π - y)) = A 1) as H6 by (rewrite H2; reflexivity).
+      rewrite cos_0_π_spec in H6; [| lra]. rewrite A_at_1 in H6.
+      assert (Hy2 : 2 * π - y = 0) by lra.
+      assert (Hy : y = 2 * π) by lra. lra.
+  - unfold cos in H2. destruct (red_0_2π_spec x) as [H3 [k H4]].
+    set (y := proj1_sig (red_0_2π x)) in *.
+    unfold cos_0_2π in H2. destruct (Rle_dec y π) as [H5 | H5].
+    + assert (A (cos_0_π y) = A (-1)) as H6 by (rewrite H2; reflexivity).
+      rewrite cos_0_π_spec in H6; [| lra]. rewrite A_at_neg_1 in H6.
+      assert (Hy : y = π). { pose proof π_pos. lra. }
+      exists (2 * k + 1)%Z. rewrite Hy in H4. rewrite plus_IZR, mult_IZR. lra.
+    + assert (A (cos_0_π (2 * π - y)) = A (-1)) as H6 by (rewrite H2; reflexivity).
+      rewrite cos_0_π_spec in H6; [| lra]. rewrite A_at_neg_1 in H6.
+      assert (Hy2 : 2 * π - y = π). { pose proof π_pos. lra. }
+      assert (Hy : y = π) by lra.
+      exists (2 * k + 1)%Z. rewrite Hy in H4. rewrite plus_IZR, mult_IZR. lra.
+Qed.
+
+Lemma lemma_cos_lt_1_exists_z : forall a b,
+  a < b ->
+  exists z : ℝ, a < z /\ z < b /\ forall w : ℝ, a < w -> w < z -> |(cos w)| < 1.
+Proof.
+  intros a b Hab.
+  pose proof (abs_cos_eq_1).
+  pose proof (Zfloor_bound (a / π)) as H0.
+  set (k := Zfloor (a / π)).
+  set (next_root := ((k + 1)%Z * π)%R).
+  set (z := (a + Rmin b next_root) / 2).
+  assert (a < next_root).
+  {
+    assert (a / π * π < (IZR (Zfloor (a / π)) + 1) * π).
+    { apply Rmult_lt_compat_r. apply π_pos. apply H0. }
+    replace (a / π * π) with a in H1.
+    - replace next_root with ((IZR (Zfloor (a / π)) + 1) * π).
+      + exact H1.
+      + unfold next_root, k. rewrite plus_IZR. reflexivity.
+    - unfold Rdiv. rewrite Rmult_assoc, Rinv_l, Rmult_1_r. reflexivity. apply Rgt_not_eq. apply π_pos.
+  }
+  assert (next_root <= b \/ b < next_root) by lra.
+  exists z.
+  split.
+  - subst z.
+    assert (a < Rmin b next_root).
+    { apply Rmin_case; lra. }
+    lra.
+  - split.
+    + subst z.
+      assert (Rmin b next_root <= b) by apply Rmin_l.
+      assert (a < Rmin b next_root) by (apply Rmin_case; lra).
+      lra.
+    + intros w Hw1 Hw2.
+      destruct (Rle_lt_dec 1 (|(cos w)|)).
+      * pose proof (cos_bounds w).
+        assert (|(cos w)| = 1).
+        {
+          assert (|(cos w)| <= 1).
+          { unfold Rabs. destruct (Rcase_abs (cos w)); lra. }
+          lra.
+        }
+        apply H in H4.
+        destruct H4 as [k' H4].
+        assert (a < k' * π < next_root).
+        {
+          split.
+          - lra.
+          - assert (z <= next_root).
+            {
+              subst z.
+              assert (Rmin b next_root <= next_root) by apply Rmin_r.
+              lra.
+            }
+            lra.
+        }
+        assert (a / π < IZR k' < IZR k + 1).
+        {
+          split.
+          - apply Rmult_lt_reg_r with π.
+            + apply π_pos.
+            + assert (a = a / π * π).
+              { unfold Rdiv. rewrite Rmult_assoc, Rinv_l, Rmult_1_r; auto. apply Rgt_not_eq, π_pos. }
+              lra.
+          - apply Rmult_lt_reg_r with π.
+            + apply π_pos.
+            + assert ((IZR k + 1) * π = next_root).
+              { unfold next_root. rewrite plus_IZR. reflexivity. }
+              lra.
+        }
+        assert (k' = k).
+        {
+          pose proof (Zfloor_bound (a / π)).
+          assert (IZR k' < IZR (k+1)) by (rewrite plus_IZR; lra).
+          assert (k' < k+1)%Z.
+          { apply lt_IZR. rewrite plus_IZR. destruct H6. lra. }
+          assert (k <= k')%Z.
+          {
+            apply le_IZR.
+            destruct H6.
+            pose proof (Zfloor_bound (a / π)).
+            unfold k. lra.
+          }
+          lia.
+        }
+        subst k'.
+        assert (w = IZR k * π).
+        { rewrite H4. reflexivity. }
+        assert (IZR k <= a / π).
+        { pose proof (Zfloor_bound (a / π)). unfold k. lra. }
+        assert (IZR k * π <= a).
+        {
+          apply Rmult_le_reg_r with (/ π).
+          - apply Rinv_0_lt_compat. apply π_pos.
+          - rewrite Rmult_assoc. rewrite Rinv_r by (apply Rgt_not_eq, π_pos).
+            rewrite Rmult_1_r. unfold Rdiv in H5. lra.
+        }
+        lra.
+      * lra.
+Qed.
