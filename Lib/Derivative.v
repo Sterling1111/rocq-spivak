@@ -25,6 +25,15 @@ Definition differentiable (f:R -> R) :=
 Definition derivative_at (f f' : R -> R) (a : R) :=
   ⟦ lim 0 ⟧ (fun h => (f (a + h) - f a) / h) = f' a.
 
+Definition derivative_at_val (f : R -> R) (a L : R) :=
+  ⟦ lim 0 ⟧ (fun h => (f (a + h) - f a) / h) = L.
+
+Lemma derivative_at_val_equiv : forall f f' a,
+  derivative_at f f' a <-> derivative_at_val f a (f' a).
+Proof.
+  unfold derivative_at, derivative_at_val; reflexivity.
+Qed.
+
 Definition derivative_at_left (f f' : R -> R) (a : R) :=
   ⟦ lim 0⁻ ⟧ (fun h => (f (a + h) - f a) / h) = f' a.
 
@@ -169,6 +178,9 @@ Module DerivativeNotations.
 
   Notation "⟦ 'der' a ⟧ f = f'" := (derivative_at f f' a)
     (at level 70, f at level 0, no associativity, format "⟦  'der'  a  ⟧  f  =  f'") : derivative_scope.
+
+  Notation "⟦ 'der_' a ⟧ f = L" := (derivative_at_val f a L)
+    (at level 70, f at level 0, no associativity, format "⟦  'der_'  a  ⟧  f  =  L") : derivative_scope.
 
   Notation "⟦ 'der' a ⁺ ⟧ f = f'" := (derivative_at_right f f' a)
     (at level 70, f at level 0, no associativity, format "⟦  'der'  a ⁺  ⟧  f  =  f'") : derivative_scope.
