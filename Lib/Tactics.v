@@ -567,8 +567,6 @@ Proof.
   intros n f f' g' H1 H2. rewrite <- H2. exact H1.
 Qed.
 
-
-
 Lemma nth_derive_eq' : forall n f1 f2 f',
   (forall x, f1 x = f2 x) -> nth_derive n f1 = f' -> nth_derive n f2 = f'.
 Proof.
