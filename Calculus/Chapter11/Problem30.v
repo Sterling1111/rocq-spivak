@@ -44,6 +44,55 @@ Proof.
     nra.
 Qed.
 
+Lemma lemma_11_30_a' : forall f g f' g' a x,
+  ⟦ der ⟧ f = f' -> 
+  ⟦ der ⟧ g = g' ->
+  f a = g a ->
+  (forall c, (c ∈ (a, x) \/ c ∈ (x, a)) -> f' c > g' c) ->
+  (x > a -> f x > g x) /\ (x < a -> f x < g x).
+Proof.
+  intros f g f' g' a x H1 H2 H3 H4.
+  set (h := (f - g)%function).
+  assert (H5 : forall u v, u < v -> continuous_on h [u, v]).
+  {
+    intros u v H5.
+    apply continuous_imp_continuous_on, differentiable_imp_continuous, 
+    derivative_imp_differentiable with (f' := (f' - g')%function).
+    unfold h; apply derivative_minus; auto.
+  }
+  assert (H6 : forall u v, u < v -> differentiable_on h (u, v)).
+  {
+    intros u v H6.
+    apply differentiable_imp_differentiable_on.
+    - unfold h; apply derivative_imp_differentiable with (f' := (f' - g')%function).
+      apply derivative_minus; auto.
+    - apply differentiable_domain_open; lra.
+  }
+  split; intros H7.
+  - pose proof mean_value_theorem h a x H7 (H5 a x H7) (H6 a x H7) as [y [H8 H9]].
+    assert (H10 : ⟦ der y ⟧ h = (f' - g')%function).
+    { unfold h; apply derivative_at_minus; auto. }
+    pose proof derivative_at_unique h (fun _ => (h x - h a) / (x - a)) (f' - g')%function y H9 H10 as H11.
+    simpl in H11; unfold h in H11.
+    rewrite H3 in H11.
+    apply Rmult_eq_compat_r with (r := x - a) in H11.
+    field_simplify in H11; try lra.
+    assert (H12 : y ∈ (a, x) \/ y ∈ (x, a)) by solve_R.
+    specialize (H4 y H12).
+    nra.
+  - pose proof mean_value_theorem h x a H7 (H5 x a H7) (H6 x a H7) as [y [H8 H9]].
+    assert (H10 : ⟦ der y ⟧ h = (f' - g')%function).
+    { unfold h; apply derivative_at_minus; auto. }
+    pose proof derivative_at_unique h (fun _ => (h a - h x) / (a - x)) (f' - g')%function y H9 H10 as H11.
+    simpl in H11; unfold h in H11.
+    rewrite H3 in H11.
+    apply Rmult_eq_compat_r with (r := a - x) in H11.
+    field_simplify in H11; try lra.
+    assert (H12 : y ∈ (a, x) \/ y ∈ (x, a)) by solve_R.
+    specialize (H4 y H12).
+    nra.
+Qed.
+
 Lemma lemma_11_30_b : ∃ f g f' g' a x,
   ⟦ der ⟧ f = f' /\
   ⟦ der ⟧ g = g' /\
