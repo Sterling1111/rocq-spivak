@@ -2853,6 +2853,23 @@ Definition non_decreasing (f: ℝ -> ℝ) :=
 Definition non_increasing (f: ℝ -> ℝ) :=
   non_increasing_on f ℝ.
 
+Lemma increasing_on_imp_increasing : forall f,
+  (forall a b, a < b -> increasing_on f [a, b]) -> increasing f.
+Proof.
+  intros f H1 a b _ _ H2.
+  specialize (H1 a b H2).
+  specialize (H1 a b ltac:(solve_R) ltac:(solve_R) H2); auto.
+Qed.
+
+Lemma non_decreasing_on_imp_non_decreasing : ∀ f,
+  (forall a b, a < b -> non_decreasing_on f [a, b]) -> non_decreasing f.
+Proof.
+  intros f H1 a b _ _ H2.
+  destruct H2 as [H2 | H2].
+  - apply (H1 a b H2 a b); solve_R.
+  - subst b; lra.
+Qed.
+
 Lemma increasing_on_imp_non_decreasing_on : forall f D,
   increasing_on f D -> non_decreasing_on f D.
 Proof.
@@ -3103,6 +3120,65 @@ Proof.
   apply Rmult_lt_compat_r with (r := (x2 - x1)) in H4; [| lra].
   field_simplify in H4; [| lra].
   lra.
+Qed.
+
+Lemma derivative_on_nonneg_imp_nondecreasing_on : forall f f' a b, 
+  a < b -> ⟦ der ⟧ f [a, b] = f' -> (forall x, x ∈ [a, b] -> f' x >= 0) -> non_decreasing_on f [a, b].
+Proof.
+  intros f f' a b H1 H2 H3 x1 x2 H4 H5 H6.
+  destruct (Req_dec x1 x2) as [H7 | H7].
+  - rewrite H7; lra.
+  - assert (H8 : x1 < x2) by lra.
+    assert (H9 : continuous_on f [x1, x2]).
+    {
+      apply continuous_on_subset_closed with (a := a) (b := b); try solve_R.
+      apply differentiable_on_imp_continuous_on_closed; auto.
+      apply derivative_on_imp_differentiable_on with (f' := f'); auto.
+    }
+    assert (H10 : differentiable_on f (x1, x2)).
+    {
+      apply differentiable_on_subset_open with (a := a) (b := b); try solve_R.
+      apply derivative_on_imp_differentiable_on with (f' := f'); auto.
+      apply derivative_on_subset with (D1 := [a, b]); auto.
+      - apply differentiable_domain_open; solve_R.
+      - intros y H10; solve_R.
+    }
+    pose proof mean_value_theorem f x1 x2 H8 H9 H10 as [x [H11 H12]].
+    set (h := λ _ : ℝ, (f x2 - f x1) / (x2 - x1)).
+    assert (h x = f' x) as H13.
+    {
+      apply derivative_at_unique with (f := f) (x := x); auto. 
+      apply derivative_on_imp_derivative_at with (D := (x1, x2)); try auto_interval.
+      apply derivative_on_subset with (D1 := [a, b]); auto.
+      - apply differentiable_domain_open; solve_R.
+      - intros y H13; solve_R.
+    }
+    specialize (H3 x ltac:(auto_interval)). unfold h in H13.
+    assert (H14 : (f x2 - f x1) / (x2 - x1) >= 0) by lra.
+    apply Rmult_ge_compat_r with (r := (x2 - x1)) in H14; try lra.
+    field_simplify in H14; lra.
+Qed.
+
+Lemma derivative_nonneg_imp_nondecreasing : ∀ f f',
+  ⟦ der ⟧ f = f' -> (∀ x, f' x >= 0) -> non_decreasing f.
+Proof.
+  intros f f' H1 H2.
+  apply non_decreasing_on_imp_non_decreasing.
+  intros a b H3.
+  apply derivative_on_nonneg_imp_nondecreasing_on with (f' := f'); auto.
+  apply derivative_imp_derivative_on; auto.
+  apply differentiable_domain_closed; auto.
+Qed.
+
+Lemma derivative_pos_imp_increasing : forall f f',
+  ⟦ der ⟧ f = f' -> (∀ x, f' x > 0) -> increasing f.
+Proof.
+  intros f f' H1 H2.
+  apply increasing_on_imp_increasing.
+  intros a b H3.
+  apply derivative_on_pos_imp_increasing_on with (f' := f'); auto.
+  apply derivative_imp_derivative_on; auto.
+  apply differentiable_domain_closed; auto.
 Qed.
 
 Theorem cauchy_mean_value_theorem : forall f f' g g' a b,
