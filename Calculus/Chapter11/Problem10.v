@@ -1,6 +1,6 @@
 From Calculus.Chapter11 Require Import Prelude.
 
-Section Rectangle.
+Section Section_11_10.
 
 Variable P : ℝ.
 Hypothesis H1 : P > 0.
@@ -62,4 +62,4 @@ Proof.
   - unfold Perimeter in H3. lra.
 Qed.
 
-End Rectangle.
+End Section_11_10.

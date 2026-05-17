@@ -2825,6 +2825,116 @@ Proof.
   - apply derivative_at_neg; auto.
 Qed.
 
+Lemma local_min_imp_second_derivative_nonneg : forall f f' f'' A a δ,
+  δ > 0 ->
+  a ∈ A ->
+  (forall x, |x - a| < δ -> x ∈ A) ->
+  ⟦ der ⟧ f (a - δ, a + δ) = f' ->
+  ⟦ der a ⟧ f' = f'' ->
+  local_minimum_point f A a ->
+  f'' a >= 0.
+Proof.
+  intros f f' f'' A a δ H1 H2 H3 H4 H5 H6.
+  destruct (Rlt_dec (f'' a) 0) as [H7 | H7]; [| lra].
+  assert (H8 : f' a = 0).
+  {
+    assert (H8 : ⟦ der a ⟧ f = f').
+    { apply derivative_on_imp_derivative_at with (D := (a - δ, a + δ)); auto_interval. }
+    assert (H9 : differentiable_at f a).
+    { eapply derivative_at_imp_differentiable_at; eauto. }
+    assert (H10 : local_minimum_point f (a - δ, a + δ) a).
+    {
+      destruct H6 as [H6 [δ' [H10 [H11 H12]]]].
+      split; [solve_R |].
+      exists (Rmin δ δ'). split; [solve_R |].
+      split; [apply In_Intersection_def; solve_R | ].
+      intros y H13. apply H12.
+      split; auto. apply H3. apply In_Intersection_def in H11, H13. solve_R.
+      apply In_Intersection_def in H11, H13. solve_R.
+    }
+    pose proof derivative_at_local_minimum_point_zero f (a - δ) (a + δ) a H10 H9 as H11.
+    exact (derivative_at_unique f f' (fun _ => 0) a H8 H11).
+  }
+  pose proof second_derivative_test_local_max f f' f'' A a δ H1 H2 H3 H4 H5 H8 H7 as H9.
+  destruct H6 as [H10 [δ1 [H11 [H12 H13]]]].
+  destruct H9 as [H14 [δ2 [H15 [H16 H17]]]].
+  assert (H18 : ⟦ der a ⟧ f' = (fun _ => 0)).
+  {
+    apply derivative_at_eq with (f1 := fun _ => 0); [| apply derivative_at_const].
+    exists (Rmin δ (Rmin δ1 δ2) / 2). split; [solve_R |].
+    intros x H18.
+    assert (H19 : ⟦ der x ⟧ f = (fun _ => 0)).
+    {
+      apply derivative_at_eq with (f1 := fun _ => f a); [| apply derivative_at_const].
+      exists (Rmin δ (Rmin δ1 δ2) / 2 - |x - a|). split; [solve_R |]. intros y H19.
+      specialize (H13 y ltac:(split; [apply H3; solve_R | solve_R])).
+      specialize (H17 y ltac:(split; [apply H3; solve_R | solve_R])).
+      lra.
+    }
+    assert (H20 : ⟦ der x ⟧ f = f').
+    { apply derivative_on_imp_derivative_at with (D := (a - δ, a + δ)); auto_interval. }
+
+    rewrite (derivative_at_unique f f' (fun _ => 0) x H20 H19); auto.
+  }
+  pose proof derivative_at_unique f' f'' (fun _ => 0) a H5 H18 as H19.
+  lra.
+Qed.
+
+Lemma local_max_imp_second_derivative_nonpos : forall f f' f'' A a δ,
+  δ > 0 ->
+  a ∈ A ->
+  (forall x, |x - a| < δ -> x ∈ A) ->
+  ⟦ der ⟧ f (a - δ, a + δ) = f' ->
+  ⟦ der a ⟧ f' = f'' ->
+  local_maximum_point f A a ->
+  f'' a <= 0.
+Proof.
+  intros f f' f'' A a δ H1 H2 H3 H4 H5 H6.
+  destruct (Rlt_dec 0 (f'' a)) as [H7 | H7]; [| lra].
+  assert (H8 : f' a = 0).
+  {
+    assert (H8 : ⟦ der a ⟧ f = f').
+    { apply derivative_on_imp_derivative_at with (D := (a - δ, a + δ)); auto_interval. }
+    assert (H9 : differentiable_at f a).
+    { eapply derivative_at_imp_differentiable_at; eauto. }
+    assert (H10 : local_maximum_point f (a - δ, a + δ) a).
+    {
+      destruct H6 as [H6 [δ' [H10 [H11 H12]]]].
+      split; [solve_R |].
+      exists (Rmin δ δ'). split; [solve_R |].
+      split; [apply In_Intersection_def; solve_R | ].
+      intros y H13. apply H12.
+      split; auto. apply H3. apply In_Intersection_def in H11, H13. solve_R.
+      apply In_Intersection_def in H11, H13. solve_R.
+    }
+    pose proof derivative_at_local_maximum_point_zero f (a - δ) (a + δ) a H10 H9 as H11.
+    exact (derivative_at_unique f f' (fun _ => 0) a H8 H11).
+  }
+  pose proof second_derivative_test_local_min f f' f'' A a δ H1 H2 H3 H4 H5 H8 H7 as H9.
+  destruct H6 as [H10 [δ1 [H11 [H12 H13]]]].
+  destruct H9 as [H14 [δ2 [H15 [H16 H17]]]].
+  assert (H18 : ⟦ der a ⟧ f' = (fun _ => 0)).
+  {
+    apply derivative_at_eq with (f1 := fun _ => 0); [| apply derivative_at_const].
+    exists (Rmin δ (Rmin δ1 δ2) / 2). split; [solve_R |].
+    intros x H18.
+    assert (H19 : ⟦ der x ⟧ f = (fun _ => 0)).
+    {
+      apply derivative_at_eq with (f1 := fun _ => f a); [| apply derivative_at_const].
+      exists (Rmin δ (Rmin δ1 δ2) / 2 - |x - a|). split; [solve_R |]. intros y H19.
+      specialize (H13 y ltac:(split; [apply H3; solve_R | solve_R])).
+      specialize (H17 y ltac:(split; [apply H3; solve_R | solve_R])).
+      lra.
+    }
+    assert (H20 : ⟦ der x ⟧ f = f').
+    { apply derivative_on_imp_derivative_at with (D := (a - δ, a + δ)); auto_interval. }
+
+    rewrite (derivative_at_unique f f' (fun _ => 0) x H20 H19); auto.
+  }
+  pose proof derivative_at_unique f' f'' (fun _ => 0) a H5 H18 as H19.
+  lra.
+Qed.
+
 Definition tangent_line (f : R -> R) (a : R) : R -> R :=
   let m := ⟦ Der a ⟧ f in
   fun x => m * (x - a) + f a.
