@@ -3967,6 +3967,472 @@ Proof.
   exact H15.
 Qed.
 
+Lemma lhopital_left_0_0 : forall f f' g g' a L,
+  ⟦ lim a⁻ ⟧ f = 0 ->
+  ⟦ lim a⁻ ⟧ g = 0 ->
+  (exists δ, δ > 0 /\ forall x, a - δ < x < a -> ⟦ der x ⟧ f = f') ->
+  (exists δ, δ > 0 /\ forall x, a - δ < x < a -> ⟦ der x ⟧ g = g') ->
+  (exists δ, δ > 0 /\ forall x, a - δ < x < a -> g' x <> 0) ->
+  ⟦ lim a⁻ ⟧ (f' / g') = L ->
+  ⟦ lim a⁻ ⟧ (f / g) = L.
+Proof.
+  intros f f' g g' a L H1 H2 [δ1 [H3 H4]] [δ2 [H5 H6]] [δ3 [H7 H8]] H9.
+  set (f0 := fun x => match Req_dec_T x a with | left _ => 0 | right _ => f x end).
+  set (g0 := fun x => match Req_dec_T x a with | left _ => 0 | right _ => g x end).
+  intros ε H10.
+  specialize (H9 ε H10) as [δ4 [H11 H12]].
+  set (δ := Rmin (Rmin δ1 (Rmin δ2 δ3)) δ4).
+  exists δ. split; [unfold δ; solve_R |].
+  intros x H13.
+  assert (H14 : x < a) by solve_R.
+  assert (H15 : continuous_on f0 [x, a]).
+  { 
+    intros y H15.
+    destruct (Req_dec_T y a) as [H16 | H16].
+    - subst y. apply limit_left_imp_limit_on; auto.
+      replace (f0 a) with 0 by (unfold f0; destruct (Req_dec_T a a); solve_R).
+      apply limit_left_eq with (f1 := f); auto.
+      exists δ. split; [solve_R |].
+      intros z H17. unfold f0. destruct (Req_dec_T z a); [solve_R | reflexivity].
+    - apply limit_imp_limit_on. apply differentiable_at_imp_continuous_at.
+      exists (f' y). apply derivative_at_eq with (f1 := f).
+      + exists (Rabs (y - a)). split; [solve_R |].
+        intros z H17. unfold f0. destruct (Req_dec_T z a); [solve_R | reflexivity].
+      + apply H4; unfold δ in *; solve_R.
+  }
+  assert (H16 : continuous_on g0 [x, a]).
+  {
+    intros y H16.
+    destruct (Req_dec_T y a) as [H17 | H17].
+    - subst y. apply limit_left_imp_limit_on; auto.
+      replace (g0 a) with 0 by (unfold g0; destruct (Req_dec_T a a); solve_R).
+      apply limit_left_eq with (f1 := g); auto.
+      exists δ. split; [solve_R |].
+      intros z H18. unfold g0. destruct (Req_dec_T z a); [solve_R | reflexivity].
+    - apply limit_imp_limit_on. apply differentiable_at_imp_continuous_at.
+      exists (g' y). apply derivative_at_eq with (f1 := g).
+      + exists (Rabs (y - a)). split; [solve_R |].
+        intros z H18. unfold g0. destruct (Req_dec_T z a); [solve_R | reflexivity].
+      + apply H6; unfold δ in *; solve_R.
+  }
+  assert (H17 : ⟦ der ⟧ f0 (x, a) = f').
+  {
+    intros y H17.
+    left. split; [auto_interval |].
+    apply derivative_at_eq with (f1 := f).
+    - exists (Rabs (y - a)). split; [solve_R |].
+      intros z H18. unfold f0. destruct (Req_dec_T z a); [solve_R | reflexivity].
+    - apply H4; unfold δ in *; solve_R.
+  }
+  assert (H18 : ⟦ der ⟧ g0 (x, a) = g').
+  {
+    intros y H18.
+    left. split; [auto_interval |].
+    apply derivative_at_eq with (f1 := g).
+    - exists (Rabs (y - a)). split; [solve_R |].
+      intros z H19. unfold g0. destruct (Req_dec_T z a); [solve_R | reflexivity].
+    - apply H6; unfold δ in *; solve_R.
+  }
+  assert (H19 : forall y, y ∈ (x, a) -> g' y <> 0).
+  { intros y H19. apply H8; unfold δ in *; solve_R. }
+  assert (H20 : g0 a <> g0 x).
+  {
+    intro H20.
+    assert (H21 : differentiable_on g0 (x, a)) by (apply derivative_on_imp_differentiable_on with (f' := g'); auto).
+    pose proof mean_value_theorem g0 x a H14 H16 H21 as [c [H22 H23]].
+    specialize (H19 c H22).
+    specialize (H18 c H22) as [[_ H24] | [[H24 _] | [H24 _]]]; try solve [ auto_interval ].
+    pose proof derivative_at_unique g0 g' (fun _ => (g0 a - g0 x) / (a - x)) c H24 H23 as H25.
+    rewrite H20, Rminus_diag in H25. unfold Rdiv in H25. rewrite Rmult_0_l in H25. auto.
+  }
+  pose proof cauchy_mvt f0 f' g0 g' x a H14 H15 H16 H17 H18 H19 H20 as [c [H21 H22]].
+  unfold f0, g0 in H22.
+  destruct (Req_dec_T a a) as [H23 | H23]; [| solve_R].
+  destruct (Req_dec_T x a) as [H24 | H24]; [solve_R |].
+  assert (H25 : f x / g x = f' c / g' c).
+  { 
+    rewrite Rminus_0_l, Rminus_0_l in H22.
+    replace (f x / g x) with (- f x / - g x); [exact H22 | unfold Rdiv; rewrite Rinv_opp; lra]. 
+  }
+  rewrite H25.
+  apply H12. unfold δ in *. solve_R.
+Qed.
+
+Lemma lhopital_0_0_minf : forall f f' g g' a,
+  ⟦ lim a ⟧ f = 0 ->
+  ⟦ lim a ⟧ g = 0 ->
+  (exists δ, δ > 0 /\ forall x, 0 < |x - a| < δ -> ⟦ der x ⟧ f = f') ->
+  (exists δ, δ > 0 /\ forall x, 0 < |x - a| < δ -> ⟦ der x ⟧ g = g') ->
+  (exists δ, δ > 0 /\ forall x, 0 < |x - a| < δ -> g' x <> 0) ->
+  ⟦ lim a ⟧ (fun x => f' x / g' x) = -∞ ->
+  ⟦ lim a ⟧ (fun x => f x / g x) = -∞.
+Proof.
+  intros f f' g g' a H1 H2 [δ1 [H3 H4]] [δ2 [H5 H6]] [δ3 [H7 H8]] H9.
+  set (f0 := fun x => match Req_dec_T x a with | left _ => 0 | right _ => f x end).
+  set (g0 := fun x => match Req_dec_T x a with | left _ => 0 | right _ => g x end).
+  intros M.
+  specialize (H9 M) as [δ4 [H11 H12]].
+  set (δ := Rmin (Rmin δ1 (Rmin δ2 δ3)) δ4).
+  exists δ. split; [unfold δ; solve_R |].
+  intros x H13.
+  set (u := Rmin a x).
+  set (v := Rmax a x).
+  assert (H14 : u < v) by (unfold u, v; solve_R).
+  assert (H15 : continuous_on f0 [u, v]).
+  { 
+    intros y H15.
+    destruct (Req_dec_T y a) as [H16 | H16].
+    - subst y. apply limit_imp_limit_on.
+      replace (f0 a) with 0 by (unfold f0; destruct (Req_dec_T a a); solve_R).
+      apply limit_eq with (f1 := f); auto.
+      exists δ. split; [solve_R |].
+      intros z H17. unfold f0. destruct (Req_dec_T z a); [solve_R | reflexivity].
+    - apply limit_imp_limit_on. apply differentiable_at_imp_continuous_at.
+      exists (f' y). apply derivative_at_eq with (f1 := f).
+      + exists (Rabs (y - a)). split; [solve_R |].
+        intros z H17. unfold f0. destruct (Req_dec_T z a); [solve_R | reflexivity].
+      + apply H4. unfold u, v, δ in *; solve_R.
+  }
+  assert (H16 : continuous_on g0 [u, v]).
+  { 
+    intros y H16.
+    destruct (Req_dec_T y a) as [H17 | H17].
+    - subst y. apply limit_imp_limit_on.
+      replace (g0 a) with 0 by (unfold g0; destruct (Req_dec_T a a); solve_R).
+      apply limit_eq with (f1 := g); auto.
+      exists δ. split; [solve_R |].
+      intros z H18. unfold g0. destruct (Req_dec_T z a); [solve_R | reflexivity].
+    - apply limit_imp_limit_on. apply differentiable_at_imp_continuous_at.
+      exists (g' y). apply derivative_at_eq with (f1 := g).
+      + exists (Rabs (y - a)). split; [solve_R |].
+        intros z H18. unfold g0. destruct (Req_dec_T z a); [solve_R | reflexivity].
+      + apply H6. unfold u, v, δ in *; solve_R.
+  }
+  assert (H17 : ⟦ der ⟧ f0 (u, v) = f').
+  { 
+    intros y H17. left. split; [auto_interval |].
+    apply derivative_at_eq with (f1 := f).
+    - exists (Rabs (y - a)). split; [unfold u, v in *; solve_R |].
+      intros z H18. unfold f0. destruct (Req_dec_T z a); [solve_R | reflexivity].
+    - apply H4. unfold u, v, δ in *; solve_R.
+  }
+  assert (H18 : ⟦ der ⟧ g0 (u, v) = g').
+  { 
+    intros y H18. left. split; [auto_interval |].
+    apply derivative_at_eq with (f1 := g).
+    - exists (Rabs (y - a)). split; [unfold u, v in *; solve_R |].
+      intros z H19. unfold g0. destruct (Req_dec_T z a); [solve_R | reflexivity].
+    - apply H6. unfold u, v, δ in *; solve_R.
+  }
+  assert (H19 : forall y, y ∈ (u, v) -> g' y <> 0).
+  { intros y H19. apply H8. unfold u, v, δ in *; solve_R. }
+  assert (H20 : g0 v <> g0 u).
+  { 
+    intro H20.
+    assert (H21 : differentiable_on g0 (u, v)) by (apply derivative_on_imp_differentiable_on with (f' := g'); auto).
+    pose proof mean_value_theorem g0 u v H14 H16 H21 as [c [H22 H23]].
+    specialize (H19 c H22).
+    specialize (H18 c H22) as [[_ H24] | [[H24 _] | [H24 _]]]; try solve [ auto_interval ].
+    pose proof derivative_at_unique g0 g' (fun _ => (g0 v - g0 u) / (v - u)) c H24 H23 as H25.
+    rewrite H20, Rminus_diag in H25. unfold Rdiv in H25. rewrite Rmult_0_l in H25. auto.
+  }
+  pose proof cauchy_mvt f0 f' g0 g' u v H14 H15 H16 H17 H18 H19 H20 as [c [H21 H22]].
+  unfold f0, g0, u, v in H22.
+  destruct (Req_dec_T x a) as [H23 | H23]; [solve_R |].
+  destruct (Req_dec_T a a) as [H24 | H24]; [| solve_R].
+  assert (H25 : f x / g x = f' c / g' c).
+  { 
+    unfold Rmax, Rmin in H22. destruct (Rle_dec a x) as [H25 | H25];
+    destruct (Req_dec_T x a) as [H26 | H26]; destruct (Req_dec_T a a) as [H27 | H27];
+    try nra.
+    - rewrite Rminus_0_r, Rminus_0_r in H22. auto.
+    - rewrite Rminus_0_l, Rminus_0_l in H22.
+      replace (f x / g x) with (- f x / - g x); [exact H22 | unfold Rdiv; rewrite Rinv_opp; lra]. 
+  }
+  rewrite H25.
+  apply H12. unfold u, v, δ in *. solve_R.
+Qed.
+
+Lemma lhopital_right_0_0_minf : forall f f' g g' a,
+  ⟦ lim a⁺ ⟧ f = 0 ->
+  ⟦ lim a⁺ ⟧ g = 0 ->
+  (exists δ, δ > 0 /\ forall x, a < x < a + δ -> ⟦ der x ⟧ f = f') ->
+  (exists δ, δ > 0 /\ forall x, a < x < a + δ -> ⟦ der x ⟧ g = g') ->
+  (exists δ, δ > 0 /\ forall x, a < x < a + δ -> g' x <> 0) ->
+  ⟦ lim a⁺ ⟧ (fun x => f' x / g' x) = -∞ ->
+  ⟦ lim a⁺ ⟧ (fun x => f x / g x) = -∞.
+Proof.
+  intros f f' g g' a H1 H2 [δ1 [H3 H4]] [δ2 [H5 H6]] [δ3 [H7 H8]] H9.
+  set (f0 := fun x => match Req_dec_T x a with | left _ => 0 | right _ => f x end).
+  set (g0 := fun x => match Req_dec_T x a with | left _ => 0 | right _ => g x end).
+  intros M.
+  specialize (H9 M) as [δ4 [H11 H12]].
+  set (δ := Rmin (Rmin δ1 (Rmin δ2 δ3)) δ4).
+  exists δ. split; [unfold δ; solve_R |].
+  intros x H13.
+  assert (H14 : a < x) by solve_R.
+  assert (H15 : continuous_on f0 [a, x]).
+  { 
+    intros y H15.
+    destruct (Req_dec_T y a) as [H16 | H16].
+    - subst y. apply limit_right_imp_limit_on; auto.
+      replace (f0 a) with 0 by (unfold f0; destruct (Req_dec_T a a); solve_R).
+      apply limit_right_eq with (f1 := f); auto.
+      exists δ. split; [solve_R |].
+      intros z H17. unfold f0. destruct (Req_dec_T z a); [solve_R | reflexivity].
+    - apply limit_imp_limit_on. apply differentiable_at_imp_continuous_at.
+      exists (f' y). apply derivative_at_eq with (f1 := f).
+      + exists (Rabs (y - a)). split; [solve_R |].
+        intros z H17. unfold f0. destruct (Req_dec_T z a); [solve_R | reflexivity].
+      + apply H4; unfold δ in *; solve_R.
+  }
+  assert (H16 : continuous_on g0 [a, x]).
+  {
+    intros y H16.
+    destruct (Req_dec_T y a) as [H17 | H17].
+    - subst y. apply limit_right_imp_limit_on; auto.
+      replace (g0 a) with 0 by (unfold g0; destruct (Req_dec_T a a); solve_R).
+      apply limit_right_eq with (f1 := g); auto.
+      exists δ. split; [solve_R |].
+      intros z H18. unfold g0. destruct (Req_dec_T z a); [solve_R | reflexivity].
+    - apply limit_imp_limit_on. apply differentiable_at_imp_continuous_at.
+      exists (g' y). apply derivative_at_eq with (f1 := g).
+      + exists (Rabs (y - a)). split; [solve_R |].
+        intros z H18. unfold g0. destruct (Req_dec_T z a); [solve_R | reflexivity].
+      + apply H6; unfold δ in *; solve_R.
+  }
+  assert (H17 : ⟦ der ⟧ f0 (a, x) = f').
+  {
+    intros y H17.
+    left. split; [auto_interval |].
+    apply derivative_at_eq with (f1 := f).
+    - exists (Rabs (y - a)). split; [solve_R |].
+      intros z H18. unfold f0. destruct (Req_dec_T z a); [solve_R | reflexivity].
+    - apply H4; unfold δ in *; solve_R.
+  }
+  assert (H18 : ⟦ der ⟧ g0 (a, x) = g').
+  {
+    intros y H18.
+    left. split; [auto_interval |].
+    apply derivative_at_eq with (f1 := g).
+    - exists (Rabs (y - a)). split; [solve_R |].
+      intros z H19. unfold g0. destruct (Req_dec_T z a); [solve_R | reflexivity].
+    - apply H6; unfold δ in *; solve_R.
+  }
+  assert (H19 : forall y, y ∈ (a, x) -> g' y <> 0).
+  { intros y H19. apply H8; unfold δ in *; solve_R. }
+  assert (H20 : g0 x <> g0 a).
+  {
+    intro H20.
+    assert (H21 : differentiable_on g0 (a, x)) by (apply derivative_on_imp_differentiable_on with (f' := g'); auto).
+    pose proof mean_value_theorem g0 a x H14 H16 H21 as [c [H22 H23]].
+    specialize (H19 c H22).
+    specialize (H18 c H22) as [[_ H24] | [[H24 _] | [H24 _]]]; try solve [ auto_interval ].
+    pose proof derivative_at_unique g0 g' (fun _ => (g0 x - g0 a) / (x - a)) c H24 H23 as H25.
+    rewrite H20, Rminus_diag in H25. unfold Rdiv in H25. rewrite Rmult_0_l in H25. auto.
+  }
+  pose proof cauchy_mvt f0 f' g0 g' a x H14 H15 H16 H17 H18 H19 H20 as [c [H21 H22]].
+  unfold f0, g0 in H22.
+  destruct (Req_dec_T x a) as [H23 | H23]; [solve_R |].
+  destruct (Req_dec_T a a) as [H24 | H24]; [| solve_R].
+  rewrite Rminus_0_r, Rminus_0_r in H22.
+  specialize (H12 c ltac:(unfold δ in *; solve_R)).
+  rewrite <- H22 in H12. exact H12.
+Qed.
+
+Lemma lhopital_left_0_0_pinf : forall f f' g g' a,
+  ⟦ lim a⁻ ⟧ f = 0 ->
+  ⟦ lim a⁻ ⟧ g = 0 ->
+  (exists δ, δ > 0 /\ forall x, a - δ < x < a -> ⟦ der x ⟧ f = f') ->
+  (exists δ, δ > 0 /\ forall x, a - δ < x < a -> ⟦ der x ⟧ g = g') ->
+  (exists δ, δ > 0 /\ forall x, a - δ < x < a -> g' x <> 0) ->
+  ⟦ lim a⁻ ⟧ (fun x => f' x / g' x) = ∞ ->
+  ⟦ lim a⁻ ⟧ (fun x => f x / g x) = ∞.
+Proof.
+  intros f f' g g' a H1 H2 [δ1 [H3 H4]] [δ2 [H5 H6]] [δ3 [H7 H8]] H9.
+  set (f0 := fun x => match Req_dec_T x a with | left _ => 0 | right _ => f x end).
+  set (g0 := fun x => match Req_dec_T x a with | left _ => 0 | right _ => g x end).
+  intros M.
+  specialize (H9 M) as [δ4 [H11 H12]].
+  set (δ := Rmin (Rmin δ1 (Rmin δ2 δ3)) δ4).
+  exists δ. split; [unfold δ; solve_R |].
+  intros x H13.
+  assert (H14 : x < a) by solve_R.
+  assert (H15 : continuous_on f0 [x, a]).
+  { 
+    intros y H15.
+    destruct (Req_dec_T y a) as [H16 | H16].
+    - subst y. apply limit_left_imp_limit_on; auto.
+      replace (f0 a) with 0 by (unfold f0; destruct (Req_dec_T a a); solve_R).
+      apply limit_left_eq with (f1 := f); auto.
+      exists δ. split; [solve_R |].
+      intros z H17. unfold f0. destruct (Req_dec_T z a); [solve_R | reflexivity].
+    - apply limit_imp_limit_on. apply differentiable_at_imp_continuous_at.
+      exists (f' y). apply derivative_at_eq with (f1 := f).
+      + exists (Rabs (y - a)). split; [solve_R |].
+        intros z H17. unfold f0. destruct (Req_dec_T z a); [solve_R | reflexivity].
+      + apply H4; unfold δ in *; solve_R.
+  }
+  assert (H16 : continuous_on g0 [x, a]).
+  {
+    intros y H16.
+    destruct (Req_dec_T y a) as [H17 | H17].
+    - subst y. apply limit_left_imp_limit_on; auto.
+      replace (g0 a) with 0 by (unfold g0; destruct (Req_dec_T a a); solve_R).
+      apply limit_left_eq with (f1 := g); auto.
+      exists δ. split; [solve_R |].
+      intros z H18. unfold g0. destruct (Req_dec_T z a); [solve_R | reflexivity].
+    - apply limit_imp_limit_on. apply differentiable_at_imp_continuous_at.
+      exists (g' y). apply derivative_at_eq with (f1 := g).
+      + exists (Rabs (y - a)). split; [solve_R |].
+        intros z H18. unfold g0. destruct (Req_dec_T z a); [solve_R | reflexivity].
+      + apply H6; unfold δ in *; solve_R.
+  }
+  assert (H17 : ⟦ der ⟧ f0 (x, a) = f').
+  {
+    intros y H17.
+    left. split; [auto_interval |].
+    apply derivative_at_eq with (f1 := f).
+    - exists (Rabs (y - a)). split; [solve_R |].
+      intros z H18. unfold f0. destruct (Req_dec_T z a); [solve_R | reflexivity].
+    - apply H4; unfold δ in *; solve_R.
+  }
+  assert (H18 : ⟦ der ⟧ g0 (x, a) = g').
+  {
+    intros y H18.
+    left. split; [auto_interval |].
+    apply derivative_at_eq with (f1 := g).
+    - exists (Rabs (y - a)). split; [solve_R |].
+      intros z H19. unfold g0. destruct (Req_dec_T z a); [solve_R | reflexivity].
+    - apply H6; unfold δ in *; solve_R.
+  }
+  assert (H19 : forall y, y ∈ (x, a) -> g' y <> 0).
+  { intros y H19. apply H8; unfold δ in *; solve_R. }
+  assert (H20 : g0 a <> g0 x).
+  {
+    intro H20.
+    assert (H21 : differentiable_on g0 (x, a)) by (apply derivative_on_imp_differentiable_on with (f' := g'); auto).
+    pose proof mean_value_theorem g0 x a H14 H16 H21 as [c [H22 H23]].
+    specialize (H19 c H22).
+    specialize (H18 c H22) as [[_ H24] | [[H24 _] | [H24 _]]]; try solve [ auto_interval ].
+    pose proof derivative_at_unique g0 g' (fun _ => (g0 a - g0 x) / (a - x)) c H24 H23 as H25.
+    rewrite H20, Rminus_diag in H25. unfold Rdiv in H25. rewrite Rmult_0_l in H25. auto.
+  }
+  pose proof cauchy_mvt f0 f' g0 g' x a H14 H15 H16 H17 H18 H19 H20 as [c [H21 H22]].
+  unfold f0, g0 in H22.
+  destruct (Req_dec_T a a) as [H23 | H23]; [| solve_R].
+  destruct (Req_dec_T x a) as [H24 | H24]; [solve_R |].
+  assert (H25 : f x / g x = f' c / g' c).
+  { 
+    rewrite Rminus_0_l, Rminus_0_l in H22.
+    replace (f x / g x) with (- f x / - g x); [exact H22 | unfold Rdiv; rewrite Rinv_opp; lra]. 
+  }
+  rewrite H25.
+  apply H12. unfold δ in *. solve_R.
+Qed.
+
+Lemma lhopital_left_0_0_minf : forall f f' g g' a,
+  ⟦ lim a⁻ ⟧ f = 0 ->
+  ⟦ lim a⁻ ⟧ g = 0 ->
+  (exists δ, δ > 0 /\ forall x, a - δ < x < a -> ⟦ der x ⟧ f = f') ->
+  (exists δ, δ > 0 /\ forall x, a - δ < x < a -> ⟦ der x ⟧ g = g') ->
+  (exists δ, δ > 0 /\ forall x, a - δ < x < a -> g' x <> 0) ->
+  ⟦ lim a⁻ ⟧ (fun x => f' x / g' x) = -∞ ->
+  ⟦ lim a⁻ ⟧ (fun x => f x / g x) = -∞.
+Proof.
+  intros f f' g g' a H1 H2 [δ1 [H3 H4]] [δ2 [H5 H6]] [δ3 [H7 H8]] H9.
+  set (f0 := fun x => match Req_dec_T x a with | left _ => 0 | right _ => f x end).
+  set (g0 := fun x => match Req_dec_T x a with | left _ => 0 | right _ => g x end).
+  intros M.
+  specialize (H9 M) as [δ4 [H11 H12]].
+  set (δ := Rmin (Rmin δ1 (Rmin δ2 δ3)) δ4).
+  exists δ. split; [unfold δ; solve_R |].
+  intros x H13.
+  assert (H14 : x < a) by solve_R.
+  assert (H15 : continuous_on f0 [x, a]).
+  { 
+    intros y H15.
+    destruct (Req_dec_T y a) as [H16 | H16].
+    - subst y. apply limit_left_imp_limit_on; auto.
+      replace (f0 a) with 0 by (unfold f0; destruct (Req_dec_T a a); solve_R).
+      apply limit_left_eq with (f1 := f); auto.
+      exists δ. split; [solve_R |].
+      intros z H17. unfold f0. destruct (Req_dec_T z a); [solve_R | reflexivity].
+    - apply limit_imp_limit_on. apply differentiable_at_imp_continuous_at.
+      exists (f' y). apply derivative_at_eq with (f1 := f).
+      + exists (Rabs (y - a)). split; [solve_R |].
+        intros z H17. unfold f0. destruct (Req_dec_T z a); [solve_R | reflexivity].
+      + apply H4; unfold δ in *; solve_R.
+  }
+  assert (H16 : continuous_on g0 [x, a]).
+  {
+    intros y H16.
+    destruct (Req_dec_T y a) as [H17 | H17].
+    - subst y. apply limit_left_imp_limit_on; auto.
+      replace (g0 a) with 0 by (unfold g0; destruct (Req_dec_T a a); solve_R).
+      apply limit_left_eq with (f1 := g); auto.
+      exists δ. split; [solve_R |].
+      intros z H18. unfold g0. destruct (Req_dec_T z a); [solve_R | reflexivity].
+    - apply limit_imp_limit_on. apply differentiable_at_imp_continuous_at.
+      exists (g' y). apply derivative_at_eq with (f1 := g).
+      + exists (Rabs (y - a)). split; [solve_R |].
+        intros z H18. unfold g0. destruct (Req_dec_T z a); [solve_R | reflexivity].
+      + apply H6; unfold δ in *; solve_R.
+  }
+  assert (H17 : ⟦ der ⟧ f0 (x, a) = f').
+  {
+    intros y H17.
+    left. split; [auto_interval |].
+    apply derivative_at_eq with (f1 := f).
+    - exists (Rabs (y - a)). split; [solve_R |].
+      intros z H18. unfold f0. destruct (Req_dec_T z a); [solve_R | reflexivity].
+    - apply H4; unfold δ in *; solve_R.
+  }
+  assert (H18 : ⟦ der ⟧ g0 (x, a) = g').
+  {
+    intros y H18.
+    left. split; [auto_interval |].
+    apply derivative_at_eq with (f1 := g).
+    - exists (Rabs (y - a)). split; [solve_R |].
+      intros z H19. unfold g0. destruct (Req_dec_T z a); [solve_R | reflexivity].
+    - apply H6; unfold δ in *; solve_R.
+  }
+  assert (H19 : forall y, y ∈ (x, a) -> g' y <> 0).
+  { intros y H19. apply H8; unfold δ in *; solve_R. }
+  assert (H20 : g0 a <> g0 x).
+  {
+    intro H20.
+    assert (H21 : differentiable_on g0 (x, a)) by (apply derivative_on_imp_differentiable_on with (f' := g'); auto).
+    pose proof mean_value_theorem g0 x a H14 H16 H21 as [c [H22 H23]].
+    specialize (H19 c H22).
+    specialize (H18 c H22) as [[_ H24] | [[H24 _] | [H24 _]]]; try solve [ auto_interval ].
+    pose proof derivative_at_unique g0 g' (fun _ => (g0 a - g0 x) / (a - x)) c H24 H23 as H25.
+    rewrite H20, Rminus_diag in H25. unfold Rdiv in H25. rewrite Rmult_0_l in H25. auto.
+  }
+  pose proof cauchy_mvt f0 f' g0 g' x a H14 H15 H16 H17 H18 H19 H20 as [c [H21 H22]].
+  unfold f0, g0 in H22.
+  destruct (Req_dec_T a a) as [H23 | H23]; [| solve_R].
+  destruct (Req_dec_T x a) as [H24 | H24]; [solve_R |].
+  assert (H25 : f x / g x = f' c / g' c).
+  { 
+    rewrite Rminus_0_l, Rminus_0_l in H22.
+    replace (f x / g x) with (- f x / - g x); [exact H22 | unfold Rdiv; rewrite Rinv_opp; lra]. 
+  }
+  rewrite H25.
+  apply H12. unfold δ in *. solve_R.
+Qed.
+
+Lemma lhopital_minf_0_0 : forall f f' g g' L,
+  ⟦ lim -∞ ⟧ f = 0 ->
+  ⟦ lim -∞ ⟧ g = 0 ->
+  (exists M, forall x, x < M -> ⟦ der x ⟧ f = f') ->
+  (exists M, forall x, x < M -> ⟦ der x ⟧ g = g') ->
+  (exists M, forall x, x < M -> g' x <> 0) ->
+  ⟦ lim -∞ ⟧ (fun x => f' x / g' x) = L ->
+  ⟦ lim -∞ ⟧ (fun x => f x / g x) = L.
+Proof.
+Admitted.
+
 Lemma nth_derivative_0 : forall f,
   ⟦ der ^ 0 ⟧ f = f.
 Proof.
