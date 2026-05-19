@@ -177,7 +177,7 @@ Fixpoint derive_expr (e : expr) : expr :=
   | ERabs e => EMul (EDiv e (ERabs e)) (derive_expr e)
   | ERpow e r => EMul (EMul (EConst r) (ERpow e (r - 1))) (derive_expr e)
   | ERpower e1 e2 => EMul (ERpower e1 e2) (EAdd (EMul (derive_expr e2) (ELog e1)) (EMul e2 (EDiv (derive_expr e1) e1)))
-  | EPow e n => match n with 0 => EConst 0 | S k => EMul (EMul (EConst (INR n)) (EPow e k)) (derive_expr e) end
+  | EPow e n => EMul (EMul (EConst (INR n)) (EPow e (n - 1))) (derive_expr e)
   | EApp f (Some f') e => EMul (EApp f' (Some (λ _, 0)) e) (derive_expr e)
   | EApp f None e => EConst 0
   end.
@@ -454,14 +454,11 @@ Proof.
     + apply IHe. exact H1.
     + apply derivative_Rpower. exact H2.
   - intros x [H1 [H2 H3]]. apply derivative_at_Rpower_comp; auto.
-  - intros x H1. destruct n.
-    + replace (λ t, eval_expr e t ^ 0) with (fun t:ℝ => 1) by (extensionality t; simpl; lra).
-      replace (λ t : ℝ, eval_expr (EConst 0) t) with (fun t:ℝ => 0) by (extensionality t; simpl; lra).
-      apply derivative_at_const.
-    + replace (fun t:ℝ => pow (eval_expr e t) (S n)) with ((fun y:ℝ => pow y (S n)) ∘ λ t, eval_expr e t)%function by reflexivity.
-      replace (λ t : ℝ, eval_expr (EMul (EMul (EConst (S n)) (EPow e n)) (derive_expr e)) t) with (((λ y : ℝ, Rmult (INR (S n)) (y ^ (S n - 1))) ∘ λ t : ℝ, eval_expr e t) ⋅ eval_expr (derive_expr e))%function.
-      1: { apply derivative_at_comp; [apply IHe; auto | apply derivative_at_pow]. }
-      extensionality t. replace (S n - 1)%nat with n by lia. reflexivity.
+  - intros x H1.
+    replace (fun t:ℝ => pow (eval_expr e t) n) with ((fun y:ℝ => pow y n) ∘ λ t, eval_expr e t)%function by reflexivity.
+    replace (λ t : ℝ, INR n * eval_expr e t ^ (n - 1) * eval_expr (derive_expr e) t) with (((λ y : ℝ, Rmult (INR n) (y ^ (n - 1))) ∘ λ t : ℝ, eval_expr e t) ⋅ eval_expr (derive_expr e))%function.
+    1: { apply derivative_at_comp; [apply IHe; auto | apply derivative_at_pow]. }
+    extensionality t. reflexivity.
   - intros x. destruct df.
     -- intros [H1 H2]. apply derivative_at_comp; auto.
     -- tauto.
