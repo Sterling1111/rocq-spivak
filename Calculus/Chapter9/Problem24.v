@@ -1,7 +1,7 @@
 From Calculus.Chapter9 Require Import Prelude.
 
 Lemma problem_9_24 : ∀ f a L,
-  odd_f f -> 
+  odd f -> 
   (⟦ der a ⟧ f = (λ _, L) <-> ⟦ der -a ⟧ f = (λ _, L)).
 Proof.
   intros f a L H1.
