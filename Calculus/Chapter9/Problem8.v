@@ -16,6 +16,7 @@ Qed.
 Lemma lemma_9_8_b : forall f f' g g' c,
   g = (fun x => f (c * x)) -> ⟦ der ⟧ f = f' -> ⟦ der ⟧ g = g' -> forall x, g' x = c * f' (c * x).
 Proof.
+  intros f f' g g' c H1 H2 H3 x. subst.
 Abort.
 
 Lemma lemma_9_8_c : forall f f' a,
