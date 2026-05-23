@@ -1,52 +1,74 @@
 From Calculus.Chapter9 Require Import Prelude.
 
-Lemma lemma_9_30_i : forall n f f' x,
-  f = (fun x => x^n) -> ⟦ der ⟧ f = f' -> f' x = INR n * x^(n - 1).
+Lemma lemma_9_30_i : ∀ n,
+  ⟦ der ⟧ (λ x, x^n) = (λ x, n * x^(n - 1)).
 Proof.
-Abort.
+  auto_diff.
+Qed.
 
-Lemma lemma_9_30_ii : forall f f' y,
-  f = (fun y => 1 / y) -> ⟦ der ⟧ f = f' -> f' y = -1 / y^2.
+Lemma lemma_9_30_ii : forall x,
+  x <> 0 ->
+  ⟦ der x ⟧ (λ y, 1 / y) = (λ y, -1 / y^2).
 Proof.
-Abort.
+  auto_diff.
+Qed.
 
-Lemma lemma_9_30_iii : forall f f' g g' c x,
-  g = (fun x => f x + c) -> ⟦ der ⟧ f = f' -> ⟦ der ⟧ g = g' -> g' x = f' x.
+Lemma lemma_9_30_iii : ∀ f f' c,
+  ⟦ der ⟧ f = f' ->
+  ⟦ der ⟧ (λ x, f x + c) = f'.
 Proof.
-Abort.
+  intros f f' c H1.
+  replace f' with (λ x, f' x + 0) by (extensionality x; lra).
+  apply derivative_plus; auto.
+  apply derivative_const.
+Qed.
 
-Lemma lemma_9_30_iv : forall f f' g g' c x,
-  g = (fun x => c * f x) -> ⟦ der ⟧ f = f' -> ⟦ der ⟧ g = g' -> g' x = c * f' x.
+Lemma lemma_9_30_iv : ∀ f f' c,
+  ⟦ der ⟧ f = f' ->
+  ⟦ der ⟧ (λ x, c * f x) = (λ x, c * f' x).
 Proof.
-Abort.
+  auto_diff.
+Qed.
 
-Lemma lemma_9_30_v : forall f f' g g' y c,
-  g = (fun x => f x + c) -> ⟦ der ⟧ f = f' -> ⟦ der ⟧ g = g' -> g' y = f' y.
+Lemma lemma_9_30_v : ∀ f f' c,
+  ⟦ der ⟧ f = f' ->
+  ⟦ der ⟧ (λ y, f y + c) = f'.
 Proof.
-Abort.
+  apply lemma_9_30_iii.
+Qed.
 
-Lemma lemma_9_30_vi : forall f f' a,
-  f = (fun x => x^3) -> ⟦ der ⟧ f = f' -> f' (a^2) = 3 * a^4.
+Lemma lemma_9_30_vi : ∀ a,
+  ⟦ Der (a^2) ⟧ (λ x, x^3) = 3 * a^4.
 Proof.
-Abort.
+  intros a.
+  compute_Der.
+  lra.
+Qed.
 
-Lemma lemma_9_30_vii : forall f f' g g' a b,
-  g = (fun x => f (x + a)) -> ⟦ der ⟧ f = f' -> ⟦ der ⟧ g = g' -> g' b = f' (b + a).
+Lemma lemma_9_30_vii : ∀ f f' a b,
+  ⟦ der ⟧ f = f' ->
+  ⟦ Der b ⟧ (λ x, f (x + a)) = f' (b + a).
 Proof.
-Abort.
+  intros f f' a b H1. compute_Der. lra.
+Qed.
 
-Lemma lemma_9_30_viii : forall f f' g g' c b,
-  g = (fun x => f (c * x)) -> ⟦ der ⟧ f = f' -> ⟦ der ⟧ g = g' -> g' b = c * f' (c * b).
+Lemma lemma_9_30_viii : ∀ f f' c b,
+  ⟦ der ⟧ f = f' ->
+  ⟦ Der b ⟧ (λ x, f (c * x)) = c * f' (c * b).
 Proof.
-Abort.
+  intros f f' c b H1. compute_Der. lra.
+Qed.
 
-Lemma lemma_9_30_ix : forall f f' g g' c x,
-  g = (fun y => f (c * y)) -> ⟦ der ⟧ f = f' -> ⟦ der ⟧ g = g' -> g' x = c * f' (c * x).
+Lemma lemma_9_30_ix : ∀ f f' c,
+  ⟦ der ⟧ f = f' ->
+  ⟦ der ⟧ (λ x, f (c * x)) = (λ x, c * f' (c * x)).
 Proof.
-Abort.
+  auto_diff.
+Qed.
 
-Lemma lemma_9_30_x : forall n k f x,
-  (k <= n)%nat -> 
-  f = (fun x => x^n) -> ⟦ Der ^ k x ⟧ f = INR (fact n) / INR (fact (n - k)) * x^(n - k).
+Lemma lemma_9_30_x : ∀ n k,
+  (k <= n)%nat ->
+  ⟦ der ^ k ⟧ (λ x, x^n) = (λ x, (fact n / fact (n - k)) * x^(n - k)).
 Proof.
-Abort.
+  apply nth_derivative_pow.
+Qed.

@@ -1,23 +1,21 @@
 From Calculus.Chapter9 Require Import Prelude.
 
-Lemma lemma_9_28 : forall f g,
-  (forall x, f x = x * g x) -> 
-  continuous_at g 0 -> 
-  differentiable_at f 0 /\ ⟦ der 0 ⟧ f = g.
+Lemma lemma_9_28_a : ∀ f,
+  f = (λ x, |x|^3) ->
+  ⟦ der ⟧ f = (λ x, 3 * x * |x|) /\
+  ⟦ der ^ 2 ⟧ f = (λ x, 6 * |x|) /\
+  ~ differentiable_at (λ x, ⟦ Der ^ 2 x ⟧ f) 0.
 Proof.
-  intros f g H1 H2.
-  assert (⟦ der 0 ⟧ f = g) as H3.
-  {
-    intros ε H3.
-    destruct (H2 ε H3) as [δ [H4 H5]].
-    exists δ; split; auto.
-    intros x H6.
-    simp_zero.
-    specialize (H5 x H6).
-    replace ((f x - f 0) / x - g 0) with (g x - g 0).
-    2 : { do 2 rewrite H1. solve_R. }
-    exact H5.
-  }
-  split; auto.
-  apply derivative_at_imp_differentiable_at with (f' := g); auto.
-Qed.
+
+Admitted.
+
+Lemma lemma_9_28_b : ∀ f,
+  (∀ x, x >= 0 -> f x = x^4) ->
+  (∀ x, x <= 0 -> f x = -x^4) ->
+  ⟦ der ⟧ f = (λ x, 4 * |x| ^ 3) /\
+  ⟦ der ^ 2 ⟧ f = (λ x, 12 * x * |x|) /\
+  ⟦ der ^ 3 ⟧ f = (λ x, 24 * |x|) /\
+  ~ differentiable_at (λ x, ⟦ Der ^ 3 x ⟧ f) 0.
+Proof.
+
+Admitted.

@@ -1,7 +1,7 @@
 From Calculus.Chapter9 Require Import Prelude.
 
 Lemma problem_9_23 : ∀ f a L,
-  even_f f -> 
+  even f -> 
   (⟦ der a ⟧ f = (λ _, L) <-> ⟦ der -a ⟧ f = (λ _, -L)).
 Proof.
   intros f a L H1.
