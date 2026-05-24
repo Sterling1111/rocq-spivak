@@ -1,6 +1,6 @@
 From Calculus.Chapter9 Require Import Prelude.
 
-Section CarSpeedLimit.
+Section Section_9_12.
 
 Variable L : R -> R.
 Variable a b a' b' : R -> R.
@@ -52,4 +52,4 @@ Proof.
   rewrite <- H3, <- H7, H5, H4. reflexivity.
 Qed.
 
-End CarSpeedLimit.
+End Section_9_12.

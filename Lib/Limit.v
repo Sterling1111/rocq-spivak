@@ -1094,3 +1094,14 @@ Proof.
   exists δ. split; auto.
   intros x H6 H7. apply H5. solve_R.
 Qed.
+
+Lemma limit_Rabs : forall f a L,
+  ⟦ lim a ⟧ f = L -> ⟦ lim a ⟧ (fun x => |f x|) = |L|.
+Proof.
+  intros f a L H1 ε H2.
+  specialize (H1 ε H2) as [δ [H3 H4]].
+  exists δ; split; [exact H3 |].
+  intros x H5.
+  specialize (H4 x H5).
+  solve_abs.
+Qed.

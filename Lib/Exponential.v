@@ -1524,3 +1524,43 @@ Proof.
       * apply continuous_at_exp.
     + unfold Rpower. destruct (Rlt_dec 0 (f a)); lra.
 Qed.
+
+Lemma limit_Rabs_Rpower_zero : forall p,
+  p > 0 ->
+  ⟦ lim 0 ⟧ (fun h => (|h|) ^^ p) = 0.
+Proof.
+  intros p H1 ε H2.
+  exists (exp (log ε / p)).
+  split.
+  - apply exp_pos.
+  - intros h H3.
+    assert (H4 : |h| > 0) by solve_abs.
+    replace (| (|h|) ^^ p - 0 |) with ((|h|) ^^ p).
+    2: { rewrite Rminus_0_r. pose proof Rpower_gt_0 (|h|) p H4 as H5. solve_abs. }
+    unfold Rpower.
+    rewrite <- (exp_log ε); [| lra].
+
+  destruct (Rlt_dec 0 (|h|)) as [H5 | H5]; [| lra].
+  apply exp_increasing; try apply Full_intro.
+  
+  apply Rmult_lt_reg_l with (r := 1 / p).
+  { apply Rdiv_pos_pos; lra. }
+  
+  replace (1 / p * (p * log (|h|))) with (log (|h|)) by (field; lra).
+  replace (1 / p * log ε) with (log ε / p) by (field; lra).
+  
+  rewrite <- (log_exp (log ε / p)).
+  apply log_increasing; solve_R.
+Qed.
+
+Lemma limit_neg_Rabs_Rpower_zero : forall p,
+  p > 0 ->
+  ⟦ lim 0 ⟧ (fun h => - ((|h|) ^^ p)) = 0.
+Proof.
+  intros p H1.
+  replace 0 with (-0) by lra.
+  apply limit_neg.
+  replace (-0) with 0 by lra.
+  apply limit_Rabs_Rpower_zero.
+  exact H1.
+Qed.
