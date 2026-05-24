@@ -186,50 +186,49 @@ Proof. auto_cont. Qed.
 
 This project is built and verified using **The Rocq Prover** (formerly Coq). Specifically, it depends on `rocq-core` (or `coq-core`) version **9.1.1**, and the standard library `rocq-stdlib` (or `coq-stdlib`) version **9.1.0**. Note that while the core toolchain is at version 9.1.1, the corresponding standard library package only goes up to 9.1.0.
 
-### Prerequisites
+### Prerequisites & Dependency Installation
 
-**Coq/Rocq and Required Libraries**
-You must have the following Coq/Rocq libraries installed before building `rocq-spivak`:
-- `coq` (version 9.1.1)
-- `coq-stdlib` / `rocq-stdlib` (version 9.1.0)
-- `coq-interval`
-- `coq-coquelicot`
-- `coq-flocq`
-- `coq-mathcomp-ssreflect`
+If you are using an **Ubuntu-like environment** (e.g., Debian, Ubuntu, or a VS Code Dev Container), you can build the entire project from scratch with the following commands.
 
-**External Tools for Visualizations**
-- `gnuplot` (required for certain tactics and proofs involving visualizations)
-
-**Python Dependencies (Required for the `auto_int` tactic)**
-The automated integration tactic (`auto_int`) uses a Python script (`auto_int.py`) bridging Coq and the SymPy computer algebra system. You must have Python 3 and SymPy installed to use it:
+**1. Install system tools, Python dependencies, and C++ libraries (for the simplex solver):**
 ```bash
-pip install sympy
+sudo apt-get update
+sudo apt-get install -y python3-pip gnuplot build-essential libeigen3-dev libboost-all-dev pkg-config
+pip3 install sympy --break-system-packages
+```
+*(Note: Omitting `--break-system-packages` may be preferred outside of dev containers if using virtual environments.)*
+
+**2. Initialize OPAM and add the Coq repository:**
+```bash
+opam init -y --disable-sandboxing
+eval $(opam env)
+opam repo add coq-released https://coq.inria.fr/opam/released
 ```
 
-**C++ Simplex Solver (Optional)**
-The project will compile successfully even if the C++ simplex program is not built. However, the custom `psatz` tactic for real linear arithmetic will not work without it. Note that this tactic was merely an experiment to implement the ideas from the paper *Fast Reflexive Tactics* and should generally not be used anyway (rely on `lia` or `lra` instead). If you still wish to compile it, you will need **Eigen** (`Eigen/Dense`) and **Boost** (`boost/rational.hpp`, `boost/multiprecision/cpp_int.hpp`):
-
+**3. Install Rocq/Coq, required mathematical libraries, and IDE support:**
 ```bash
-# From the repo root
-g++ -O3 src/simplex.cpp -o src/simplex_solver
+opam install rocq-core.9.1.1 rocq-stdlib.9.1.0 coq-interval coq-coquelicot coq-flocq coq-mathcomp-ssreflect vsrocq-language-server -y
 ```
 
 ### Compiling the Project
 
-The recommended way to build the project is by generating a `Makefile` from the `_CoqProject` file using `rocq makefile` (part of Rocq/Coq's standard tooling) and then running `make`.
+**1. Build the C++ Simplex Solver (Optional but required for the custom `psatz` tactic)**
+The project compile successfully even if this program is not built. Rely on `lia` or `lra` if you choose to skip it.
+```bash
+g++ -O3 $(pkg-config --cflags eigen3) src/simplex.cpp -o src/simplex_solver
+```
 
+**2. Generate the Makefile and build the proofs**
+We use `coq_makefile` (or `rocq makefile`) to read the `_CoqProject` file, then build everything concurrently:
 ```bash
 # Generate the Makefile
-rocq makefile
+coq_makefile -f _CoqProject -o Makefile
 
 # Build everything listed in _CoqProject concurrently
 make -j
-
-# Clean build artifacts
-make clean
 ```
 
-If `rocq makefile` is not found, install the `coq` package from your OS or opam, or ensure it is on your PATH.
+*(To clean build artifacts later, run `make clean`)*
 
 Alternatively, you can load the project in CoqIDE/VS Code with the `_CoqProject` file so qualified paths (`Lib/…`, `Calculus/…`) resolve automatically.
 
