@@ -7,16 +7,15 @@ Open Scope set_scope.
 
 Module FunctionNotations.
 
-  Notation "f ∘ g" := (compose f g) (at level 40, left associativity) : function_scope.
-  Notation "f + g" := (fun x : ℝ => f x + g x) (at level 50, left associativity) : function_scope.
-  Notation "f - g" := (fun x : ℝ => f x - g x) (at level 50, left associativity) : function_scope.
+  Notation "f ∘ g" := (compose f g) (at level 40, left associativity, only parsing) : function_scope.
+  Notation "f + g" := (fun x : ℝ => f x + g x) (at level 50, left associativity, only parsing) : function_scope.
+  Notation "f - g" := (fun x : ℝ => f x - g x) (at level 50, left associativity, only parsing) : function_scope.
   Notation "- f" := (fun x : ℝ => - f x) (at level 35, only parsing) : function_scope.
-  Notation "f ⋅ g" := (fun x : ℝ => f x * g x) (at level 40, left associativity) : function_scope. 
-  Notation "c * f" := (fun x : ℝ => c * f x) (at level 40, left associativity) : function_scope. 
-  Notation "f / g" := (fun x : ℝ => f x / g x) (at level 40, left associativity) : function_scope.
-  Notation "f ^ n" := (fun x : ℝ => (f x) ^ n) (at level 30, right associativity) : function_scope.
-  Notation "∕ f" := (fun x : ℝ => 1 / f x) (at level 40, left associativity) : function_scope.
-
+  Notation "f ⋅ g" := (fun x : ℝ => f x * g x) (at level 40, left associativity, only parsing) : function_scope.
+  Notation "c * f" := (fun x : ℝ => c * f x) (at level 40, left associativity, only parsing) : function_scope.
+  Notation "f / g" := (fun x : ℝ => f x / g x) (at level 40, left associativity, only parsing) : function_scope.
+  Notation "f ^ n" := (fun x : ℝ => (f x) ^ n) (at level 30, right associativity, only parsing) : function_scope.
+  Notation "∕ f" := (fun x : ℝ => 1 / f x) (at level 40, left associativity, only parsing) : function_scope.
 End FunctionNotations.
 
 Import FunctionNotations.
