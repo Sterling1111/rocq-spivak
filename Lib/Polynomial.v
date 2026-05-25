@@ -8,6 +8,9 @@ Local Notation length := List.length.
 Definition polynomial (l : list R) : R -> R :=
   fun x => sum_f 0 (length l - 1) (fun i => nth i l 0 * x^(length l - 1 - i)).
 
+Definition is_polynomial (f : R -> R) : Prop :=
+  exists l : list R, forall x, f x = polynomial l x.
+
 Definition leading_coefficient (l : list R) : R := nth 0 l 0.
 
 Fixpoint degree (l : list R) : nat :=
