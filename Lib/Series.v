@@ -1,5 +1,5 @@
-From Lib Require Import Imports Sums Sequence Reals_util Notations Integral Sets Interval Derivative Continuity.
-Import SequenceNotations SumNotations IntegralNotations SetNotations IntervalNotations DerivativeNotations.
+From Lib Require Import Imports Sums Sequence Reals_util Notations Integral Sets Interval Derivative Continuity Functions Limit.
+Import SequenceNotations SumNotations IntegralNotations SetNotations IntervalNotations DerivativeNotations LimitNotations.
 
 Open Scope R_scope.
 
@@ -10,6 +10,9 @@ Definition series_sum (a : sequence) (L : R) : Prop :=
 
 Definition series_converges (a : sequence) : Prop :=
   convergent_sequence (partial_sum a).
+
+Definition summable (a : sequence) : Prop :=
+  series_converges a.
 
 Definition series_converges_absolutely (a : sequence) : Prop :=
   series_converges (fun n => Rabs (a n)).
@@ -179,43 +182,45 @@ Definition sequence_contains_all_products (c a b : sequence) :=
     (forall i j, exists n, f n = pair i j) /\ 
     (forall n, c n = a (fst (f n)) * b (snd (f n))).
 
-Theorem theorem_23_cauchy_criterion : forall a,
+Theorem cauchy_criterion : forall a,
   series_converges a <-> cauchy_sequence (partial_sum a).
 Proof.
 Abort.
 
-Theorem theorem_23_vanishing_condition : forall a,
+Theorem vanishing_condition : forall a,
   series_converges a -> ⟦ lim ⟧ a = 0.
 Proof.
 Abort.
 
-Theorem theorem_23_boundedness_criterion : forall a,
-  (forall n, a n >= 0) -> (series_converges a <-> Sequence.bounded_above (partial_sum a)).
+Theorem boundedness_criterion : forall a,
+  nonnegative_sequence a -> (series_converges a <-> bounded_above (partial_sum a)).
+Proof.
+
+Abort.
+
+Theorem comparison_test : forall a b,
+  (forall n, 0 <= a n <= b n) -> series_converges b -> series_converges a.
 Proof.
 Abort.
 
-Theorem theorem_23_1 : forall a b,
-  (forall n, 0 <= a n /\ a n <= b n) -> series_converges b -> series_converges a.
-Proof.
-Abort.
-
-Theorem theorem_23_2 : forall a b c,
-  (forall n, a n > 0) -> (forall n, b n > 0) -> c <> 0 ->
+Theorem limit_comparison_test : forall a b c,
+  positive_sequence a -> positive_sequence b -> c <> 0 ->
   ⟦ lim ⟧ (fun n => a n / b n) = c ->
   (series_converges a <-> series_converges b).
 Proof.
 Abort.
 
-Theorem theorem_23_3 : forall a r,
-  (forall n, a n > 0) -> ⟦ lim ⟧ (fun n => a (S n) / a n) = r ->
+Theorem ratio_test : forall a r,
+  positive_sequence a -> ⟦ lim ⟧ (fun n => a (S n) / a n) = r ->
   (r < 1 -> series_converges a) /\ (r > 1 -> series_diverges a).
 Proof.
 Abort.
 
-Theorem theorem_23_4 : forall f a,
-  (forall x, f x > 0) -> (forall x y, 1 <= x -> x <= y -> f y <= f x) ->
+Theorem integral_test : forall f a,
+  positive f -> decreasing_on f [1, ∞) ->
+  continuous_on f [1, ∞) ->
   (forall n, (n >= 1)%nat -> a n = f n) ->
-  (series_converges a <-> exists L, ⟦ lim ⟧ (fun N => ∫ 1 N f) = L).
+  (series_converges a <-> exists L, ⟦ lim ∞ ⟧ (λ A, ∫ 1 A f) = L).
 Proof.
 Abort.
 
@@ -224,9 +229,9 @@ Theorem theorem_23_5 : forall a,
 Proof.
 Abort.
 
-Theorem theorem_23_6 : forall a,
-  nonincreasing a -> (forall n, a n >= 0) -> ⟦ lim ⟧ a = 0 ->
-  series_converges (fun n => (-1)^(n+1) * a n).
+Theorem leibniz_theorem : forall a,
+  nonincreasing a -> nonnegative_sequence a -> ⟦ lim ⟧ a = 0 ->
+  series_converges (λ n, (-1)^(n+1) * a n).
 Proof.
 Abort.
 

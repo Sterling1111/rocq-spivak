@@ -57,6 +57,18 @@ Definition arithmetic_sequence (a : sequence) (c d : ℝ) :=
 Definition geometric_sequence (a : sequence) (c r : ℝ) :=
   a = (fun n => c * (r ^ n)).
 
+Definition positive_sequence (a : sequence) : Prop :=
+  ∀ n, a n > 0.
+
+Definition negative_sequence (a : sequence) : Prop :=
+  ∀ n, a n < 0.
+
+Definition nonnegative_sequence (a : sequence) : Prop :=
+  ∀ n, a n >= 0.
+
+Definition nonpositive_sequence (a : sequence) : Prop :=
+  ∀ n, a n <= 0.
+
 Definition limit_s (a : sequence) (L : ℝ) :=
   ∀ ε, ε > 0 ->
     ∃ N, ∀ n : ℕ, n > N -> |a n - L| < ε.
@@ -938,65 +950,137 @@ Proof.
     apply H6; auto. specialize (H2 n). solve_R.
 Qed.
 
+Definition infinitely_many (P : ℕ -> Prop) : Prop :=
+  forall N, exists n, (n > N)%nat /\ P n.
+
+Definition finitely_many (P : ℕ -> Prop) : Prop :=
+  exists N, forall n, (n > N)%nat -> ~ P n.
+
+Lemma infinitely_many_or_finitely_many : forall P : ℕ -> Prop,
+  infinitely_many P \/ finitely_many P.
+Proof.
+  intros P. pose proof (classic (infinitely_many P)) as [H1 | H1]; auto.
+  right. unfold infinitely_many in H1. apply not_all_ex_not in H1 as [H2 H3].
+  exists H2. intros H4 H5 H6. apply H3. exists H4. split; auto.
+Qed.
+
+Lemma not_finitely_many_infinitely_many : forall P : ℕ -> Prop,
+  ~ finitely_many P <-> infinitely_many P.
+Proof.
+  intros P. split.
+  - intros H1 N. apply NNPP. intros H2. apply H1. 
+    exists N. intros n H3 H4. apply H2. exists n. auto.
+  - intros H1 H2. destruct H2 as [N H2]. 
+    destruct (H1 N) as [n [H3 H4]]. apply (H2 n H3 H4).
+Qed.
+
+Lemma not_infinitely_many_finitely_many : forall P : ℕ -> Prop,
+  ~ infinitely_many P <-> finitely_many P.
+Proof.
+  intros P. split.
+  - intros H1. apply NNPP. intros H2. apply H1. 
+    apply not_finitely_many_infinitely_many. auto.
+  - intros H1 H2. destruct H1 as [N H1]. 
+    destruct (H2 N) as [n [H3 H4]]. apply (H1 n H3 H4).
+Qed.
+
+Fixpoint inf_indices (P : ℕ -> Prop) (H1 : infinitely_many P) (n : ℕ) : ℕ :=
+  match n with
+  | 0%nat => proj1_sig (constructive_indefinite_description _ (H1 0%nat))
+  | S n' => proj1_sig (constructive_indefinite_description _ (H1 (inf_indices P H1 n')))
+  end.
+
+Lemma infinitely_many_subsequence : forall (a : sequence) (P : ℕ -> Prop),
+  infinitely_many P ->
+  exists (sub : sequence) (f : ℕ -> ℕ),
+    subsequence sub a /\
+    (forall n1 n2, (n1 < n2)%nat -> (f n1 < f n2)%nat) /\
+    (forall n, sub n = a (f n)) /\
+    (forall n, P (f n)).
+Proof.
+  intros a P H1.
+  exists (fun n => a (inf_indices P H1 n)), (inf_indices P H1).
+  assert (H2 : forall n1 n2, (n1 < n2)%nat -> (inf_indices P H1 n1 < inf_indices P H1 n2)%nat).
+  { intros n1 n2 H2. induction H2.
+    - simpl. pose proof (proj2_sig (constructive_indefinite_description _ (H1 (inf_indices P H1 n1)))) as [H3 H4]. exact H3.
+    - apply Nat.lt_trans with (inf_indices P H1 m).
+      + exact IHle.
+      + pose proof (proj2_sig (constructive_indefinite_description _ (H1 (inf_indices P H1 m)))) as [H3 H4]. exact H3. }
+  split.
+  - exists (inf_indices P H1). split; auto.
+    intros n1 n2 H3. apply lt_INR, H2, INR_lt, H3.
+  - split; auto. split; auto. intros n. destruct n.
+    + pose proof (proj2_sig (constructive_indefinite_description _ (H1 0%nat))) as [H3 H4]. exact H4.
+    + pose proof (proj2_sig (constructive_indefinite_description _ (H1 (inf_indices P H1 n)))) as [H3 H4]. exact H4.
+Qed.
+
+Lemma finitely_many_bound : forall P : ℕ -> Prop,
+  finitely_many P ->
+  exists N : ℕ, forall n, (n >= N)%nat -> ~ P n.
+Proof.
+  intros P [N H1]. exists (S N). intros n H2. apply H1. lia.
+Qed.
+
+Fixpoint nondec_indices (a : sequence) (N : ℕ) (H2 : forall n, exists m, (n < m)%nat /\ ((n >= N)%nat -> a n <= a m)) (k : ℕ) : ℕ :=
+  match k with
+  | 0%nat => N
+  | S k' => proj1_sig (constructive_indefinite_description _ (H2 (nondec_indices a N H2 k')))
+  end.
+
+Lemma no_peak_points_subsequence : forall a N,
+  (forall n, (n >= N)%nat -> ~ peak_point a n) ->
+  exists (sub : sequence) (f : ℕ -> ℕ),
+    subsequence sub a /\
+    (forall n1 n2, (n1 < n2)%nat -> (f n1 < f n2)%nat) /\
+    (forall n, sub n = a (f n)) /\
+    nondecreasing sub.
+Proof.
+  intros a N H1.
+  assert (H2 : forall n, exists m, (n < m)%nat /\ ((n >= N)%nat -> a n <= a m)).
+  {
+    intros n. pose proof (classic (n >= N)%nat) as [H2 | H2].
+    - assert (H3 : ~ peak_point a n) by (apply H1; lia).
+      unfold peak_point in H3. apply not_all_ex_not in H3 as [m H3].
+      apply imply_to_and in H3 as [H4 H5].
+      exists m. split; [lia | intros _; lra].
+    - exists N. split; [lia | intros H3; lia].
+  }
+  exists (fun n => a (nondec_indices a N H2 n)), (nondec_indices a N H2).
+  assert (H3 : forall n1 n2, (n1 < n2)%nat -> (nondec_indices a N H2 n1 < nondec_indices a N H2 n2)%nat).
+  {
+    intros n1 n2 H3. induction H3.
+    - simpl. pose proof (proj2_sig (constructive_indefinite_description _ (H2 (nondec_indices a N H2 n1)))) as [H4 _]. exact H4.
+    - apply Nat.lt_trans with (nondec_indices a N H2 m).
+      + exact IHle.
+      + pose proof (proj2_sig (constructive_indefinite_description _ (H2 (nondec_indices a N H2 m)))) as [H4 _]. exact H4.
+  }
+  assert (H4 : forall n, (nondec_indices a N H2 n >= N)%nat).
+  {
+    induction n as [| k IH].
+    - simpl. lia.
+    - simpl. pose proof (proj2_sig (constructive_indefinite_description _ (H2 (nondec_indices a N H2 k)))) as [H4 _]. lia.
+  }
+  split.
+  - exists (nondec_indices a N H2). split; auto.
+    intros n1 n2 H5. apply lt_INR, H3, INR_lt, H5.
+  - split; auto. split; auto. intros n. unfold nondecreasing. simpl.
+    pose proof (proj2_sig (constructive_indefinite_description _ (H2 (nondec_indices a N H2 n)))) as [_ H5].
+    apply H5. apply H4.
+Qed.
+
 Lemma monotone_subsequence_theorem : forall a,
   exists sub, subsequence sub a /\ (nondecreasing sub \/ nonincreasing sub).
 Proof.
   intros a.
-  destruct (classic (forall n, exists m, (n < m)%nat /\ peak_point a m)) as [H1 | H1].
-  - pose (f := fix f n := match n with
-      | 0 => proj1_sig (constructive_indefinite_description _ (H1 0%nat))
-      | S n' => proj1_sig (constructive_indefinite_description _ (H1 (f n')))
-      end).
-    exists (fun n => a (f n)). split.
-    + exists f. split.
-      * intros n1 n2 H2. apply INR_lt in H2. apply lt_INR. induction H2.
-        -- simpl. pose proof (proj2_sig (constructive_indefinite_description _ (H1 (f n1)))) as [H3 H4]. exact H3.
-        -- apply Nat.lt_trans with (f m). 
-           ++ exact IHle.
-           ++ pose proof (proj2_sig (constructive_indefinite_description _ (H1 (f m)))) as [H3 H4]. exact H3.
-      * intros n; reflexivity.
-    + right. intros n. unfold nonincreasing.
-      assert (H2: peak_point a (f n)).
-      { destruct n.
-        - pose proof (proj2_sig (constructive_indefinite_description _ (H1 0%nat))) as [H3 H4]. exact H4.
-        - pose proof (proj2_sig (constructive_indefinite_description _ (H1 (f n)))) as [H3 H4]. exact H4.
-      }
-      apply Rle_ge, Rlt_le. apply H2.
-      assert (H3: (f n < f (S n))%nat).
-      { pose proof (proj2_sig (constructive_indefinite_description _ (H1 (f n)))) as [H4 H5]. exact H4. }
-      exact H3.
-  - apply not_all_ex_not in H1 as [N H1].
-    assert (H2 : forall n, exists m, (n < m)%nat /\ ((n > N)%nat -> a n <= a m)).
-    { 
-      intros n. destruct (le_lt_dec (S N) n) as [H3 | H3].
-      - assert (~ peak_point a n) as H4.
-        { intro H5. apply H1. exists n. split; auto; lia. }
-        unfold peak_point in H4.
-        apply not_all_ex_not in H4 as [m H5].
-        apply imply_to_and in H5 as [H6 H7].
-        exists m. split; [lia | solve_R].
-      - exists (S N). split; [lia | lia].
-    }
-    pose (f := fix f n := match n with
-      | 0 => S N
-      | S n' => proj1_sig (constructive_indefinite_description _ (H2 (f n')))
-      end).
-    assert (H3 : forall n, (f n > N)%nat).
-    { induction n.
-      - simpl. lia.
-      - simpl. pose proof (proj2_sig (constructive_indefinite_description _ (H2 (f n)))) as [H4 H5]. lia.
-    }
-    exists (fun n => a (f n)). split.
-    + exists f. split.
-      * intros n1 n2 H4. apply INR_lt in H4. apply lt_INR. induction H4.
-        -- simpl. pose proof (proj2_sig (constructive_indefinite_description _ (H2 (f n1)))) as [H5 H6]. exact H5.
-        -- apply Nat.lt_trans with (f m). 
-           ++ exact IHle.
-           ++ pose proof (proj2_sig (constructive_indefinite_description _ (H2 (f m)))) as [H5 H6]. exact H5.
-      * intros n; reflexivity.
-    + left. intros n. unfold nondecreasing.
-      simpl. pose proof (proj2_sig (constructive_indefinite_description _ (H2 (f n)))) as [H4 H5].
-      apply H5. apply H3.
+  destruct (infinitely_many_or_finitely_many (peak_point a)) as [H1 | H1].
+  - pose proof infinitely_many_subsequence a (peak_point a) H1 as [sub [f [H2 [H3 [H4 H5]]]]].
+    exists sub. split; auto; right.
+    intros n. do 2 rewrite H4.
+    apply Rle_ge, Rlt_le, H5, H3.
+    lia.
+  - pose proof finitely_many_bound (peak_point a) H1 as [N H2].
+    pose proof no_peak_points_subsequence a N H2 as [sub [f [H3 [H4 [H5 H6]]]]].
+    exists sub. split; auto.
 Qed.
 
 Lemma cauchy_bounded : forall a,
