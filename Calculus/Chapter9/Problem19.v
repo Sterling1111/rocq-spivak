@@ -50,34 +50,16 @@ Proof.
 Qed.
 
 Lemma lemma_9_19_b : ~ (forall f f' g h h' a,
-  (forall x, f x <= g x /\ g x <= h x) ->
+  (forall x, f x <= g x <= h x) ->
   ⟦ der a ⟧ f = f' -> ⟦ der a ⟧ h = h' ->
   f' a = h' a ->
   exists g', ⟦ der a ⟧ g = g' /\ g' a = f' a).
 Proof.
   intros H1.
-  specialize (H1 (λ _, 0) (λ _, 0) (λ x, if Rle_dec 0 x then 1 else 0) (λ _, 2) (λ _, 0) 0
-        ltac:(solve_R) ltac:(auto_diff) ltac:(auto_diff) ltac:(reflexivity)) as [g' [H2 H3]].
-  
-  specialize (H2 1 ltac:(lra)) as [δ [H4 H5]].
-
-  rewrite H3 in H5.
-  
-  set (h := if Rle_dec (δ / 2) (1 / 2) then - (δ / 2) else - (1 / 2)).
-
-  specialize (H5 h ltac:(unfold h; solve_R)).
-  
-  assert (H7 : (if Rle_dec 0 0 then 1 else 0) = 1) by solve_R.
-  
-  assert (H8 : (if Rle_dec 0 (0 + h) then 1 else 0) = 0).
-  { unfold h; solve_R. }
-  
-  rewrite H7, H8 in H5.
-  
-  assert (H9 : h <> 0) by solve_R.
-  
-  replace (((0 - 1) / h) - 0) with (-1 / h) in H5 by solve_R.
-  rewrite Rabs_div in H5 by exact H9.
-  replace (|(-1)|) with 1 in H5 by solve_abs.
-  apply Rmult_lt_compat_r with (r := |h|) in H5; field_simplify in H5; unfold h in *; solve_R.
+  specialize (H1 (λ _, -1) (λ _, 0) sin (λ _, 1) (λ _, 0) 0).
+  destruct (H1 sin_bounds ltac:(auto_diff) ltac:(auto_diff) ltac:(auto)) as [g' [H6 H7]].
+  assert (H8: ⟦ der 0 ⟧ sin = cos) by auto_diff.
+  pose proof derivative_at_unique sin g' cos 0 H6 H8 as H9.
+  rewrite cos_0, H7 in H9.
+  lra.
 Qed.
