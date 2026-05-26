@@ -750,6 +750,9 @@ Definition integrable_on (a b : ℝ) (f : ℝ -> ℝ) : Prop :=
   let US := (fun x : ℝ => exists p : partition a b, x = U(bf, p)) in
   is_lub LS sup /\ is_glb US inf /\ sup = inf.
 
+Definition integrable f : Prop :=
+  forall a b, integrable_on a b f.
+
   Lemma integrable_imp_bounded : forall f a b,
   a <= b -> integrable_on a b f -> bounded_on f [a, b].
 Proof.
@@ -2089,6 +2092,35 @@ Proof.
   replace (∫ u b f) with (∫ u v f + ∫ v b f) by (rewrite <- integral_split'; solve_R).
   lra.
 Qed.
+
+Theorem theorem_13_4 : ∀ f a b c,
+  a < c < b ->
+  (integrable_on a b f <-> integrable_on a c f /\ integrable_on c b f) /\
+  (integrable_on a b f -> ∫ a b f = ∫ a c f + ∫ c b f).
+Proof.
+Admitted.
+
+Theorem theorem_13_5 : ∀ f g a b,
+  a < b -> 
+  integrable_on a b f -> 
+  integrable_on a b g -> 
+  integrable_on a b (f + g) /\ ∫ a b (f + g) = ∫ a b f + ∫ a b g.
+Proof.
+Admitted.
+
+Theorem theorem_13_6 : ∀ f c a b,
+  a < b -> 
+  integrable_on a b f -> 
+  integrable_on a b (c * f) /\ ∫ a b (c * f) = c * ∫ a b f.
+Proof.
+Admitted.
+
+Theorem theorem_13_8 : ∀ f a b,
+  a < b -> 
+  integrable_on a b f -> 
+  continuous_on (λ x, ∫ a x f) [a, b].
+Proof.
+Admitted.
 
 Theorem theorem_13_7 : ∀ a b f m M,
   a <= b -> integrable_on a b f -> (∀ x, x ∈ [a, b] -> m <= f x <= M) ->

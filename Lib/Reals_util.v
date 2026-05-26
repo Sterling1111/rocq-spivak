@@ -1428,3 +1428,9 @@ Proof.
   intros a b n H.
   f_equal. exact H.
 Qed.
+
+Lemma sqrt_neq_R0 : ∀ x,
+  x > 0 -> sqrt x <> 0.
+Proof.
+  intros x H1. pose proof sqrt_lt_R0 x; lra.
+Qed.
