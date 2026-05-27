@@ -1405,6 +1405,19 @@ Proof.
   apply derivative_on_minus; auto. apply derivative_on_const; auto.
 Qed.
 
+Theorem derivative_on_neg_iff : forall f f' D,
+  differentiable_domain D ->
+  ⟦ der ⟧ f D = f' <-> ⟦ der ⟧ (fun x => - (f x)) D = (fun x => - (f' x)).
+Proof.
+  intros f f' D H1. split; intros H2.
+  - replace (fun x => - (f x)) with ((fun _ => 0) - f)%function by (extensionality y; nra).
+    replace (fun x => - (f' x)) with ((fun _ => 0) - f')%function by (extensionality y; nra).
+    apply derivative_on_minus; auto. apply derivative_on_const; auto.
+  - apply derivative_on_eq with (f1 := λ x : ℝ, -1 * - f x); solve_R.
+    apply derivative_on_ext with (f1' := λ x : ℝ, -1 * - f' x); solve_R.
+    apply derivative_on_mult_const_l; auto.
+Qed.
+
 Lemma derivative_on_neg_open : forall f f' a b,
   a < b ->
   ⟦ der ⟧ f (a, b) = f' -> ⟦ der ⟧ (fun x => - (f x)) (a, b) = (fun x => - (f' x)).
