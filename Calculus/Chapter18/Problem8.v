@@ -1,9 +1,43 @@
 From Calculus.Chapter18 Require Import Prelude.
 
-Definition sinh (x : R) := (exp x - exp (-x)) / 2.
-Definition cosh (x : R) := (exp x + exp (-x)) / 2.
-Definition tanh (x : R) := sinh x / cosh x.
+Lemma lemma_18_8_a : forall x,
+  (cosh x)^2 - (sinh x)^2 = 1.
+Proof.
+  admit.
+Abort.
 
-Lemma lemma_18_8 :
-  one_to_one sinh /\ one_to_one tanh.
+Lemma lemma_18_8_b : forall x,
+  (tanh x)^2 + 1 / (cosh x)^2 = 1.
+Proof.
+  admit.
+Abort.
+
+Lemma lemma_18_8_c : forall x y,
+  sinh (x + y) = sinh x * cosh y + cosh x * sinh y.
+Proof.
+  admit.
+Abort.
+
+Lemma lemma_18_8_d : forall x y,
+  cosh (x + y) = cosh x * cosh y + sinh x * sinh y.
+Proof.
+  admit.
+Abort.
+
+Lemma lemma_18_8_e :
+  ⟦ der ⟧ sinh = cosh.
+Proof.
+  admit.
+Abort.
+
+Lemma lemma_18_8_f :
+  ⟦ der ⟧ cosh = sinh.
+Proof.
+  admit.
+Abort.
+
+Lemma lemma_18_8_g :
+  ⟦ der ⟧ tanh = fun x => 1 / (cosh x)^2.
+Proof.
+  admit.
 Abort.

@@ -1,7 +1,26 @@
 From Calculus.Chapter18 Require Import Prelude.
 
-(* Problem 13: Find
-   (a) \lim_{x \to \infty} a^x for 0 < a < 1. (Remember the definition!)
-   ...
-   (e) \lim_{x \to 0^+} x^x. *)
-Lemma problem_18_13_e : ⟦ lim 0⁺ ⟧ (fun x => exp (x * log x)) = 1. Abort.
+Lemma lemma_18_13_a : forall a, 0 < a < 1 ->
+  ⟦ lim ∞ ⟧ (fun x => a ^^ x) = 0.
+Proof.
+Abort.
+
+Lemma lemma_18_13_b : forall n : nat,
+  ⟦ lim ∞ ⟧ (fun x => x / (log x) ^ n) = ∞.
+Proof.
+Abort.
+
+Lemma lemma_18_13_c : forall n : nat,
+  ⟦ lim ∞ ⟧ (fun x => (log x) ^ n / x) = 0.
+Proof.
+Abort.
+
+Lemma lemma_18_13_d : forall n : nat,
+  ⟦ lim 0⁺ ⟧ (fun x => x * (log x) ^ n) = 0.
+Proof.
+Abort.
+
+Lemma lemma_18_13_e :
+  ⟦ lim 0⁺ ⟧ (fun x => x ^^ x) = 1.
+Proof.
+Abort.
