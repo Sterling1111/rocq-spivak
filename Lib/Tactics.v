@@ -1027,9 +1027,12 @@ Ltac compute_tp :=
 
 Ltac step_lhopital f_prime g_prime :=
   apply lhopital_0_0 with (f' := f_prime) (g' := g_prime);
-  try solve [auto_limit];
-  try solve [auto_diff];
-  try solve [ (exists (1/10); split; try lra; auto_diff) ].
+  [ try solve [ auto_limit ]
+  | try solve [ auto_limit ]
+  | try solve [ (exists (1/10); split; [lra | intros; auto_diff]) ]
+  | try solve [ (exists (1/10); split; [lra | intros; auto_diff]) ]
+  | try solve [ (exists (1/10); split; [lra | intros; solve_denoms]) ]
+  | try solve [ auto_limit ] ].
 
 Module Tactic_Tests.
 

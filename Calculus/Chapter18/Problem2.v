@@ -1,6 +1,6 @@
 From Calculus.Chapter18 Require Import Prelude.
 
-Lemma lemma_18_1_a : forall f f',
+Lemma lemma_18_2_a : forall f f',
   (forall x, f x > 0) ->
   ⟦ der ⟧ f = f' ->
   ⟦ der ⟧ (log ∘ f) = (f' / f).

@@ -1564,3 +1564,11 @@ Proof.
   apply limit_Rabs_Rpower_zero.
   exact H1.
 Qed.
+
+Lemma Rpower_def_pos : forall a x,
+  a > 0 -> a ^^ x = exp (x * log a).
+Proof.
+  intros a x H1. 
+  unfold Rpower. 
+  destruct (Rlt_dec 0 a) as [H2 | H2]; [reflexivity | lra].
+Qed.
