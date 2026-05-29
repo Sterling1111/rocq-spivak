@@ -1572,3 +1572,240 @@ Proof.
   unfold Rpower. 
   destruct (Rlt_dec 0 a) as [H2 | H2]; [reflexivity | lra].
 Qed.
+
+Lemma sinh_bijective : bijective_on sinh ℝ ℝ.
+Proof.
+  split; [| split].
+  - intros x H1. apply Full_intro.
+  - apply increasing_on_imp_one_to_one_on.
+    apply derivative_pos_imp_increasing with (f' := cosh).
+    + apply derivative_sinh.
+    + intros z. apply cosh_pos.
+  - intros y H1.
+    set (M := 2 * Rabs y + 3).
+    assert (H2 : M >= 3). { unfold M. pose proof (Rabs_pos y). lra. }
+    set (x2 := log M).
+    set (x1 := - log M).
+    assert (H3 : exp x2 = M). { apply exp_log; lra. }
+    assert (H4 : exp (-x2) = 1 / M).
+    { rewrite exp_neg, H3. reflexivity. }
+    assert (H5 : exp x1 = 1 / M).
+    { unfold x1. rewrite exp_neg, exp_log; try lra. }
+    assert (H6 : exp (-x1) = M).
+    { replace (-x1) with x2 by (unfold x1, x2; lra). exact H3. }
+    assert (H7 : sinh x2 > y).
+    {
+      unfold sinh. rewrite H3, H4.
+      assert (H8 : 1 / M <= 0.5).
+      {
+        apply Rmult_le_reg_r with (r := M); [lra |].
+        replace (1 / M * M) with 1 by (field; lra). lra.
+      }
+      unfold M in *; solve_R.
+    }
+    assert (H8 : sinh x1 < y).
+    {
+      unfold sinh. rewrite H5, H6.
+      assert (H9 : 1 / M <= 0.5).
+      {
+        apply Rmult_le_reg_r with (r := M); [lra |].
+        replace (1 / M * M) with 1 by (field; lra). lra. 
+      }
+      unfold M in *; solve_R.
+    }
+    assert (H9 : x1 < x2).
+    {
+      unfold x1, x2.
+      assert (H10 : log 2 < log M).
+      { apply log_increasing; solve_R. }
+      pose proof log_2_pos. lra.
+    }
+    assert (H10 : continuous_on sinh [x1, x2]).
+    { apply continuous_imp_continuous_on, continuous_sinh. }
+    pose proof intermediate_value_theorem sinh x1 x2 y H9 H10 ltac:(lra) as [c [H11 H12]].
+    exists c. split; [apply Full_intro | exact H12].
+Qed.
+
+Lemma exists_sinh_inverse : exists f, inverse_on sinh f ℝ ℝ.
+Proof.
+  pose proof sinh_bijective as H1.
+  pose proof exists_inverse_on_iff sinh ℝ ℝ as H2.
+  apply H2; auto.
+Qed.
+
+Definition arcsinh_sig : {f : ℝ -> ℝ | inverse_on sinh f ℝ ℝ}.
+Proof.
+  apply constructive_indefinite_description, exists_sinh_inverse.
+Qed.
+
+Definition arcsinh (y : ℝ) : ℝ := proj1_sig arcsinh_sig y.
+
+Lemma arcsinh_spec : inverse_on sinh arcsinh ℝ ℝ.
+Proof.
+  unfold arcsinh. destruct arcsinh_sig as [f_inv H1]. auto.
+Qed.
+
+Lemma cosh_bijective : bijective_on cosh [0, ∞) [1, ∞).
+Proof.
+  split; [| split].
+  - intros x H1.
+    assert (H2 : 0 <= x) by (destruct H1; lra).
+    assert (H3 : exp x >= 1).
+    { pose proof exp_nondecreasing 0 x ltac:(apply Full_intro) ltac:(apply Full_intro) H2. rewrite exp_0 in H; lra. }
+    assert (H4 : exp (-x) <= 1).
+    { pose proof exp_nondecreasing (-x) 0 ltac:(apply Full_intro) ltac:(apply Full_intro) ltac:(lra). rewrite exp_0 in H; lra. }
+    assert (H5 : exp x * exp (-x) = 1).
+    { rewrite <- theorem_18_3. replace (x + -x) with 0 by lra. apply exp_0. }
+    unfold cosh.
+    assert (H6 : (exp x - 1) * (1 - exp (-x)) >= 0) by nra.
+    assert (H7 : exp x + exp (-x) - 2 = (exp x - 1) * (1 - exp (-x)) + exp x * exp (-x) - 1) by nra.
+    solve_R.
+  - intros x y H1 H2 H3.
+    destruct (Rtotal_order x y) as [H4 | [H4 | H4]]; auto.
+    + assert (H5 : continuous_on cosh [x, y]).
+      { apply continuous_imp_continuous_on, continuous_cosh. }
+      assert (H6 : differentiable_on cosh (x, y)).
+      { apply differentiable_imp_differentiable_on; [| apply differentiable_domain_open; lra].
+        intros z. apply derivative_imp_differentiable with (f' := sinh). apply derivative_cosh. }
+      pose proof mean_value_theorem cosh x y H4 H5 H6 as [c [H7 H8]].
+      assert (H9 : ⟦ der c ⟧ cosh = sinh) by apply derivative_cosh.
+      pose proof derivative_at_unique cosh _ sinh c H8 H9 as H10. simpl in H10.
+      assert (H11 : c > 0). { solve_R. }
+      assert (H12 : exp c > 1).
+      { pose proof exp_increasing 0 c ltac:(apply Full_intro) ltac:(apply Full_intro) H11. rewrite exp_0 in H; lra. }
+      assert (H13 : exp (-c) < 1).
+      { pose proof exp_increasing (-c) 0 ltac:(apply Full_intro) ltac:(apply Full_intro) ltac:(lra). rewrite exp_0 in H; lra. }
+      assert (H14 : sinh c > 0) by (unfold sinh; lra).
+      nra.
+    + assert (H5 : continuous_on cosh [y, x]).
+      { apply continuous_imp_continuous_on, continuous_cosh. }
+      assert (H6 : differentiable_on cosh (y, x)).
+      { apply differentiable_imp_differentiable_on; [| apply differentiable_domain_open; lra].
+        intros z. apply derivative_imp_differentiable with (f' := sinh). apply derivative_cosh. }
+      pose proof mean_value_theorem cosh y x H4 H5 H6 as [c [H7 H8]].
+      assert (H9 : ⟦ der c ⟧ cosh = sinh) by apply derivative_cosh.
+      pose proof derivative_at_unique cosh _ sinh c H8 H9 as H10. simpl in H10.
+      assert (H11 : c > 0). { solve_R. }
+      assert (H12 : exp c > 1).
+      { pose proof exp_increasing 0 c ltac:(apply Full_intro) ltac:(apply Full_intro) H11. rewrite exp_0 in H; lra. }
+      assert (H13 : exp (-c) < 1).
+      { pose proof exp_increasing (-c) 0 ltac:(apply Full_intro) ltac:(apply Full_intro) ltac:(lra). rewrite exp_0 in H; lra. }
+      assert (H14 : sinh c > 0) by (unfold sinh; lra).
+      nra.
+  - intros y H1.
+    set (M := y + sqrt (y ^ 2 - 1)).
+    assert (H2 : y ^ 2 - 1 >= 0) by solve_R.
+    assert (H3 : sqrt (y ^ 2 - 1) >= 0). { pose proof sqrt_pos (y^2 - 1); lra. }
+    assert (H4 : M >= 1). { unfold M. assert (y >= 1) by solve_R. nra. }
+    set (x := log M).
+    exists x.
+    assert (H5 : exp x = M).
+    { apply exp_log. lra. }
+    assert (H6 : exp (-x) = 1 / M).
+    { rewrite exp_neg, H5. reflexivity. }
+    assert (H7 : M * M - 2 * y * M + 1 = 0).
+    { unfold M.
+      replace ((y + sqrt (y ^ 2 - 1)) * (y + sqrt (y ^ 2 - 1))) with (y ^ 2 + 2 * y * sqrt (y ^ 2 - 1) + (sqrt (y ^ 2 - 1)) ^ 2) by ring.
+      rewrite pow2_sqrt; lra. }
+    split.
+    + apply Rge_le. apply log_nonneg. lra.
+    + unfold cosh. rewrite H5, H6.
+      assert (H8 : M > 0) by lra.
+      apply Rmult_eq_reg_l with (r := 2 * M); [| lra].
+      replace (2 * M * ((M + 1 / M) / 2)) with (M * M + 1) by (field; lra).
+      replace (2 * M * y) with (2 * y * M) by ring.
+      lra.
+Qed.
+
+Lemma exists_cosh_inverse : exists f, inverse_on cosh f [0, ∞) [1, ∞).
+Proof.
+  pose proof cosh_bijective as H1.
+  pose proof exists_inverse_on_iff cosh [0, ∞) [1, ∞) as H2.
+  apply H2; auto.
+Qed.
+
+Definition arccosh_sig : {f : ℝ -> ℝ | inverse_on cosh f [0, ∞) [1, ∞)}.
+Proof.
+  apply constructive_indefinite_description, exists_cosh_inverse.
+Qed.
+
+Definition arccosh (y : ℝ) : ℝ := proj1_sig arccosh_sig y.
+
+Lemma arccosh_spec : inverse_on cosh arccosh [0, ∞) [1, ∞).
+Proof.
+  unfold arccosh. destruct arccosh_sig as [f_inv H1]. auto.
+Qed.
+
+Lemma tanh_bijective : bijective_on tanh ℝ (-1, 1).
+Proof.
+  split; [| split].
+  - intros x H1. split.
+    + unfold tanh, sinh, cosh.
+      assert (H2 : exp x > 0) by apply exp_pos.
+      assert (H3 : exp (-x) > 0) by apply exp_pos.
+      assert (H4 : (exp x + exp (-x)) / 2 > 0) by lra.
+      apply Rmult_lt_reg_r with (r := (exp x + exp (-x)) / 2); [lra |].
+      replace (-1 * ((exp x + exp (-x)) / 2)) with ((-exp x - exp (-x)) / 2) by lra.
+      field_simplify; lra.
+    + unfold tanh, sinh, cosh.
+      assert (H2 : exp x > 0) by apply exp_pos.
+      assert (H3 : exp (-x) > 0) by apply exp_pos.
+      assert (H4 : (exp x + exp (-x)) / 2 > 0) by lra.
+      apply Rmult_lt_reg_r with (r := (exp x + exp (-x)) / 2); [lra |].
+      replace (1 * ((exp x + exp (-x)) / 2)) with ((exp x + exp (-x)) / 2) by lra.
+      field_simplify; lra.
+  - apply increasing_on_imp_one_to_one_on.
+    apply derivative_pos_imp_increasing with (f' := fun x => 1 / (cosh x) ^ 2).
+    + apply derivative_tanh.
+    + intros z.
+      assert (H1 : cosh z > 0) by apply cosh_pos.
+      assert (H2 : cosh z ^ 2 > 0) by nra.
+      apply Rdiv_pos_pos; lra.
+  - intros y H1.
+    destruct H1 as [H1 H2].
+    assert (H3 : 1 + y > 0) by solve_R.
+    assert (H4 : 1 - y > 0) by solve_R.
+    assert (H5 : (1 + y) / (1 - y) > 0) by (apply Rdiv_pos_pos; lra).
+    set (M := sqrt ((1 + y) / (1 - y))).
+    assert (H6 : M > 0) by (unfold M; apply sqrt_lt_R0; lra).
+    set (x := log M).
+    exists x.
+    assert (H7 : exp x = M).
+    { apply exp_log; lra. }
+    assert (H8 : exp (-x) = 1 / M).
+    { rewrite exp_neg, H7. reflexivity. }
+    assert (H9 : M * M = (1 + y) / (1 - y)).
+    { unfold M. replace (sqrt ((1 + y) / (1 - y)) * sqrt ((1 + y) / (1 - y))) with ((sqrt ((1 + y) / (1 - y))) ^ 2) by ring. rewrite pow2_sqrt; lra. }
+    split; [apply Full_intro |].
+    unfold tanh, sinh, cosh.
+    rewrite H7, H8.
+    assert (H10 : (M + 1 / M) / 2 <> 0).
+    { assert (1 / M > 0) by (apply Rdiv_pos_pos; lra). lra. }
+    apply Rmult_eq_reg_l with (r := (M + 1 / M) / 2); [| exact H10].
+    replace ((M + 1 / M) / 2 * ((M - 1 / M) / 2 / ((M + 1 / M) / 2))) with ((M - 1 / M) / 2) by (field; lra).
+    apply Rmult_eq_reg_l with (r := 2 * M); [| lra].
+    replace (2 * M * ((M - 1 / M) / 2)) with (M * M - 1) by (field; lra).
+    replace (2 * M * (y * ((M + 1 / M) / 2))) with (y * (M * M) + y) by (field; lra).
+    replace (2 * M * ((M + 1 / M) / 2 * y)) with (y * (M * M) + y) by (field; lra).
+    rewrite H9.
+    field; lra.
+Qed.
+
+Lemma exists_tanh_inverse : exists f, inverse_on tanh f ℝ (-1, 1).
+Proof.
+  pose proof tanh_bijective as H1.
+  pose proof exists_inverse_on_iff tanh ℝ (-1, 1) as H2.
+  apply H2; auto.
+Qed.
+
+Definition arctanh_sig : {f : ℝ -> ℝ | inverse_on tanh f ℝ (-1, 1)}.
+Proof.
+  apply constructive_indefinite_description, exists_tanh_inverse.
+Qed.
+
+Definition arctanh (y : ℝ) : ℝ := proj1_sig arctanh_sig y.
+
+Lemma arctanh_spec : inverse_on tanh arctanh ℝ (-1, 1).
+Proof.
+  unfold arctanh. destruct arctanh_sig as [f_inv H1]. auto.
+Qed.

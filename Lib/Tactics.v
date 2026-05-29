@@ -1036,7 +1036,7 @@ Ltac step_lhopital f_prime g_prime :=
 
 Module Tactic_Tests.
 
-Example FTC2_test : ∫ 0 1 (λ x : ℝ, 2 * x) = 1.
+Example FTC2_test : ∫ 0 1 (λ x, 2 * x) = 1.
 Proof.
   auto_int.
 Qed.
