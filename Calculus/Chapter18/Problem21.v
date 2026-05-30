@@ -22,10 +22,13 @@ Abort.
 Lemma lemma_18_21_c : ∀ f c,
   ⟦ der ⟧ f = (fun x => c * f x) ->
   ⟦ der ⟧ (fun x => f x / exp (c * x)) = (fun _ => 0).
-Abort.
+Proof.
+  intros f c H1. auto_diff.
+Qed.
 
 Lemma lemma_18_21_d : ∀ f g g',
   ⟦ der ⟧ g = g' ->
   ⟦ der ⟧ f = (fun x => f x * g' x) ->
   ∃ k, ∀ x, f x = k * exp (g x).
+Proof.
 Abort.

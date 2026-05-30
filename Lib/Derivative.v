@@ -4459,9 +4459,12 @@ Proof.
 Qed.
 
 Lemma nth_derivative_1 : forall f f',
-  ⟦ der ⟧ f = f' -> ⟦ der ^ 1 ⟧ f = f'.
+  ⟦ der ⟧ f = f' <-> ⟦ der ^ 1 ⟧ f = f'.
 Proof.
-  intros f f' H1. simpl. exists f. split; auto.
+  intros f f'. split; intro H1.
+  - simpl. exists f. split; auto.
+  - destruct H1 as [fk [H1 H2]].
+    simpl in H1. subst. auto.
 Qed.
 
 Lemma nth_derivative_on_1 : forall f f' D,
