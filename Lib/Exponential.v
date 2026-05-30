@@ -584,6 +584,24 @@ Proof.
     apply INR_lt. solve_R.
 Qed.
 
+Lemma Rpower_IZR_Znonneg : forall a z,
+  a > 0 -> (0 <= z)%Z -> a ^^ (IZR z) = a ^ (Z.to_nat z).
+Proof.
+  intros a z H1 H2.
+  replace (IZR z) with (INR (Z.to_nat z)).
+  - apply Rpower_nat; lra.
+  - rewrite INR_IZR_INZ, Z2Nat.id; auto.
+Qed.
+
+Lemma Rpower_IZR_Znonneg_iff : forall a z y,
+  a > 0 -> (0 <= z)%Z ->
+  (a ^^ (IZR z) = y <-> a ^ (Z.to_nat z) = y).
+Proof.
+  intros a z y H1 H2.
+  rewrite Rpower_IZR_Znonneg by auto.
+  tauto.
+Qed.
+
 Lemma floor_log_unique : forall (b x : R) (k : nat),
   b > 1 ->
   x > 0 ->
