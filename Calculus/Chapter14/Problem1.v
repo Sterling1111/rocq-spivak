@@ -1,15 +1,20 @@
 From Calculus.Chapter14 Require Import Prelude.
 
-(* Problem 1: Find the derivatives of each of the following functions. *)
-
-(* (i) F(x) = ∫ a x^3 (sin t)^3 dt *)
-Lemma lemma_14_1_i : forall a x,
-  ⟦ der x ⟧ (fun x => ∫ a (x^3) (fun t => (sin t)^3)) =
-    (fun x => 3 * x^2 * (sin (x^3))^3).
+Lemma lemma_14_1_i : forall a,
+  let F := λ x, ∫ a (x^3) (λ t, (sin t)^3) in
+  ⟦ der ⟧ F = (λ x, 3 * x^2 * (sin (x^3))^3).
 Proof.
-Abort.
+  intros a F.
+  assert (H1 : ⟦ der ⟧ (λ x : ℝ, x ^ 3) = λ x : ℝ, 3 * x ^ (3 - 1)) by auto_diff.
+  assert (H2 : ⟦ der ⟧ (λ u : ℝ, ∫ a u (λ t : ℝ, sin t ^ 3)) = λ u : ℝ, sin u ^ 3).
+  { apply FTC1_global; auto_cont. }
+  unfold F.
+  replace (λ x, ∫ a (x^3) (λ t, (sin t)^3)) with ((λ u, ∫ a u (λ t, (sin t)^3)) ∘ (λ x, x^3)) by reflexivity.
+  apply (derivative_ext ((λ u, ∫ a u (λ t, sin t ^ 3)) ∘ (λ x, x ^ 3)) ((λ u, sin u ^ 3) ∘ (λ x, x ^ 3) ⋅ (λ x, 3 * x ^ (3 - 1))) (λ x, 3 * x ^ 2 * sin (x ^ 3) ^ 3)).
+  - intros x. unfold compose. simpl. lra.
+  - apply derivative_comp; auto.
+Qed.
 
-(* (ii) F(x) = ∫ 3 (∫ 1 x (sin t)^3 dt) (1 / (1 + (sin t)^6 + t^2)) dt *)
 Lemma lemma_14_1_ii : forall x,
   ⟦ der x ⟧ (fun x => ∫ 3 (∫ 1 x (fun t => (sin t)^3))
     (fun t => 1 / (1 + (sin t)^6 + t^2))) =

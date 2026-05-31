@@ -1955,6 +1955,19 @@ Proof.
       exists P1. reflexivity.
 Qed.
 
+Lemma integral_mult_scalar' : forall f a b c,
+  integrable_on (Rmin a b) (Rmax a b) f ->
+  ∫ a b (c * f) = c * ∫ a b f.
+Proof.
+  intros f a b c H1.
+  destruct (Rtotal_order a b) as [H2 | [H2 | H2]].
+  - rewrite integral_mult_scalar; auto. eapply integrable_on_sub_interval; eauto; solve_R.
+  - subst. repeat rewrite integral_n_n. lra.
+  - rewrite integral_b_a_neg. rewrite (integral_b_a_neg a b).
+    rewrite integral_mult_scalar; auto; try lra.
+    eapply integrable_on_sub_interval; eauto; solve_R.
+Qed.
+
 Lemma integrable_minus : forall f g a b,
   a < b -> integrable_on a b f -> integrable_on a b g -> integrable_on a b (f - g).
 Proof.
