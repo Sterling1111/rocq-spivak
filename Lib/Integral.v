@@ -212,6 +212,75 @@ Proof.
     specialize (H3 x H10).
     nra.
 Qed.
+
+Lemma lower_sum_le : forall (a b : ℝ) (bf bg : bounded_function_R a b) (P : partition a b),
+  let f := bf.(bounded_f a b) in
+  let g := bg.(bounded_f a b) in
+  (forall x, x ∈ [a, b] -> f x <= g x) ->
+  L(bf, P) <= L(bg, P).
+Proof.
+  intros a b [f H1 H2] [g H3 H4] P bf bg H5.
+  unfold lower_sum, proj1_sig; simpl.
+  destruct (partition_sublist_elem_has_inf f a b P H2) as [l1 [H6 H7]].
+  destruct (partition_sublist_elem_has_inf g a b P H4) as [l2 [H8 H9]].
+  replace bf with f in * by auto.
+  replace bg with g in * by auto.
+  replace (length l1) with (length l2) in * by lia.
+  assert (length l2 = 0 \/ length l2 > 0)%nat as [H10 | H10] by lia.
+  - pose proof partition_length a b P as H11. lia.
+  - apply sum_f_congruence_le; try lia. intros k H11.
+    apply Rmult_le_compat_r.
+    + pose proof Sorted_Rlt_nth (points a b P) k (k+1) 0 ltac:(destruct P; auto) ltac:(lia) as H12. solve_R.
+    + specialize (H7 k ltac:(lia)) as [H7 _].
+      specialize (H9 k ltac:(lia)) as [_ H9].
+      specialize (H9 (nth k l1 0)).
+      apply Rge_le in H9; auto.
+      intros y [x [H12 H13]]. subst y.
+      assert (H14 : nth k l1 0 <= f x).
+      { unfold is_lower_bound in H7. specialize (H7 (f x)). apply Rge_le in H7. apply H7. exists x. split; auto. }
+      assert (H15 : f x <= g x).
+      {
+        apply H5.
+        pose proof partition_in a b P (nth k (points a b P) 0) (points a b P) eq_refl ltac:(apply nth_In; lia).
+        pose proof partition_in a b P (nth (k+1) (points a b P) 0) (points a b P) eq_refl ltac:(apply nth_In; lia).
+        solve_R. 
+      }
+      lra.
+Qed.
+
+Lemma upper_sum_le : forall (a b : ℝ) (bf bg : bounded_function_R a b) (P : partition a b),
+  let f := bf.(bounded_f a b) in
+  let g := bg.(bounded_f a b) in
+  (forall x, x ∈ [a, b] -> f x <= g x) ->
+  U(bf, P) <= U(bg, P).
+Proof.
+  intros a b [f H1 H2] [g H3 H4] P bf bg H5.
+  unfold upper_sum, proj1_sig; simpl.
+  destruct (partition_sublist_elem_has_sup f a b P H2) as [l1 [H6 H7]].
+  destruct (partition_sublist_elem_has_sup g a b P H4) as [l2 [H8 H9]].
+  replace bf with f in * by auto.
+  replace bg with g in * by auto.
+  replace (length l1) with (length l2) in * by lia.
+  assert (length l2 = 0 \/ length l2 > 0)%nat as [H10 | H10] by lia.
+  - pose proof partition_length a b P as H11. lia.
+  - apply sum_f_congruence_le; try lia. intros k H11.
+    apply Rmult_le_compat_r.
+    + pose proof Sorted_Rlt_nth (points a b P) k (k+1) 0 ltac:(destruct P; auto) ltac:(lia) as H12. solve_R.
+    + specialize (H7 k ltac:(lia)) as [_ H7].
+      specialize (H9 k ltac:(lia)) as [H9 _].
+      apply H7.
+      intros y [x [H12 H13]]. subst y.
+      assert (H14 : g x <= nth k l2 0).
+      { unfold is_upper_bound in H9. apply H9. exists x. split; auto. }
+      assert (H15 : f x <= g x).
+      {
+        apply H5.
+        pose proof partition_in a b P (nth k (points a b P) 0) (points a b P) eq_refl ltac:(apply nth_In; lia).
+        pose proof partition_in a b P (nth (k+1) (points a b P) 0) (points a b P) eq_refl ltac:(apply nth_In; lia).
+        solve_R.
+      }
+      lra.
+Qed.
     
 Section lower_upper_sum_test.
   Let f : ℝ → ℝ := λ x, x.
@@ -1760,9 +1829,11 @@ Proof.
 Qed.
 
 Lemma integral_plus : forall f g a b,
-  a < b -> integrable_on a b f -> integrable_on a b g -> ∫ a b (f + g) = ∫ a b f + ∫ a b g.
+  a <= b -> integrable_on a b f -> integrable_on a b g -> ∫ a b (f + g) = ∫ a b f + ∫ a b g.
 Proof.
   intros f g a b H1 H2 H3.
+  destruct H1 as [H1 | H1].
+  2 : { subst. repeat rewrite integral_n_n; lra. }
   pose proof integrable_plus f g a b H1 H2 H3 as H4.
   destruct (integral_eq' a b f H1 H2) as [bf1 [r1 [H5 [H6 [H7 H8]]]]].
   destruct (integral_eq' a b g H1 H3) as [bf2 [r2 [H9 [H10 [H11 H12]]]]].
@@ -1969,20 +2040,24 @@ Proof.
 Qed.
 
 Lemma integrable_minus : forall f g a b,
-  a < b -> integrable_on a b f -> integrable_on a b g -> integrable_on a b (f - g).
+  a <= b -> integrable_on a b f -> integrable_on a b g -> integrable_on a b (f - g).
 Proof.
   intros f g a b H1 H2 H3.
+  destruct H1 as [H1 | H1].
+  2: { subst. apply integrable_on_n_n. }
   replace (integrable_on a b (f - g)) with (integrable_on a b (fun x => f x + (-1) * g x)) by (f_equal; extensionality x; lra).
   apply integrable_plus; auto.
   apply integrable_mult_scalar; auto.
 Qed.
 
 Lemma integral_minus : forall f g a b,
-  a < b -> integrable_on a b f -> integrable_on a b g -> ∫ a b (f - g) = ∫ a b f - ∫ a b g.
+  a <= b -> integrable_on a b f -> integrable_on a b g -> ∫ a b (f - g) = ∫ a b f - ∫ a b g.
 Proof.
   intros f g a b H1 H2 H3.
+  destruct H1 as [H1 | H1].
+  2 : { subst. repeat rewrite integral_n_n. lra. }
   replace (f - g)%function with (fun x => f x + (-1) * g x) by (extensionality x; lra).
-  rewrite integral_plus; auto.
+  rewrite integral_plus; auto; try lra.
   - rewrite integral_mult_scalar; auto. lra.
   - apply integrable_mult_scalar; auto.
 Qed.
@@ -2034,6 +2109,30 @@ Proof.
       destruct (integrable_dec b a f) as [H6 | H6]; try tauto.
       destruct (integrable_dec b a (- f)) as [H7 | H7]; try tauto.
       lra.
+Qed.
+
+Lemma integral_le : forall a b f g,
+  a <= b ->
+  (forall x, x ∈ [a, b] -> f x <= g x) ->
+  integrable_on a b f ->
+  integrable_on a b g ->
+  ∫ a b f <= ∫ a b g.
+Proof.
+  intros a b f g H1 H2 H3 H4.
+  destruct H1 as [H1 | H1].
+  2 : { subst. repeat rewrite integral_n_n; lra. }
+  pose proof integral_eq' a b f H1 H3 as [bf [rf [H5 [H6 [_ [H7 H8]]]]]].
+  pose proof integral_eq' a b g H1 H4 as [bg [rg [H9 [H10 [_ [H11 H12]]]]]].
+  rewrite H6, H10.
+  apply H8.
+  intros y [P H13]. subst y.
+  apply Rle_trans with (r2 := L(bg, P)).
+  - apply lower_sum_le.
+    intros x H14.
+    assert (H15: bf.(bounded_f a b) x = f x) by (rewrite H5; reflexivity).
+    assert (H16: bg.(bounded_f a b) x = g x) by (rewrite H9; reflexivity).
+    rewrite H15, H16. apply H2; auto.
+  - apply H11. exists P. reflexivity.
 Qed.
 
 Lemma integral_nonneg : forall a b f,
@@ -2107,14 +2206,14 @@ Proof.
 Qed.
 
 Theorem theorem_13_4 : ∀ f a b c,
-  a < c < b ->
+  a <= c <= b ->
   (integrable_on a b f <-> integrable_on a c f /\ integrable_on c b f) /\
   (integrable_on a b f -> ∫ a b f = ∫ a c f + ∫ c b f).
 Proof.
 Admitted.
 
 Theorem theorem_13_5 : ∀ f g a b,
-  a < b -> 
+  a <= b -> 
   integrable_on a b f -> 
   integrable_on a b g -> 
   integrable_on a b (f + g) /\ ∫ a b (f + g) = ∫ a b f + ∫ a b g.
@@ -2122,14 +2221,14 @@ Proof.
 Admitted.
 
 Theorem theorem_13_6 : ∀ f c a b,
-  a < b -> 
+  a <= b -> 
   integrable_on a b f -> 
   integrable_on a b (c * f) /\ ∫ a b (c * f) = c * ∫ a b f.
 Proof.
 Admitted.
 
 Theorem theorem_13_8 : ∀ f a b,
-  a < b -> 
+  a <= b -> 
   integrable_on a b f -> 
   continuous_on (λ x, ∫ a x f) [a, b].
 Proof.

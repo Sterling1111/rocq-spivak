@@ -1098,7 +1098,7 @@ Proof.
   replace (λ x : ℝ, cos (n * x) ^ 2) with (λ x : ℝ, 1 / 2 + 1 / 2 * cos (2 * n * x)).
   2 : { extensionality x. replace (2 * n * x) with (2 * (n * x)) by lra. rewrite cos_2x_2. lra. }
   assert (H2: -π < π) by solve_denoms.
-  rewrite integral_plus; auto.
+  rewrite integral_plus; auto; try lra.
   2 : { apply theorem_13_3; auto_cont. }
   2 : { apply theorem_13_3; auto_cont. }
   assert (H3: ∫ (-π) π (λ x : ℝ, 1 / 2) = 1 / 2 * π - 1 / 2 * - π).
