@@ -1,6 +1,6 @@
 From Coquelicot Require Import Coquelicot.
 
-From Lib Require Import Imports Tactics Limit Derivative Integral Continuity Sequence Series StdlibCompat Reals_util.
+From Lib Require Import Imports Tactics Limit Derivative Integral Continuity Sequence Series StdlibCompat Reals_util Trigonometry.
 Import LimitNotations DerivativeNotations SequenceNotations SeriesNotations IntegralNotations.
 
 Open Scope R_scope.

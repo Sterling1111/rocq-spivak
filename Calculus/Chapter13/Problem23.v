@@ -29,16 +29,15 @@ Proof.
 
   pose proof lemma_13_23_a f a b (f m) (f M) H1 H7 H8 as [μ [H9 H10]].
 
-  destruct (Rtotal_order m M) as [H11 | [H11 | H11]].
-  - assert (H12 : continuous_on f [m, M]).
-    { apply continuous_on_subset with (A2 := [a, b]); intros x; solve_R. }
-    pose proof intermediate_value_theorem f m M μ H11 H12 H9 as [x [H13 H14]].
-    exists x; solve_R.
-  - exists m; subst; solve_R.
-  - assert (H12 : continuous_on f [M, m]).
-    { apply continuous_on_subset with (A2 := [a, b]); intros x; solve_R. }
-    pose proof intermediate_value_theorem_decreasing f M m μ H11 H12 H9 as [x [H13 H14]].
-    exists x; solve_R.
+  assert (H11 : continuous_on f [Rmin M m, Rmax M m]).
+  {
+    apply continuous_on_subset with (A2 := [a, b]); auto.
+    intros x H11; solve_R.
+  }
+  
+  pose proof intermediate_value_theorem_unordered f M m μ H11 ltac:(solve_R) as [x [H12 H13]].
+  
+  exists x; solve_R.
 Qed.
 
 Lemma lemma_13_23_c : forall a b,

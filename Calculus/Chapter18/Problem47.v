@@ -16,7 +16,7 @@ Fixpoint chained_grows_faster (l : list (ℝ -> ℝ)) : Prop :=
 Module GrowthNotations.
   Notation "f ≫ g" := (grows_faster f g) (at level 70, no associativity) : function_scope.
   Notation "f ∼ g" := (grows_same f g) (at level 70, no associativity) : function_scope.
-  Notation "[ x ≪ .. ≪ y ]" := (chained_grows_faster (cons x .. (cons y nil) ..)) (at level 0, x at level 69, y at level 69) : function_scope.
+  Notation "[[ x ≪ .. ≪ y ]]" := (chained_grows_faster (cons x .. (cons y nil) ..)) (at level 0, x at level 69, y at level 69) : function_scope.
 End GrowthNotations.
 
 Section section_18_47.
@@ -68,7 +68,7 @@ Section section_18_47.
     Definition f8 := λ x, x ^ 3 + log (x ^ 3).
 
     Lemma lemma_18_47_e_i :
-      [ f1 ≪ f2 ≪ f3 ≪ f4 ≪ f5 ≪ f6 ≪ f7 ] /\ f3 ∼ f8.
+      [[ f1 ≪ f2 ≪ f3 ≪ f4 ≪ f5 ≪ f6 ≪ f7 ]] /\ f3 ∼ f8.
     Proof. 
     
     Admitted.
@@ -86,7 +86,7 @@ Section section_18_47.
     Definition g7 := λ x, exp (x ^ 2).
 
     Lemma lemma_18_47_e_ii :
-      [ g1 ≪ g2 ≪ g3 ≪ g4 ≪ g5 ≪ g6 ≪ g7 ].
+      [[ g1 ≪ g2 ≪ g3 ≪ g4 ≪ g5 ≪ g6 ≪ g7 ]].
     Proof. 
 
     Admitted.
@@ -104,7 +104,7 @@ Section section_18_47.
     Definition h7 := λ x, exp (x ^ 2).
 
     Lemma lemma_18_47_e_iii :
-      [ h1 ≪ h2 ≪ h3 ≪ h4 ≪ h5 ≪ h6 ≪ h7 ].
+      [[ h1 ≪ h2 ≪ h3 ≪ h4 ≪ h5 ≪ h6 ≪ h7 ]].
     Proof.
 
     Admitted.

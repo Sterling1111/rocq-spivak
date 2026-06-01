@@ -1,6 +1,10 @@
 From Calculus.Chapter18 Require Import Prelude.
+From Calculus.Chapter18 Require Import Problem47.
 
-Lemma lemma_18_48 : forall x,
-  x > 0 ->
-  limit_at_infinity (fun n => n * (x^(1/n) - 1)) (log x).
+Import Problem47.GrowthNotations.
+
+Lemma lemma_18_48 : ∀ (l : list (ℝ -> ℝ)),
+  Forall continuous l ->
+  ∃ f, continuous f /\ Forall (λ g, f ≫ g) l.
+Proof.
 Abort.
