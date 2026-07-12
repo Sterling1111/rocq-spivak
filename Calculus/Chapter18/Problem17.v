@@ -2,6 +2,7 @@ From Calculus.Chapter18 Require Import Prelude.
 
 Lemma lemma_18_17_a :
    ⟦ lim 0 ⟧ (fun y => log (1 + y) / y) = 1.
+Proof.
 Abort.
 
 Lemma lemma_18_17_b :

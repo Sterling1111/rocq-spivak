@@ -6,14 +6,15 @@ Proof.
 Qed.
 
 Lemma lemma_5_1_ii : ⟦ lim 2 ⟧ (λ x, (x^3 - 8) / (x - 2)) = 12.
-Proof. apply limit_eq with (f1 := λ x, x^2 + 2 * x + 4). exists 1. split; try lra.
+Proof. 
+  apply limit_eq with (f1 := λ x, x^2 + 2 * x + 4). exists 1. split; try lra.
   intros x H1. solve_R. auto_limit.
 Qed.
 
 Lemma lemma_5_1_iii : ⟦ lim 3 ⟧ (λ x, (x^3 - 8) / (x - 2)) = 19.
 Proof. auto_limit. Qed.
 
-Lemma lemma_5_1_iv : forall y n, ⟦ lim y ⟧ (λ x, (x^n - y^n) / (x - y)) = (INR n) * y^(n - 1).
+Lemma lemma_5_1_iv : forall y n, ⟦ lim y ⟧ (λ x, (x^n - y^n) / (x - y)) = n * y^(n - 1).
 Proof.
   intros y n. induction n as [| k IH].
   - simpl. apply limit_eq with (f1 := λ x, 0); [ | auto_limit ].

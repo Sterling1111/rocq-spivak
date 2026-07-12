@@ -3,9 +3,9 @@
 -R ATTAM ATTAM
 
 -arg -quiet
--arg -w -arg "-uniform-inheritance,-ambiguous-paths,-deprecated-dirpath-Coq"
+-arg -w -arg "-uniform-inheritance,-ambiguous-paths,-deprecated-dirpath-Coq,-overriding-logical-loadpath"
 
--docroot calculus
+-docroot calculus 
 
 META.calculus
 
@@ -61,108 +61,6 @@ Lib/ComplexSeries.v
 Lib/ComplexFunctions.v
 Lib/Integral_Table.v
 Lib/Real.v
-
-
-# ==========================
-# ATTAM (depends on Lib only)
-# ==========================
-ATTAM/Chapter6.v
-ATTAM/Chapter7.v
-ATTAM/Chapter8.v
-ATTAM/Chapter9.v
-ATTAM/Chapter10.v
-ATTAM/Chapter11.v
-ATTAM/Chapter12.v
-ATTAM/Chapter13.v
-ATTAM/Chapter14.v
-ATTAM/Chapter15.v
-ATTAM/Chapter16.v
-ATTAM/Chapter17.v
-ATTAM/Chapter18.v
-ATTAM/Chapter19.v
-ATTAM/Chapter20.v
-ATTAM/Chapter34.v
-ATTAM/Chapter35.v
-ATTAM/Chapter36.v
-
-# =========================
-# Calculus (depends on Lib only)
-# =========================
-Calculus/Chapter1/Prelude.v
-Calculus/Chapter1/Problem1.v
-Calculus/Chapter1/Problem6.v
-Calculus/Chapter1/Problem12.v
-Calculus/Chapter1/Problem15.v
-Calculus/Chapter1/Problem18.v
-Calculus/Chapter1/Problem21.v
-Calculus/Chapter1/Problem22.v
-Calculus/Chapter1/Problem24.v
-
-Calculus/Chapter2/Prelude.v
-Calculus/Chapter2/Problem1.v
-Calculus/Chapter2/Problem3.v
-Calculus/Chapter2/Problem8.v
-Calculus/Chapter2/Problem12.v
-Calculus/Chapter2/Problem13.v
-
-Calculus/Chapter3/Prelude.v
-Calculus/Chapter3/Problem7.v
-Calculus/Chapter3/Problem16.v
-
-Calculus/Chapter5/Prelude.v
-Calculus/Chapter5/Problem10.v
-Calculus/Chapter5/Problem14.v
-Calculus/Chapter5/Problem21.v
-
-Calculus/Chapter6/Prelude.v
-
-Calculus/Chapter7/Prelude.v
-Calculus/Chapter7/Problem11.v
-
-Calculus/Chapter8/Prelude.v
-Calculus/Chapter8/Problem2.v
-Calculus/Chapter8/Problem6.v
-Calculus/Chapter8/Problem7.v
-Calculus/Chapter8/Problem12.v
-Calculus/Chapter8/Problem18.v
-Calculus/Chapter8/Problem19.v
-
-Calculus/Chapter9/Prelude.v
-
-Calculus/Chapter10/Prelude.v
-
-Calculus/Chapter11/Prelude.v
-Calculus/Chapter11/Problem28.v
-Calculus/Chapter11/Problem30.v
-
-Calculus/Chapter12/Prelude.v
-
-Calculus/Chapter13/Prelude.v
-Calculus/Chapter13/Problem8.v
-Calculus/Chapter13/Problem23.v
-
-Calculus/Chapter14/Prelude.v
-
-Calculus/Chapter15/Prelude.v
-Calculus/Chapter15/Problem11.v
-Calculus/Chapter15/Problem12.v
-
-Calculus/Chapter18/Prelude.v
-Calculus/Chapter18/Problem47.v
-
-Calculus/Chapter19/Prelude.v
-
-Calculus/Chapter20/Prelude.v
-
-Calculus/Chapter21/Prelude.v
-
-Calculus/Chapter22/Prelude.v
-
-Calculus/Chapter23/Prelude.v
-
-Calculus/Chapter24/Prelude.v
-
-Calculus/Chapter28/Prelude.v
 
 -I src
 

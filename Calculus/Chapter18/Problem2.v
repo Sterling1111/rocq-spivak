@@ -24,8 +24,7 @@ Lemma lemma_18_2_b_iii : ⟦ der ⟧ (fun x => (sin x)^^(cos x) + (cos x)^^(sin 
 Proof.
   pose proof π_pos.
   auto_diff.
-  admit.
-Abort.
+Qed.
 
 Lemma lemma_18_2_b_iv : ⟦ der ⟧ (fun x => (e^^x - e^^(-x)) / (e^^(2*x) * (1 + x^3))) (0, ∞) = (fun x => ((e^^x - e^^(-x)) / (e^^(2*x) * (1 + x^3))) * ((e^^x - (e^^(-x) * -1)) / (e^^x - e^^(-x)) - (e^^(2*x) * 2) / e^^(2*x) - (3 * x^2) / (1 + x^3))).
 Proof.

@@ -8,7 +8,9 @@ Qed.
 
 Lemma lemma_10_2_ii : ⟦ der ⟧ (λ x, (sin (x^2 + sin x))^3) = 
   (λ x, 3 * (sin (x^2 + sin x))^2 * cos (x^2 + sin x) * (2 * x + cos x)).
-Proof. auto_diff. Qed.
+Proof.
+ auto_diff.
+Qed.
 
 Lemma lemma_10_2_iii : ⟦ der ⟧ (λ x, (sin ((x + sin x)^2))^2) = 
   (λ x, 2 * sin ((x + sin x)^2) * cos ((x + sin x)^2) * (2 * (x + sin x) * (1 + cos x))).

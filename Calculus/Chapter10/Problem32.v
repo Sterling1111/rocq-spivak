@@ -2,7 +2,12 @@ From Calculus.Chapter10 Require Import Prelude.
 
 Lemma lemma_10_32_a : ∀ a (n k : nat) x,
   x ≠ a ->
-  ⟦ der ^ k x ⟧ (λ y, 1 / (y - a)^n) = (λ y, (-1)^k * (INR (fact (n + k - 1)) / INR (fact (n - 1))) / (y - a)^(n + k)).
+  ⟦ der ^ k x ⟧ (λ x, 1 / (x - a)^n) = (λ x, (-1)^k * ((n + k - 1)!) / ((n - 1)!) / (x - a)^(n + k)).
+Proof.
+  intros a n k x H1.
+  induction k as [| k IH].
+  - simpl. rewrite Nat.add_0_r, Rmult_1_l. solve_R. split; [apply INR_fact_neq_0 | apply pow_nonzero; lra ].
+  -
 Abort.
 
 Lemma lemma_10_32_b : ∀ (k:nat) x,

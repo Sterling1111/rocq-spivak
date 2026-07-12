@@ -46,6 +46,16 @@ Proof.
   apply H1; auto.
 Qed.
 
+Lemma inverse_spec :
+  forall f f_inv,
+    inverse f f_inv ->
+    (forall x, f_inv (f x) = x) /\
+    (forall y, f (f_inv y) = y).
+Proof.
+  intros f f_inv [_ [_ [H1 H2]]].
+  split; intros x; [apply H1 | apply H2]; apply Full_intro.
+Qed.
+
 Theorem theorem_12_1_a : forall f f_inv,
   inverse f f_inv -> one_to_one f.
 Proof.

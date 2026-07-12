@@ -27,17 +27,17 @@ Abort.
 Lemma lemma_18_8_e :
   ⟦ der ⟧ sinh = cosh.
 Proof.
-  admit.
-Abort.
+  auto_diff.
+Qed.
 
 Lemma lemma_18_8_f :
   ⟦ der ⟧ cosh = sinh.
 Proof.
-  admit.
-Abort.
+  auto_diff.
+Qed.
 
 Lemma lemma_18_8_g :
   ⟦ der ⟧ tanh = fun x => 1 / (cosh x)^2.
 Proof.
-  admit.
-Abort.
+  auto_diff.
+Qed.
