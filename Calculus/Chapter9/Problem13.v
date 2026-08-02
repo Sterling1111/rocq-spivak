@@ -20,5 +20,6 @@ Proof.
   - rewrite (H5 (a + x) ltac:(unfold δ in *; solve_R)), (H5 a ltac:(solve_R)).
     specialize (H9 x ltac:(unfold δ in *; solve_R)). solve_R.
   - rewrite (H6 (a + x) ltac:(unfold δ in *; solve_R)), (H6 a ltac:(solve_R)).
-    specialize (H11 x ltac:(unfold δ in *; solve_R)). solve_R. 
+    specialize (H11 x ltac:(unfold δ in *; solve_R)). solve_R.
+    Show Proof.
 Qed.
