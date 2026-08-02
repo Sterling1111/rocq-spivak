@@ -27,12 +27,6 @@ Proof.
   unfold A. auto_diff.
 Qed.
 
-Lemma A_differentiable : differentiable A.
-Proof.
-  apply derivative_imp_differentiable with (f' := (fun x => (P - 4 * x) / 2)).
-  apply A_derivative.
-Qed.
-
 Lemma lemma_11_10 : forall x1 y1 x2 y2,
   Perimeter x1 y1 = P -> Perimeter x2 y2 = P ->
   x1 = y1 -> Area x1 y1 >= Area x2 y2.
