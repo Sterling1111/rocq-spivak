@@ -36,9 +36,7 @@ Proof.
         pose proof intermediate_value_theorem_decreasing g (- x - 1) 0 x H8 H9 H10 as [y [H11 H12]].
         exists y. split; auto. apply Full_intro.
   }
-  pose proof (exists_inverse_on_iff g ℝ ℝ) as [_ H7].
-  assert (H8 : exists f, inverse g f) by auto.
-  destruct H8 as [f H9].
+  destruct (proj2 (exists_inverse_on_iff g ℝ ℝ) H6) as [f H9].
   exists f.
   split.
   - assert (H10 : ⟦ der ⟧ f = fun x => / (-5 * (f x) ^ 4 - 1)).
