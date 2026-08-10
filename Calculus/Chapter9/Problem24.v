@@ -1,25 +1,18 @@
 From Calculus.Chapter9 Require Import Prelude.
 
-Lemma problem_9_24 : ∀ f a L,
-  odd f -> 
-  (⟦ der a ⟧ f = (λ _, L) <-> ⟦ der -a ⟧ f = (λ _, L)).
+Lemma problem_9_24 : ∀ f f',
+  odd f ->
+  ⟦ der ⟧ f = f' ->
+  ∀ x, f' x = f' (- x).
 Proof.
-  intros f a L H1.
-  split; intros H2.
-  - apply limit_eq with (f1 := λ x, (f (a + (-x)) - f a) / (-x)).
-    + exists 1. split; try lra. intros x H3.
-      rewrite (H1 a). replace (-a + x) with (- (a - x)) by lra.
-      rewrite (H1 (a - x)). replace (a + -x) with (a - x) by lra.
-      replace (- f (a - x) - - f a) with (- (f (a - x) - f a)) by lra.
-      solve_R.
-    + apply limit_comp with (f := λ x, (f (a + x) - f a) / x) (g := λ x, -x) (b := 0); try auto_limit.
-      exists 1. split; try lra. intros x H3. solve_R.
-  - apply limit_eq with (f1 := λ x, (f (-a + (-x)) - f (-a)) / (-x)).
-    + exists 1. split; try lra. intros x H3.
-      rewrite (H1 a). replace (a + x) with (- (-a - x)) by lra.
-      rewrite (H1 (-a - x)). replace (-a + -x) with (-a - x) by lra.
-      replace (- f (-a - x) - - f (-a)) with (- (f (-a - x) - f (-a))) by lra.
-      solve_R.
-    + apply limit_comp with (f := λ x, (f (-a + x) - f (-a)) / x) (g := λ x, -x) (b := 0); try auto_limit.
-      exists 1. split; try lra. intros x H3. solve_R.
+  intros f f' H1 H2 x.
+  set (g := λ x, - f (-x)).
+  set (g' := λ x, f' (-x)).
+  assert (H3 : ⟦ der ⟧ g = g'). { unfold g, g'. auto_diff. }
+  assert (H4 : g = f). { extensionality y. unfold g. specialize (H1 y). lra. }
+  rewrite H4 in H3.
+  pose proof derivative_unique f f' g' H2 H3 as H5.
+  replace (f' x) with (g' x) by (rewrite H5; reflexivity).
+  unfold g'.
+  reflexivity.
 Qed.

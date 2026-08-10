@@ -37,4 +37,4 @@ Proof.
     destruct (lemma_3_7_b (poly_sub l1 [f a]) a H1) as [l2 H2].
     assert (H3 : ∀ x, f x = (x - a) * polynomial l2 x + f a).
     { intros x. pose proof (H2 x) as H3. rewrite eval_poly_sub, poly_const_eval in H3. unfold f in *. lra. }
-    
+Abort.

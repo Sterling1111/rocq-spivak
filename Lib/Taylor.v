@@ -1237,5 +1237,5 @@ Proof.
   pose proof problem_6_b as H1.
   pose proof arctan_1_div_5_bounds as H2.
   pose proof arctan_1_div_239_bounds as H3.
-  nra.
+  lra.
 Qed.

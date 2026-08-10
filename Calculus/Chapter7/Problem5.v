@@ -10,15 +10,9 @@ Proof.
     intros x H6. specialize (H5 x). apply not_and_or in H5 as [H5 | H5]; tauto.
   }
   clear H4. specialize (H5 (f a)) as [x [H4 H5]].
-  assert (f x < f a \/ f x > f a) as [H6 | H6] by lra.
-  - pose proof exists_irrational_between (f x) (f a) H6 as [c [H7 H8]].
-    assert (H10 : a < x). { pose proof Rtotal_order a x as [H9 | [H9 | H9]]; subst; solve_R. }
-    assert (H11 : continuous_on f [a, x]). { apply continuous_on_subset with (A2 := [a, b]); auto. intros y. solve_R. }
-    pose proof intermediate_value_theorem_decreasing f a x c H10 H11 ltac:(lra) as [d [H12 H13]]. specialize (H3 d).
-    subst. unfold irrational in H8. contradiction.
-  - pose proof exists_irrational_between (f a) (f x) H6 as [c [H7 H8]].
-    assert (H10 : a < x). { pose proof Rtotal_order a x as [H9 | [H9 | H9]]; subst; solve_R. }
-    assert (H11 : continuous_on f [a, x]). { apply continuous_on_subset with (A2 := [a, b]); auto. intros y. solve_R. }
-    pose proof intermediate_value_theorem f a x c H10 H11 ltac:(lra) as [d [H12 H13]]. specialize (H3 d).
-    subst. unfold irrational in H8. contradiction.
+  pose proof exists_irrational_between (Rmin (f x) (f a)) (Rmax (f x) (f a)) ltac:(solve_R) as [c [H6 H7]].
+  assert (H8 : a < x). { pose proof Rtotal_order a x as [H8 | [H8 | H8]]; subst; solve_R. }
+  assert (H9 : continuous_on f [Rmin a x, Rmax a x]). { apply continuous_on_subset with (A2 := [a, b]); auto. intros y. solve_R. }
+  pose proof intermediate_value_theorem_unordered f a x c H9 ltac:(solve_R) as [d [H10 H11]].
+  specialize (H3 d). subst. contradiction.
 Qed.

@@ -1065,11 +1065,16 @@ Proof. auto_int. Qed.
 
 Lemma test_def_int_cos : ∫ 0 π (λ x : ℝ, cos x) = 0.
 Proof. auto_int. Qed.
+
+Example __ : ∫ 1 2 (λ x : ℝ, 1 / x) = log 2.
+Proof.
+  auto_int.
+Qed.
   
 Lemma test_indef_int_exp : antiderivative (λ x : ℝ, exp x) (λ x : ℝ, exp x).
 Proof. auto_int. Qed.
 
-Lemma test_indef_int_poly : antiderivative (λ x : ℝ, x^2 + 2*x) (λ x : ℝ, x^3/3 + x^2).
+Lemma test_indef_int_poly : ∫ (λ x : ℝ, x^2 + 2*x) [1, 2] = (λ x : ℝ, x^3/3 + x^2).
 Proof. auto_int. Qed.
 
 Lemma test_def_int_inv : ∫ 1 2 (λ x : ℝ, 1 / x) = log 2.
@@ -1116,7 +1121,7 @@ Lemma stress_diff_quotient :
   (fun x => ((1 / √(1 - x^2) * ln (x + 1) + arcsin x * (1 / (x + 1))) * (x^2 + 1) -
   (arcsin x * ln (x + 1)) * (2 * x)) / ((x^2 + 1) ^ 2)).
 Proof.
-  auto_diff. 
+  auto_diff.
 Qed.
 
 Lemma stress_limit_huge : ⟦ lim 0 ⟧ (fun x => (sin x + cos x) / exp x) = 1.
@@ -1134,7 +1139,33 @@ Proof.
   auto_diff.
 Qed.
 
+Lemma bogs : ⟦ der ⟧ (λ x, x^2) = (λ x, 2 * x).
+Proof.
+  auto_diff.
+Qed.
+
 Lemma derivative_exp_neg : ⟦ der ⟧ (fun x => e ^^ (- x)) = (fun x => - e ^^ (- x)).
+Proof.
+  auto_diff.
+Qed.
+
+Lemma text_poly_2 :
+  ⟦ der ^ 2 ⟧ (λ x, 5 * x^3 + 3 * x^2 + x - 1) =
+  (λ x, 30 * x + 6).
+Proof.
+  auto_diff.
+Qed.
+
+Lemma text_poly_3 :
+  ⟦ der ^ 3 ⟧ (λ x, 5 * x^3 + 3 * x^2 + x - 1) =
+  (λ x, 30).
+Proof.
+  auto_diff.
+Qed.
+
+Lemma text_poly_4 :
+  ⟦ der ^ 4 ⟧ (λ x, 5 * x^3 + 3 * x^2 + x - 1) =
+  (λ _, 0).
 Proof.
   auto_diff.
 Qed.
@@ -1145,7 +1176,7 @@ Proof.
   auto_diff. unfold tan. lra.
 Qed.
 
-Lemma test_int_poly_0 : ∫ 0 1 (λ x, x^10 - 5 * x^9 + 12 * x^8 - 10 * x^7 + 20 * x^6 - 10 * x^5 + 12 * x^4 - 5 * x^3 + x^2) = 781056 / 332640.
+Lemma test_int_poly_0 : ∫ 0 1 (λ x, x^10 - 5 * x^9 + 12 * x^8 - 10 * x^7 + 20 * x^6 - 10 * x^5 + 12 * x^4 - 5 * x^3 + x^2) = 904 / 385.
 Proof.
   auto_int.
 Qed.
