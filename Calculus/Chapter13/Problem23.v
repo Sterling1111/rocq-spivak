@@ -47,7 +47,7 @@ Lemma lemma_13_23_c : forall a b,
     ~ (exists ξ, ξ ∈ [a, b] /\ ∫ a b f = (b - a) * f ξ).
 Proof.
 
-Abort.
+Admitted.
 
 Lemma lemma_13_23_d : forall f g a b,
   a < b ->
@@ -56,7 +56,7 @@ Lemma lemma_13_23_d : forall f g a b,
   nonnegative_on g [a, b] ->
  exists ξ, ξ ∈ [a, b] /\ ∫ a b (f ⋅ g) = f ξ * ∫ a b g.
 Proof.
-Abort.
+Admitted.
 
 Lemma lemma_13_23_e : forall f g a b,
   a < b ->

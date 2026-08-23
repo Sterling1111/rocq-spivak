@@ -331,7 +331,7 @@ Lemma test_chain : forall x y z w : Z,
   z > w ->
   x >= w + 3.
 Proof.
-  intros.
+  intros x y z w H1 H2 H3.
   negate_goal.
   normalize_hyps.
   revert_hyps;
@@ -391,6 +391,7 @@ Theorem new :
     x > y -> y > z -> z > w -> x >= w + 3.
 Proof.
   psatz.
+  Show Proof.
 Qed.
 
 Lemma test_dense : forall a b c : Z,

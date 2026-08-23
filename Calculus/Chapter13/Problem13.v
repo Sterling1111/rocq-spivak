@@ -25,7 +25,7 @@ Proof.
   set (h := (f - g)%function).
 
   assert (H5 : ∀ x, x ∈ [a, b] -> h x >= 0).
-  { intros x H5. unfold h. specialize (H4 x). solve_R. }
+  { intros x H5. unfold h. specialize (H4 x H5). lra. }
 
   assert (H6 : ∫ a b h = ∫ a b f - ∫ a b g).
   { unfold h. apply integral_minus; auto. }

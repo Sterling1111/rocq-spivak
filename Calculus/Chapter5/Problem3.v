@@ -2,7 +2,7 @@ From Calculus.Chapter5 Require Import Prelude.
 
 Lemma lemma_5_3_i : ⟦ lim 0 ⟧ (λ x, x * (3 - cos (x^2))) = 0.
 Proof.
-  unfold limit. intros ε H1. exists (ε / 4).
+  intros ε H1. exists (ε / 4).
   split; [lra |].
   intros x H2. pose proof (cos_bounds (x^2)) as H3.
   replace (x * (3 - cos (x^2)) - 0) with (x * (3 - cos (x^2))) by lra.
@@ -94,5 +94,5 @@ Qed.
 
 Lemma lemma_5_3_viii : ⟦ lim 1 ⟧ (λ x, √x) = 1.
 Proof.
-  auto_limit. rewrite sqrt_1. reflexivity.
+  auto_limit.
 Qed.

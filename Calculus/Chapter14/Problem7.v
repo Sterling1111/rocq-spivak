@@ -9,32 +9,20 @@ Proof.
   set (g := λ x, x^6).
 
   assert (H1 : 0 < 1) by lra.
-  assert (H2 : continuous_on f [0, 1]).
-  {
-    unfold f. auto_cont. simpl. intros H2.
-    apply Rmult_eq_compat_r with (r := √(1 + a * (a * 1))) in H2.
-    rewrite Rmult_0_l, sqrt_sqrt in H2; nra.
-  }
+  assert (H2 : continuous_on f [0, 1]) by (unfold f; auto_cont).
   assert (H3 : integrable_on 0 1 g) by (apply theorem_13_3; unfold g; auto_cont).
   assert (H4 : nonnegative_on g [0, 1]) by (intros x H4; unfold g; nra).
 
   pose proof lemma_13_23_d f g 0 1 H1 H2 H3 H4 as [ξ [H5 H6]].
 
-  replace (∫ 0 1 g) with (1/7) in H6.
-  2 : {
-    symmetry.
-    set (G := λ x : ℝ, x^7 / 7).
-    assert (H7 : continuous_on g [0, 1]) by (unfold g; auto_cont).
-    assert (H8 : ⟦ der ⟧ G [0, 1] = (λ x : ℝ, x^6)) by (unfold G; auto_diff).
-    replace (1 / 7) with (G 1 - G 0) by (unfold G; lra).
-    apply (FTC2 0 1 (λ x : ℝ, x^6) G H1 H7 H8).
-  }
+  replace (∫ 0 1 g) with (1/7) in H6 by (unfold g; symmetry; auto_int).
 
   replace (f ⋅ g) with ((λ x : ℝ, x ^ 6 / √(1 + x ^ 2))) in H6.
   2 : { unfold f, g. extensionality x. lra. }
 
   rewrite H6. 
-  unfold f. 
+  unfold f.
+
   assert (H7 : 1 / √2 <= 1 / √(1 + ξ ^ 2) <= 1).
   {
     assert (H7 : √1 <= √(1 + ξ^2)) by (apply sqrt_le_1_alt; nra).
@@ -57,46 +45,49 @@ Proof.
   set (g := λ x, 1 - x).
 
   assert (H1 : 0 < 1/2) by lra.
-  assert (H2 : continuous_on f [0, 1/2]).
-  {
-    unfold f. auto_cont. simpl. intros H2.
-    apply Rmult_eq_compat_r with (r := √(1 - a * (a * 1))) in H2.
-    rewrite Rmult_0_l, sqrt_sqrt in H2; solve_R.
-  }
+  assert (H2 : continuous_on f [0, 1/2]) by (unfold f; auto_cont).
   assert (H3 : integrable_on 0 (1/2) g) by (apply theorem_13_3; unfold g; auto_cont).
   assert (H4 : nonnegative_on g [0, 1/2]) by (intros x; unfold g; solve_R).
 
   pose proof lemma_13_23_d f g 0 (1/2) H1 H2 H3 H4 as [ξ [H5 H6]].
 
-  replace (∫ 0 (1/2) g) with (3/8) in H6.
-  2 : {
-    symmetry.
-    set (G := λ x : ℝ, x - x^2 / 2).
-    assert (H7 : continuous_on g [0, 1/2]) by (unfold g; auto_cont).
-    assert (H8 : ⟦ der ⟧ G [0, 1/2] = (λ x : ℝ, 1 - x)) by (unfold G; auto_diff).
-    replace (3 / 8) with (G (1/2) - G 0) by (unfold G; lra).
-    apply (FTC2 0 (1/2) (λ x : ℝ, 1 - x) G H1 H7 H8).
-  }
+  replace (∫ 0 (1/2) g) with (3/8) in H6 by (symmetry; unfold g; auto_int).
 
-  replace (f ⋅ g) with (λ x : ℝ, √((1 - x) / (1 + x))) in H6.
-  2 : { 
-    unfold f, g. extensionality x. admit.
-  }
-  unfold g, f.
-  rewrite H6. 
-
-  assert (H7 : 1 <= 1 / √(1 - ξ ^ 2) <= 2 / √3).
+  assert (H7 : ∫ 0 (1/2) (λ x : ℝ, √(g x / (1 + x))) = ∫ 0 (1/2) (f ⋅ g)).
   {
-    admit.
+    apply integral_ext; [ lra | ].
+    intros x H7.
+    unfold f, g.
+    assert (H8 : 0 <= 1 - x) by solve_R.
+    assert (H9 : 0 < 1 + x) by solve_R.
+    assert (H10 : 0 <= 1 - x^2) by solve_R.
+    apply pow_eq_1 with (n := 2%nat); try lia.
+    apply sqrt_lt_R0. apply Rdiv_pos_pos; solve_R.
+    apply Rmult_pos_pos; solve_R. apply Rdiv_pos_pos; solve_R.
+    apply sqrt_lt_R0; solve_R.
+    rewrite pow2_sqrt; admit.
   }
+
+  rewrite H7, H6.
+  unfold f.
+
+  assert (H8 : 1 <= √(1 - ξ^2) <= √3 / 2).
+  {
+    split.
+    - rewrite <- sqrt_1 at 1.
+      apply sqrt_le_1_alt.
+      solve_R. admit.
+    - admit.
+  }
+
+  pose proof sqrt_lt_R0 (1 - ξ^2) ltac:(solve_R) as H9.
+  pose proof Rlt_sqrt3_0 as H10.
 
   split.
-  - destruct H7 as [H7 _].
-    apply Rmult_le_compat_r with (r := 3/8) in H7; try nra. admit. 
-  - destruct H7 as [_ H7].
-    assert (H8 : (2 / √3) * (3 / 8) = √3 / 4).
-    { 
-      admit. 
-    }
-    admit.
-Abort.
+  - apply Rmult_le_reg_r with (r := 8 * √(1 - ξ^2));
+      field_simplify;
+      admit.
+  - apply Rmult_le_reg_r with (r := 8 * √(1 - ξ^2) * √3);
+      field_simplify;
+      nra.
+Admitted.

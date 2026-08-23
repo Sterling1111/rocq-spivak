@@ -118,3 +118,6 @@ Definition negative_on (f : ℝ -> ℝ) (D : Ensemble ℝ) : Prop :=
 
 Definition negative (f : ℝ -> ℝ) : Prop :=
   forall x, f x < 0.
+
+Definition periodic (f : ℝ -> ℝ) (a : ℝ) : Prop :=
+  ∀ x, f (x + a) = f x.

@@ -819,8 +819,10 @@ Definition integrable_on (a b : ℝ) (f : ℝ -> ℝ) : Prop :=
   let US := (fun x : ℝ => exists p : partition a b, x = U(bf, p)) in
   is_lub LS sup /\ is_glb US inf /\ sup = inf.
 
-Definition integrable f : Prop :=
-  forall a b, integrable_on a b f.
+Definition integrable (f : R -> R) : Prop :=
+  forall a b,
+    a <= b ->
+    integrable_on a b f.
 
   Lemma integrable_imp_bounded : forall f a b,
   a <= b -> integrable_on a b f -> bounded_on f [a, b].
@@ -1047,6 +1049,115 @@ Proof.
   - replace (smallest_upper_sum a b bf) with (largest_lower_sum a b bf) by lra.
     unfold largest_lower_sum, proj1_sig; simpl. destruct (Rlt_dec a b) as [H7 | H7]; try lra.
     destruct (exists_largest_lower_sum a b bf H7) as [x2 [H8 H9]]; (split; auto).
+Qed.
+
+Lemma integrable_on_ext : ∀ (f g : ℝ → ℝ) a b,
+  a <= b ->
+  (∀ x, x ∈ [a, b] -> f x = g x) ->
+  integrable_on a b f ->
+  integrable_on a b g.
+Proof.
+  intros f g a b H1 H2 H3.
+  destruct H3 as
+    [H3 | [bf [sup [inf [H4 [H5 [H6 H7]]]]]]].
+  - left. exact H3.
+  - right.
+
+    assert (H8 : bounded_on g [a, b]).
+    {
+      pose proof (bounded_function_R_P2 a b bf) as H8.
+      rewrite H4 in H8.
+      destruct H8 as [[m H8] [M H9]].
+      split.
+      - exists m.
+        intros y [x [H10 H11]].
+        subst y.
+        rewrite <- (H2 x H10).
+        apply H8.
+        exists x.
+        auto.
+      - exists M.
+        intros y [x [H10 H11]].
+        subst y.
+        rewrite <- (H2 x H10).
+        apply H9.
+        exists x.
+        auto.
+    }
+
+    set (bg := mkbounded_function_R a b g H1 H8).
+
+    assert (H9 : ∀ P,
+      L(bf, P) = L(bg, P)).
+    {
+      intros P.
+      apply Rle_antisym.
+      - apply lower_sum_le.
+        intros x H9.
+        unfold bg; simpl.
+        rewrite H4, (H2 x H9).
+        lra.
+      - apply lower_sum_le.
+        intros x H9.
+        unfold bg; simpl.
+        rewrite H4, (H2 x H9).
+        lra.
+    }
+
+    assert (H10 : ∀ P,
+      U(bf, P) = U(bg, P)).
+    {
+      intros P.
+      apply Rle_antisym.
+      - apply upper_sum_le.
+        intros x H10.
+        unfold bg; simpl.
+        rewrite H4, (H2 x H10).
+        lra.
+      - apply upper_sum_le.
+        intros x H10.
+        unfold bg; simpl.
+        rewrite H4, (H2 x H10).
+        lra.
+    }
+
+    assert (H11 :
+      (λ y : ℝ, ∃ P : partition a b, y = L(bf, P)) =
+      (λ y : ℝ, ∃ P : partition a b, y = L(bg, P))).
+    {
+      apply Extensionality_Ensembles.
+      split.
+      - intros y [P H11].
+        exists P.
+        rewrite <- H9.
+        exact H11.
+      - intros y [P H11].
+        exists P.
+        rewrite H9.
+        exact H11.
+    }
+
+    assert (H12 :
+      (λ y : ℝ, ∃ P : partition a b, y = U(bf, P)) =
+      (λ y : ℝ, ∃ P : partition a b, y = U(bg, P))).
+    {
+      apply Extensionality_Ensembles.
+      split.
+      - intros y [P H12].
+        exists P.
+        rewrite <- H10.
+        exact H12.
+      - intros y [P H12].
+        exists P.
+        rewrite H10.
+        exact H12.
+    }
+
+    exists bg, sup, inf.
+    split.
+    + unfold bg; simpl; auto.
+    + rewrite <- H11, <- H12.
+      auto.
 Qed.
 
 Lemma lt_eps_same_number : forall a b,
@@ -2133,6 +2244,45 @@ Proof.
     assert (H16: bg.(bounded_f a b) x = g x) by (rewrite H9; reflexivity).
     rewrite H15, H16. apply H2; auto.
   - apply H11. exists P. reflexivity.
+Qed.
+
+Lemma integral_ext : ∀ (f g : ℝ → ℝ) a b,
+  a <= b ->
+  (∀ x, x ∈ [a, b] -> f x = g x) ->
+  ∫ a b f = ∫ a b g.
+Proof.
+  intros f g a b H1 H2.
+  destruct (classic (integrable_on a b f)) as [H3 | H3].
+  - assert (H4 : integrable_on a b g).
+    {
+      apply integrable_on_ext with (f := f); auto.
+    }
+    apply Rle_antisym.
+    + apply integral_le; auto.
+      intros x H5.
+      rewrite (H2 x H5).
+      lra.
+    + apply integral_le; auto.
+      intros x H5.
+      rewrite (H2 x H5).
+      lra.
+  - assert (H4 : ~ integrable_on a b g).
+    {
+      intros H4.
+      apply H3.
+      apply integrable_on_ext with (f := g); auto.
+      intros x H5.
+      symmetry.
+      apply H2.
+      exact H5.
+    }
+    unfold definite_integral.
+    destruct (Rle_dec a b) as [H5 | H5]; [| lra].
+    destruct (integrable_dec a b f) as [H6 | H6];
+      [contradiction |].
+    destruct (integrable_dec a b g) as [H7 | H7];
+      [contradiction |].
+    reflexivity.
 Qed.
 
 Lemma integral_nonneg : forall a b f,
