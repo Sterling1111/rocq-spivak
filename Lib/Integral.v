@@ -938,14 +938,14 @@ Module IntegralNotations.
   Notation "∫ f D '=' F" := (antiderivative_on f F D)
     (at level 9, f at level 0, D at level 0, F at level 0, no associativity, format "∫  f  D  '='  F") : integral_scope.
     
-  Notation "∫ a '∞' f '=' L" := (improper_integral_pinf a f L)
-    (at level 9, f at level 0, a at level 0, L at level 0, format "∫  a  '∞'  f  '='  L") : integral_scope.
+    Notation "∫ a '∞' f '=' L" := (improper_integral_pinf a f L)
+    (at level 9, a at level 0, f at level 0, L at level 69, no associativity, format "∫  a  '∞'  f  '='  L") : integral_scope.
 
   Notation "∫ '-∞' b f '=' L" := (improper_integral_ninf b f L)
-    (at level 9, f at level 0, b at level 0, L at level 0, format "∫  '-∞'  b  f  '='  L") : integral_scope.
+    (at level 9, b at level 0, f at level 0, L at level 69, no associativity, format "∫  '-∞'  b  f  '='  L") : integral_scope.
 
   Notation "∫ '-∞' '∞' f '=' L" := (improper_integral_inf f L)
-    (at level 9, f at level 0, L at level 0, format "∫  '-∞'  '∞'  f  '='  L") : integral_scope.
+    (at level 9, f at level 0, L at level 69, no associativity, format "∫  '-∞'  '∞'  f  '='  L") : integral_scope.
 
   Open Scope integral_scope.
 
@@ -2860,6 +2860,55 @@ Proof.
       * apply FTC1'; [lra|]. apply continuous_imp_continuous_on. exact H1.
     + apply derivative_at_const.
   - simpl. lra.
+Qed.
+
+Lemma FTC1_at : forall f a x c d,
+  c < Rmin a x ->
+  Rmax a x < d ->
+  continuous_on f [c, d] ->
+  ⟦ der x ⟧ (fun y => ∫ a y f) = f.
+Proof.
+  intros f a x c d H1 H2 H3.
+  set (G := fun y => ∫ c y f).
+
+  assert (H4 : ⟦ der x ⟧ G = f).
+  {
+    apply derivative_on_imp_derivative_at with (D := [c, d]).
+    - exists (Rmin (x - c) (d - x)).
+      split; [solve_R |].
+      intros y H4.
+      solve_R.
+    - unfold G.
+      apply FTC1; auto.
+      solve_R.
+  }
+
+  apply derivative_at_eq with
+    (f1 := fun y => G y - ∫ c a f).
+  - exists (Rmin (x - c) (d - x)).
+    split; [solve_R |].
+    intros y H5.
+    unfold G.
+    pose proof integral_split' f c y a as H6.
+    assert (H7 :
+      integrable_on
+        (Rmin c (Rmin y a))
+        (Rmax c (Rmax y a)) f).
+    {
+      apply theorem_13_3.
+      - solve_R.
+      - apply continuous_on_subset with (A2 := [c, d]); auto.
+        intros z H7.
+        solve_R.
+    }
+    specialize (H6 H7).
+    lra.
+  - eapply derivative_at_ext_val.
+    + apply derivative_at_minus.
+      * exact H4.
+      * apply derivative_at_const.
+    + simpl.
+      lra.
 Qed.
 
 Theorem FTC2 : ∀ a b f g,

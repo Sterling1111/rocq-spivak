@@ -1,20 +1,24 @@
 From Calculus.Chapter14 Require Import Prelude.
 
-(* Problem 16 *)
-
-(* (a) Find the derivatives of F(x) = ∫ 1 x (1/t) dt and G(x) = ∫ b (b*x) (1/t) dt. *)
-Lemma lemma_14_16_a : forall x,
+Lemma lemma_14_16_a : forall x b F' G',
+  let F := λ x, ∫ 1 x (λ t, 1 / t) in
+  let G := λ x, ∫ b (b * x) (λ t, 1 / t) in
+  ⟦ der ⟧ F = F' ->
+  ⟦ der ⟧ G = G' ->
   x > 0 ->
-  ⟦ der x ⟧ (fun x => ∫ 1 x (fun t => 1 / t)) = (fun x => 1 / x).
+  b > 0 ->
+  F' x = 1 / x /\ G' x = 1 / x.
+Proof.
+  intros x b F' G' F B H1 H2 H3 H4.
+  split.
+  - apply (derivative_at_unique F F' (λ y : ℝ, 1 / y) x).
+    + auto.
+    + unfold F. apply FTC1_at with (c := Rmin 1 x / 2) (d := Rmax 1 x + 1); auto_cont.
+  - admit. 
 Abort.
 
-Lemma lemma_14_16_a' : forall b x,
-  b > 0 -> x > 0 ->
-  ⟦ der x ⟧ (fun x => ∫ b (b * x) (fun t => 1 / t)) = (fun x => 1 / x).
-Abort.
-
-(* (b) New proof for Problem 13-15: ∫ 1 a (1/t) dt + ∫ 1 b (1/t) dt = ∫ 1 (a*b) (1/t) dt *)
 Lemma lemma_14_16_b : forall a b,
   a > 0 -> b > 0 ->
   ∫ 1 a (fun t => 1 / t) + ∫ 1 b (fun t => 1 / t) = ∫ 1 (a * b) (fun t => 1 / t).
+Proof.
 Abort.

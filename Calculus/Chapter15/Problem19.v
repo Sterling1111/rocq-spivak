@@ -7,5 +7,8 @@ Proof.
 Qed.
 
 Lemma lemma_15_19_b :
-  ⟦ lim ∞ ⟧ (fun b => ∫ 0 b (fun t => 1 / (1 + t^2))) = π / 2.
+  ∫ 0 ∞ (λ t, 1 / (1 + t^2)) = π / 2.
+Proof.
+  
+
 Abort.

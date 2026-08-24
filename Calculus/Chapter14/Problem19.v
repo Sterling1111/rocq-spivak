@@ -1,9 +1,25 @@
 From Calculus.Chapter14 Require Import Prelude.
 
-(* Problem 19: Let f be integrable on [a, b], let c be in (a,b), and let
-   F(x) = ∫ a x f, a ≤ x ≤ b. Prove or give counterexamples. *)
+Section section_14_9.
 
-(* (a) If f is differentiable at c, then F is differentiable at c. *)
+  Variable f : ℝ -> ℝ.
+  Variable a b c : ℝ.
+
+  Hypothesis H1 : a < b.
+  Hypothesis H2 : c ∈ (a, b).
+  Hypothesis H3 : integrable_on a b f.
+
+  Definition F := λ x, ∫ a x f.
+
+  Lemma lemma_14_9_a : differentiable_at f c -> differentiable_at F c.
+  Proof.
+    intros H4.
+    pose proof differentiable_at_imp_continuous_at f c H4 as H5.
+  Admitted.
+
+
+End section_14_9.
+
 Lemma lemma_14_19_a : forall f a b c,
   a < b ->
   c ∈ (a, b) ->

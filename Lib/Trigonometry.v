@@ -1718,6 +1718,16 @@ Proof.
   unfold arctan. destruct arctan_sig as [f_inv H1]. auto.
 Qed.
 
+Lemma arctan_tan : forall x,
+  x ∈ (-(π/2), π/2) ->
+  arctan (tan x) = x.
+Proof.
+  intros x H1.
+  pose proof arctan_spec as [_ [_ [H2 _]]].
+  apply H2.
+  exact H1.
+Qed.
+
 Theorem theorem_4 : forall f f' f'' a b,
   ⟦ der ⟧ f = f' ->
   ⟦ der ⟧ f' = f'' ->
