@@ -1218,7 +1218,6 @@ Proof.
         assert (f x ∈ A) as H17. { exists x. split; auto. } destruct H7 as [H7 _]. specialize (H7 (f x) H17). lra. 
       }
       apply Rmult_lt_compat_l with (r := ε) in H14; solve_R.
-      apply Rmult_lt_compat_l with (r := 1 / (α - f x)) in H14. field_simplify in H14; solve_R. apply Rdiv_pos_pos; lra.
     }
     specialize (H13 (Rmax c2 1) ltac:(solve_R)) as [x [H14 H15]]. specialize (H11 x H14). solve_R.
 Qed.
@@ -1458,7 +1457,7 @@ Proof.
     exists (Rmax a (b - δ/2)), b. split. solve_R. intros x H11. apply H10. solve_R.
   - subst c. apply continuous_at_right_locally_pos in H6 as [δ [H9 H10]]; auto.
     exists a, (Rmin b (a + δ/2)). split. solve_R. intros x H11. apply H10. solve_R.
-  - assert (H10 : c ∈ (a, b)). { split; lra. }
+  - assert (H10 : c ∈ (a, b)). { solve_R. }
     specialize (H5 c H10). apply continuous_at_locally_pos in H5 as [δ [H11 H12]]; auto.
     exists c, (Rmin b (c + δ/2)). split.
     -- solve_R.

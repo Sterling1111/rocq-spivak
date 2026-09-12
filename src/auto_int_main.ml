@@ -1,16 +1,4 @@
 
-let read_lines file =
-  let ic = open_in file in
-  let rec read_acc acc =
-    try
-      let line = input_line ic in
-      read_acc (line :: acc)
-    with End_of_file ->
-      close_in ic;
-      List.rev acc
-  in
-  read_acc []
-
 let mk_global name =
   match Nametab.locate (Libnames.qualid_of_string name) with
   | Names.GlobRef.ConstructRef c -> EConstr.UnsafeMonomorphic.mkConstruct c
@@ -26,39 +14,45 @@ let rec mk_nat n =
   else mk_App "S" [mk_nat (n - 1)]
 
 let rec mk_pos n =
-  if n = 1 then mk_construct "xH"
-  else if n mod 2 = 0 then mk_App "xO" [mk_pos (n / 2)]
-  else mk_App "xI" [mk_pos (n / 2)]
+  if Z.equal n Z.one then mk_construct "xH"
+  else if Z.equal (Z.rem n (Z.of_int 2)) Z.zero then
+    mk_App "xO" [mk_pos (Z.div n (Z.of_int 2))]
+  else mk_App "xI" [mk_pos (Z.div n (Z.of_int 2))]
 
-let base_name s =
-  let s = if String.length s > 0 && s.[0] = '@' then String.sub s 1 (String.length s - 1) else s in
-  try
-    let i = String.rindex s '.' in
-    String.sub s (i + 1) (String.length s - i - 1)
-  with Not_found -> s
+let mk_real s =
+  let n = Z.of_string s in
+  let z = if Z.equal n Z.zero then mk_construct "Z0"
+    else mk_App (if Z.sign n > 0 then "Zpos" else "Zneg") [mk_pos (Z.abs n)] in
+  mk_App "IZR" [z]
 
-let rec extract_num env sigma t =
-  let open EConstr in
-  match kind sigma t with
-  | App (c, [|arg|]) when base_name (Pp.string_of_ppcmds (Printer.pr_econstr_env env sigma c)) = "S" ->
-      1 + extract_num env sigma arg
-  | Construct _ when base_name (Pp.string_of_ppcmds (Printer.pr_econstr_env env sigma t)) = "O" ->
-      0
-  | App (c, [|arg|]) when base_name (Pp.string_of_ppcmds (Printer.pr_econstr_env env sigma c)) = "IZR" ->
-      extract_num env sigma arg
-  | App (c, [|arg|]) when base_name (Pp.string_of_ppcmds (Printer.pr_econstr_env env sigma c)) = "Zpos" ->
-      extract_num env sigma arg
-  | App (c, [|arg|]) when base_name (Pp.string_of_ppcmds (Printer.pr_econstr_env env sigma c)) = "Zneg" ->
-      - extract_num env sigma arg
-  | Construct _ when base_name (Pp.string_of_ppcmds (Printer.pr_econstr_env env sigma t)) = "Z0" ->
-      0
-  | _ ->
-      let s = Pp.string_of_ppcmds (Printer.pr_econstr_env env sigma t) in
-      let is_digit c = (c >= '0' && c <= '9') || c = '-' in
-      let buf = Buffer.create (String.length s) in
-      String.iter (fun c -> if is_digit c then Buffer.add_char buf c) s;
-      let res = Buffer.contents buf in
-      if res = "" then 0 else int_of_string res
+(* Inspect kernel names, independent of pretty-printing flags and notations. *)
+let node_name env sigma t =
+  match EConstr.kind sigma t with
+  | Constr.Const (c, _) -> Names.Label.to_string (Names.Constant.label c)
+  | Constr.Construct (((mind, i), j), _) ->
+      let body = Environ.lookup_mind mind env in
+      Names.Id.to_string body.Declarations.mind_packets.(i).Declarations.mind_consnames.(j - 1)
+  | _ -> failwith "auto_int: expected a concrete expression or numeric constructor"
+
+let rec extract_integer env sigma t =
+  let head, args = match EConstr.kind sigma t with
+    | Constr.App (c, args) -> c, args
+    | _ -> t, [||] in
+  let unary f = if Array.length args <> 1 then failwith "auto_int: malformed integer"
+    else f (extract_integer env sigma args.(0)) in
+  match node_name env sigma head with
+  | "O" | "Z0" -> Z.zero
+  | "xH" -> Z.one
+  | "S" -> unary Z.succ
+  | "IZR" | "Zpos" -> unary (fun n -> n)
+  | "Zneg" -> unary Z.neg
+  | "xO" -> unary (fun n -> Z.mul (Z.of_int 2) n)
+  | "xI" -> unary (fun n -> Z.succ (Z.mul (Z.of_int 2) n))
+  | name -> failwith ("auto_int: unsupported integer: " ^ name)
+
+let take lines = match !lines with
+  | [] -> failwith "auto_int: truncated primitive"
+  | x :: xs -> lines := xs; x
 
 let rec parse_prefix lines =
   match !lines with
@@ -68,15 +62,7 @@ let rec parse_prefix lines =
       match token with
       | "EVar" -> mk_construct "EVar"
       | "EConst" ->
-          let v = List.hd !lines in
-          lines := List.tl !lines;
-          let n = try int_of_string v with _ -> int_of_float (float_of_string v) in
-          let z = if n >= 0 then 
-                    if n = 0 then mk_construct "Z0"
-                    else mk_App "Zpos" [mk_pos n]
-                  else mk_App "Zneg" [mk_pos (-n)] in
-          let r = mk_App "IZR" [z] in
-          mk_App "EConst" [r]
+          mk_App "EConst" [mk_real (take lines)]
       | "ENeg" -> mk_App "ENeg" [parse_prefix lines]
       | "EAdd" -> 
           let e1 = parse_prefix lines in
@@ -111,99 +97,170 @@ let rec parse_prefix lines =
       | "EArctan" -> mk_App "EArctan" [parse_prefix lines]
       | "EPow" ->
           let base = parse_prefix lines in
-          let n_str = List.hd !lines in
-          lines := List.tl !lines;
-          let n = int_of_string n_str in
+          let n = int_of_string (take lines) in
+          if n < 0 then failwith "auto_int: negative natural exponent";
           mk_App "EPow" [base; mk_nat n]
       | "ERpow" ->
           let base = parse_prefix lines in
-          let r_str = List.hd !lines in
-          lines := List.tl !lines;
-          (try
-            let p_str, q_str = match String.split_on_char '/' r_str with | [p;q] -> p,q | _ -> failwith "" in
-            let p = int_of_string p_str in
-            let q = int_of_string q_str in
-            let zp = if p >= 0 then if p = 0 then mk_construct "Z0" else mk_App "Zpos" [mk_pos p] else mk_App "Zneg" [mk_pos (-p)] in
-            let zq = if q >= 0 then if q = 0 then mk_construct "Z0" else mk_App "Zpos" [mk_pos q] else mk_App "Zneg" [mk_pos (-q)] in
-            let rp = mk_App "IZR" [zp] in
-            let rq = mk_App "IZR" [zq] in
-            let r = mk_App "Rdiv" [rp; rq] in
-            mk_App "ERpow" [base; r]
-           with _ ->
-            let n = int_of_string r_str in
-            let z = if n >= 0 then if n = 0 then mk_construct "Z0" else mk_App "Zpos" [mk_pos n] else mk_App "Zneg" [mk_pos (-n)] in
-            let r = mk_App "IZR" [z] in
-            mk_App "ERpow" [base; r])
+          let r = match String.split_on_char '/' (take lines) with
+            | [p; q] -> mk_App "Rdiv" [mk_real p; mk_real q]
+            | [n] -> mk_real n
+            | _ -> failwith "auto_int: malformed rational exponent" in
+          mk_App "ERpow" [base; r]
       | "ERpower" -> 
           let e1 = parse_prefix lines in
           let e2 = parse_prefix lines in
           mk_App "ERpower" [e1; e2]
       | _ -> failwith ("Unknown AST token: " ^ token)
 
-let rec convert_coq_expr_to_python_string env sigma t =
-  let open EConstr in
-  match kind sigma t with
-  | App (c, args) ->
-      let c_str = base_name (Pp.string_of_ppcmds (Printer.pr_econstr_env env sigma c)) in
-      let len = Array.length args in
-      (match c_str with
-       | "EAdd" -> "(" ^ convert_coq_expr_to_python_string env sigma args.(len - 2) ^ " + " ^ convert_coq_expr_to_python_string env sigma args.(len - 1) ^ ")"
-       | "ESub" -> "(" ^ convert_coq_expr_to_python_string env sigma args.(len - 2) ^ " - " ^ convert_coq_expr_to_python_string env sigma args.(len - 1) ^ ")"
-       | "EMul" -> "(" ^ convert_coq_expr_to_python_string env sigma args.(len - 2) ^ " * " ^ convert_coq_expr_to_python_string env sigma args.(len - 1) ^ ")"
-       | "EDiv" -> "(" ^ convert_coq_expr_to_python_string env sigma args.(len - 2) ^ " / " ^ convert_coq_expr_to_python_string env sigma args.(len - 1) ^ ")"
-       | "ENeg" -> "(- " ^ convert_coq_expr_to_python_string env sigma args.(len - 1) ^ ")"
-       | "ESin" -> "sin(" ^ convert_coq_expr_to_python_string env sigma args.(len - 1) ^ ")"
-       | "ECos" -> "cos(" ^ convert_coq_expr_to_python_string env sigma args.(len - 1) ^ ")"
-       | "ETan" -> "tan(" ^ convert_coq_expr_to_python_string env sigma args.(len - 1) ^ ")"
-       | "ECot" -> "cot(" ^ convert_coq_expr_to_python_string env sigma args.(len - 1) ^ ")"
-       | "ESec" -> "sec(" ^ convert_coq_expr_to_python_string env sigma args.(len - 1) ^ ")"
-       | "ECsc" -> "csc(" ^ convert_coq_expr_to_python_string env sigma args.(len - 1) ^ ")"
-       | "EExp" -> "exp(" ^ convert_coq_expr_to_python_string env sigma args.(len - 1) ^ ")"
-       | "ELog" -> "log(" ^ convert_coq_expr_to_python_string env sigma args.(len - 1) ^ ")"
-       | "ESqrt" -> "sqrt(" ^ convert_coq_expr_to_python_string env sigma args.(len - 1) ^ ")"
-       | "ESinh" -> "sinh(" ^ convert_coq_expr_to_python_string env sigma args.(len - 1) ^ ")"
-       | "ECosh" -> "cosh(" ^ convert_coq_expr_to_python_string env sigma args.(len - 1) ^ ")"
-       | "ETanh" -> "tanh(" ^ convert_coq_expr_to_python_string env sigma args.(len - 1) ^ ")"
-       | "EArcsin" -> "asin(" ^ convert_coq_expr_to_python_string env sigma args.(len - 1) ^ ")"
-       | "EArccos" -> "acos(" ^ convert_coq_expr_to_python_string env sigma args.(len - 1) ^ ")"
-       | "EArctan" -> "atan(" ^ convert_coq_expr_to_python_string env sigma args.(len - 1) ^ ")"
-       | "EPow" -> "(" ^ convert_coq_expr_to_python_string env sigma args.(len - 2) ^ " ** " ^ string_of_int (extract_num env sigma args.(len - 1)) ^ ")"
-       | "ERpow" | "ERpower" -> "(" ^ convert_coq_expr_to_python_string env sigma args.(len - 2) ^ " ** " ^ convert_coq_expr_to_python_string env sigma args.(len - 1) ^ ")"
-       | "EConst" -> string_of_int (extract_num env sigma args.(len - 1))
-       | _ -> failwith ("Unknown App: " ^ c_str))
-  | Construct _ ->
-      let c_str = base_name (Pp.string_of_ppcmds (Printer.pr_econstr_env env sigma t)) in
-      if c_str = "EVar" then "x" else failwith ("Unknown Construct: " ^ c_str)
-  | _ -> 
-      let s = base_name (Pp.string_of_ppcmds (Printer.pr_econstr_env env sigma t)) in
-      if s = "EVar" then "x" else failwith ("Unsupported expr node: " ^ s)
+let convert_coq_expr_to_python_string env sigma t =
+  let buf = Buffer.create 128 in
+  let add = Buffer.add_string buf in
+  let rec emit t =
+    let head, args = match EConstr.kind sigma t with
+      | Constr.App (c, args) -> c, args
+      | _ -> t, [||] in
+    let unary name = add name; add "("; emit args.(0); add ")" in
+    let binary op = add "("; emit args.(0); add op; emit args.(1); add ")" in
+    match node_name env sigma head with
+    | "EVar" -> add "x"
+    | "EConst" -> emit args.(0)
+    | "IZR" | "INR" -> add (Z.to_string (extract_integer env sigma args.(0)))
+    | "EAdd" | "Rplus" -> binary " + "
+    | "ESub" | "Rminus" -> binary " - "
+    | "EMul" | "Rmult" -> binary " * "
+    | "EDiv" | "Rdiv" -> binary " / "
+    | "ENeg" | "Ropp" -> unary "-"
+    | "Rinv" -> add "(1 / "; emit args.(0); add ")"
+    | "ESin" | "sin" -> unary "sin"
+    | "ECos" | "cos" -> unary "cos"
+    | "ETan" | "tan" -> unary "tan"
+    | "ECot" | "cot" -> unary "cot"
+    | "ESec" | "sec" -> unary "sec"
+    | "ECsc" | "csc" -> unary "csc"
+    | "EExp" | "exp" -> unary "exp"
+    | "ELog" | "log" | "ln" -> unary "log"
+    | "ESqrt" | "sqrt" -> unary "sqrt"
+    | "ESinh" | "sinh" -> unary "sinh"
+    | "ECosh" | "cosh" -> unary "cosh"
+    | "ETanh" | "tanh" -> unary "tanh"
+    | "EArcsin" | "arcsin" -> unary "asin"
+    | "EArccos" | "arccos" -> unary "acos"
+    | "EArctan" | "arctan" -> unary "atan"
+    | "EPow" | "pow" ->
+        add "("; emit args.(0); add " ** ";
+        add (Z.to_string (extract_integer env sigma args.(1))); add ")"
+    | "ERpow" | "ERpower" | "Rpower" -> binary " ** "
+    | name -> failwith ("auto_int: unsupported expression: " ^ name)
+  in
+  emit t; Buffer.contents buf
 
 let find_script () =
-  let cwd = Sys.getcwd () in
-  let candidates = [
-    Filename.concat cwd "src/auto_int.py";
-    Filename.concat cwd "../src/auto_int.py";
-    Filename.concat cwd "../../src/auto_int.py";
-    "/home/sij/Calculus-with-Coq/src/auto_int.py"
-  ] in
-  try List.find Sys.file_exists candidates
-  with Not_found -> failwith "Could not find auto_int.py script. Please ensure you are in the project directory."
+  match Sys.getenv_opt "AUTO_INT_SCRIPT" with
+  | Some path -> path
+  | None ->
+      let rec search dir =
+        let path = Filename.concat dir "src/auto_int.py" in
+        if Sys.file_exists path then path
+        else let parent = Filename.dirname dir in
+          if parent = dir then
+            failwith "auto_int: cannot find src/auto_int.py; set AUTO_INT_SCRIPT"
+          else search parent in
+      search (Sys.getcwd ())
+
+(* One untrusted candidate generator per Rocq process. Only text is cached:
+   no terms or proofs survive changes to Rocq's environment or undo. *)
+type worker = { pid : int; input : Unix.file_descr; output : out_channel;
+                script : string; stamp : float; python : string }
+let worker = ref None
+let cache = Hashtbl.create 127
+
+let stop_worker () =
+  match !worker with
+  | None -> ()
+  | Some w ->
+      worker := None;
+      close_out_noerr w.output;
+      (try Unix.close w.input with Unix.Unix_error _ -> ());
+      (try Unix.kill w.pid Sys.sigkill with Unix.Unix_error _ -> ());
+      (try ignore (Unix.waitpid [] w.pid) with Unix.Unix_error _ -> ())
+
+let () = at_exit stop_worker
+
+let get_worker () =
+  let script = find_script () in
+  let stamp = (Unix.stat script).Unix.st_mtime in
+  let python = Stdlib.Option.value (Sys.getenv_opt "AUTO_INT_PYTHON") ~default:"python3" in
+  match !worker with
+  | Some w when w.script = script && w.stamp = stamp && w.python = python -> w
+  | _ ->
+      stop_worker (); Hashtbl.clear cache;
+      let child_in, parent_out = Unix.pipe ~cloexec:true () in
+      let parent_in, child_out = Unix.pipe ~cloexec:true () in
+      let pid = try
+        Unix.create_process python [|python; "-u"; script; "--server"|]
+          child_in child_out Unix.stderr
+      with exn ->
+        List.iter Unix.close [child_in; parent_out; parent_in; child_out]; raise exn in
+      Unix.close child_in; Unix.close child_out;
+      let w = {pid; input = parent_in;
+               output = Unix.out_channel_of_descr parent_out; script; stamp; python} in
+      worker := Some w; w
+
+let read_response w =
+  let seconds = match Sys.getenv_opt "AUTO_INT_TIMEOUT" with
+    | None -> 30.
+    | Some s -> (try float_of_string s with Failure _ ->
+        failwith "auto_int: AUTO_INT_TIMEOUT must be a positive number") in
+  if not (seconds > 0. && seconds < infinity) then
+    failwith "auto_int: AUTO_INT_TIMEOUT must be a finite positive number";
+  let deadline = Unix.gettimeofday () +. seconds in
+  let response = Buffer.create 256 in
+  let chunk = Bytes.create 4096 in
+  let rec wait () =
+    Control.check_for_interrupt ();
+    if Unix.gettimeofday () >= deadline then
+      failwith "auto_int: SymPy timed out (configure AUTO_INT_TIMEOUT in seconds)";
+    let ready, _, _ = Unix.select [w.input] [] [] 0.05 in
+    if ready = [] then wait () else
+      let n = Unix.read w.input chunk 0 (Bytes.length chunk) in
+      if n = 0 then raise End_of_file;
+      Buffer.add_subbytes response chunk 0 n;
+      if Buffer.length response > 16 * 1024 * 1024 then
+        failwith "auto_int: primitive exceeds 16 MiB";
+      (* Read incrementally so a stalled partial response remains interruptible. *)
+      match Bytes.index_opt (Bytes.sub chunk 0 n) '\n' with
+      | None -> wait ()
+      | Some i when i = n - 1 ->
+          Buffer.sub response 0 (Buffer.length response - 1)
+      | Some _ -> failwith "auto_int: extra worker response" in
+  wait ()
 
 let run_auto_int env sigma f_term =
-  let expr_str = convert_coq_expr_to_python_string env sigma f_term in
-  let in_file = Filename.temp_file "auto_int_in_" ".txt" in
-  let out_file = Filename.temp_file "auto_int_out_" ".txt" in
-  
-  let oc = open_out in_file in
-  output_string oc expr_str;
-  close_out oc;
-  
-  let python_exe = "python3" in
-  let script_path = find_script () in
-  let cmd = Printf.sprintf "%s %s %s %s" python_exe script_path in_file out_file in
-  let exit_code = Sys.command cmd in
-  if exit_code <> 0 then failwith (Printf.sprintf "auto_int script failed with code %d. Command was: %s" exit_code cmd);
-  
-  let lines = ref (read_lines out_file) in
-  parse_prefix lines
-
+  try
+    let expr_str = convert_coq_expr_to_python_string env sigma f_term in
+    let w = get_worker () in
+    let tokens = match Hashtbl.find_opt cache expr_str with
+      | Some tokens -> tokens
+      | None ->
+          let response = try
+            output_string w.output (expr_str ^ "\n"); flush w.output;
+            read_response w
+          with exn -> stop_worker (); raise exn in
+          if Stdlib.String.starts_with ~prefix:"ERROR " response then
+            failwith ("auto_int: " ^ String.sub response 6 (String.length response - 6));
+          if not (Stdlib.String.starts_with ~prefix:"OK " response) then
+            (stop_worker (); failwith "auto_int: malformed worker response");
+          let tokens = String.split_on_char ' ' (String.sub response 3 (String.length response - 3)) in
+          (* Bound memory in long-running editor sessions. *)
+          if Hashtbl.length cache >= 256 then Hashtbl.clear cache;
+          Hashtbl.add cache expr_str tokens; tokens in
+    let lines = ref tokens in
+    let result = parse_prefix lines in
+    if !lines <> [] then failwith "auto_int: trailing primitive tokens";
+    result
+  with
+  | Unix.Unix_error (err, fn, _) ->
+      stop_worker (); failwith ("auto_int: " ^ fn ^ ": " ^ Unix.error_message err)
+  | End_of_file | Sys_error _ ->
+      stop_worker (); failwith "auto_int: SymPy worker exited unexpectedly"

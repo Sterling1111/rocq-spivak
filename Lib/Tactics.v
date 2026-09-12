@@ -701,6 +701,8 @@ Ltac eval_math_constants :=
   autorewrite with math_constants_db in *.
 
 Ltac solve_denoms :=
+  (* Most generated obligations are already hypotheses or linear arithmetic. *)
+  try solve [ assumption | reflexivity | lra ];
   simpl in *;
   try match goal with
   | [ H : ?v ∈ (?lo, ?hi) |- _ ] => 
@@ -710,8 +712,9 @@ Ltac solve_denoms :=
   end;
   try pose proof π_bounds;
   try pose proof e_bounds;
-  try (nra || lra || solve_R);
-  match goal with
+  try solve [ nra | lra ];
+  (* Try domain rules before the general solver's repeated reciprocal search. *)
+  first [ match goal with
   | |- ?X <> 0 => apply Rgt_not_eq; solve_denoms
   | |- ?X <> 0 => apply Rlt_not_eq; solve_denoms
   | |- 0 <> ?X => apply Rlt_not_eq; solve_denoms
@@ -780,7 +783,8 @@ Ltac solve_denoms :=
   | |- PI <> 0 => try pose proof PI_RGT_0; lra
   | |- 0 <> PI => try pose proof PI_RGT_0; lra
   end;
-  try (nra || lra || solve_R || interval).
+  try (nra || lra || solve_R || interval)
+  | solve [ solve_R ] ].
 
 Create HintDb simp_zero_db.
 Lemma Rdiv_0_l : forall r, 0 / r = 0.
@@ -807,7 +811,95 @@ Ltac diff_simplify var :=
 Hint Resolve derivative_Rpower_base : core.
 Hint Resolve continuous_at_Rabs : core.
 
-Ltac auto_limit :=
+(* Stronger fallback infrastructure shared by the public calculus tactics.
+   The legacy tactics below are retained unchanged and are always available as
+   the final fallback, so their previous partial-progress behavior is preserved. *)
+Lemma calculus_inv_fun : Rinv = (fun x => 1 / x).
+Proof. extensionality x. unfold Rdiv. ring. Qed.
+
+Lemma calculus_min_fun : Rmin = (fun x y => (x + y - Rabs (x - y)) / 2).
+Proof. extensionality x; extensionality y; solve_R. Qed.
+
+Lemma calculus_max_fun : Rmax = (fun x y => (x + y + Rabs (x - y)) / 2).
+Proof. extensionality x; extensionality y; solve_R. Qed.
+
+Ltac calculus_normalize :=
+  normalize_math_funs;
+  unfold compose in *;
+  rewrite ?calculus_inv_fun, ?calculus_min_fun, ?calculus_max_fun in *;
+  cbn beta in *.
+
+Ltac calculus_assert fact tac :=
+  tryif match goal with
+        | H : ?T |- _ => constr_eq T fact
+        end
+  then fail
+  else let H := fresh "Hcalc" in assert (H : fact) by tac.
+
+Ltac calculus_facts :=
+  repeat match goal with
+  | |- context[exp ?x] =>
+      calculus_assert (0 < exp x) ltac:(apply exp_pos)
+  | H : context[exp ?x] |- _ =>
+      calculus_assert (0 < exp x) ltac:(apply exp_pos)
+  | |- context[cosh ?x] =>
+      calculus_assert (0 < cosh x) ltac:(apply cosh_pos)
+  | H : context[cosh ?x] |- _ =>
+      calculus_assert (0 < cosh x) ltac:(apply cosh_pos)
+  | |- context[log ?x] =>
+      calculus_assert (0 < log x) ltac:(apply log_pos; solve_R)
+  | H : context[log ?x] |- _ =>
+      calculus_assert (0 < log x) ltac:(apply log_pos; solve_R)
+  end.
+
+Ltac calculus_finish :=
+  solve [ assumption
+        | eauto 3 using continuous_imp_continuous_on,
+            differentiable_at_imp_continuous_at,
+            derivative_at_imp_differentiable_at,
+            differentiable_imp_continuous, derivative_imp_differentiable
+        | intros; cbn [eval_expr wf_limit wf_limit_left wf_limit_right
+                       wf_cont wf_derive] in *;
+          unfold Ensembles.In in *;
+          try eval_math_constants;
+          repeat match goal with
+          | |- context[sqrt ?t] => progress ring_simplify t
+          | |- context[Rpower ?t ?r] => progress ring_simplify r
+          end;
+          try eval_math_constants;
+          calculus_facts;
+          repeat split;
+          solve [ solve_R | solve_denoms; solve_R
+                | field_simplify; solve_R ] ].
+
+(* Bounded structural limit search. It can combine limits already available in
+   the context and does not assume continuity at the limit point. *)
+Create HintDb calculus_limits.
+#[export] Hint Resolve limit_const limit_id limit_plus limit_minus limit_mult
+  limit_div limit_inv limit_pow limit_neg
+  limit_left_const limit_left_id limit_left_plus limit_left_minus
+  limit_left_mult limit_left_div limit_left_inv limit_left_pow limit_left_neg
+  limit_right_const limit_right_id limit_right_plus limit_right_minus
+  limit_right_mult limit_right_div limit_right_inv limit_right_pow limit_right_neg
+  : calculus_limits.
+#[export] Hint Extern 2 (_ <> _) => calculus_finish : calculus_limits.
+
+Ltac auto_limit_context :=
+  let L := open_constr:(_ : R) in
+  let H := fresh "Hlimit" in
+  lazymatch goal with
+  | |- limit ?f ?a ?v =>
+      assert (H : limit f a L) by (solve [eauto 8 with calculus_limits]);
+      apply limit_subst with (L1 := L); [calculus_finish | exact H]
+  | |- left_limit ?f ?a ?v =>
+      assert (H : left_limit f a L) by (solve [eauto 8 with calculus_limits]);
+      apply limit_left_subst with (L1 := L); [calculus_finish | exact H]
+  | |- right_limit ?f ?a ?v =>
+      assert (H : right_limit f a L) by (solve [eauto 8 with calculus_limits]);
+      apply limit_right_subst with (L1 := L); [calculus_finish | exact H]
+  end.
+
+Ltac auto_limit_legacy :=
   intros;
   try solve [ solve_R ];
   normalize_math_funs;
@@ -836,9 +928,30 @@ Ltac auto_limit :=
       ]
   end.
 
-Ltac auto_cont :=
+
+Ltac auto_limit_extended :=
+  first [ auto_limit_legacy; calculus_finish
+        | intros; calculus_normalize; auto_limit_legacy; calculus_finish
+        | intros; calculus_normalize;
+          first [ auto_limit_context
+                | apply limit_imp_limit_on;
+                  first [ auto_limit_legacy; calculus_finish
+                        | auto_limit_context ] ] ].
+
+Ltac auto_limit :=
+  first [ solve [ auto_limit_legacy ]
+        | solve [ auto_limit_extended ]
+        | auto_limit_legacy ].
+
+Ltac auto_cont_legacy :=
   intros;
-  try solve [ solve_R ];
+  try solve [ assumption | reflexivity ];
+  lazymatch goal with
+  | |- continuous_on _ _ => idtac
+  | |- continuous _ => idtac
+  | |- continuous_at _ _ => idtac
+  | _ => try solve [ solve_R ]
+  end;
   normalize_math_funs;
   try (match goal with 
   | [ |- continuous_on ?f ?I ] => apply continuous_at_imp_continuous_on; let a := fresh "a" in let H := fresh "H" in intros a H 
@@ -851,6 +964,28 @@ Ltac auto_cont :=
       repeat split; try solve [ simpl; try eval_math_constants; try solve_denoms; try lra; solve_R | auto ];
       try (cbn -[Rabs pow] in *; try eval_math_constants; try simp_zero)
   end.
+
+
+Ltac auto_cont_extended :=
+  first [ auto_cont_legacy; calculus_finish
+        | intros; calculus_normalize; auto_cont_legacy; calculus_finish
+        | intros; calculus_finish
+        | intros; lazymatch goal with
+          | |- continuous_at _ _ =>
+              apply continuous_at_sqrt_comp; auto_cont_extended
+          | |- continuous_at_right _ _ =>
+              apply continuous_at_imp_right_continuous; auto_cont_extended
+          | |- continuous_at_left _ _ =>
+              apply continuous_at_imp_left_continuous; auto_cont_extended
+          | |- continuous_on _ _ =>
+              apply continuous_at_imp_continuous_on; intros; auto_cont_extended
+          | |- continuous _ => intro; auto_cont_extended
+          end ].
+
+Ltac auto_cont :=
+  first [ solve [ auto_cont_legacy ]
+        | solve [ auto_cont_extended ]
+        | auto_cont_legacy ].
 
 Ltac prove_nth_derivative n e :=
   lazymatch n with
@@ -921,9 +1056,45 @@ Ltac auto_diff_core :=
       prove_nth_derivative n e
   end.
 
-Ltac auto_diff :=
+
+Create HintDb calculus_derivatives.
+#[export] Hint Resolve derivative_at_const derivative_at_id derivative_at_plus
+  derivative_at_minus derivative_at_mult derivative_at_div derivative_at_inv
+  derivative_at_neg derivative_at_pow derivative_at_sqrt_comp
+  derivative_at_log_comp derivative_at_exp derivative_at_sin derivative_at_cos
+  : calculus_derivatives.
+#[export] Hint Extern 2 (_ <> _) => calculus_finish : calculus_derivatives.
+#[export] Hint Extern 2 (_ > _) => calculus_finish : calculus_derivatives.
+
+Ltac auto_diff_context :=
+  first [ match goal with
+  | Hf : derivative_at ?f ?df ?a,
+    Hg : derivative_at ?g ?dg (?f ?a) |- derivative_at _ _ ?a =>
+      eapply derivative_at_ext_val;
+      [ exact (derivative_at_comp f g df dg a Hf Hg)
+      | unfold compose; cbn beta; calculus_finish ]
+  end
+  | lazymatch goal with
+    | |- derivative_at ?f ?df ?a =>
+        let inferred := open_constr:(_ : R -> R) in
+        let H := fresh "Hderivative" in
+        assert (H : derivative_at f inferred a) by
+          (solve [eauto 6 with calculus_derivatives]);
+        apply derivative_at_ext_val with (f' := inferred);
+        [ exact H | cbn beta; calculus_finish ]
+    end ].
+
+Ltac auto_diff_legacy :=
   intros;
-  try solve [ solve_R ];
+  try solve [ assumption | reflexivity ];
+  lazymatch goal with
+  | |- derivative _ _ => idtac
+  | |- derivative_at _ _ _ => idtac
+  | |- derivative_on _ _ _ => idtac
+  | |- nth_derive _ _ = _ => idtac
+  | |- nth_derivative _ _ _ => idtac
+  | _ => try solve [ solve_R ]
+  end;
   normalize_math_funs;
   
   try match goal with 
@@ -945,6 +1116,34 @@ Ltac auto_diff :=
   | _ => auto_diff_core
   end.
 
+
+Ltac auto_diff_extended :=
+  first [ auto_diff_legacy; calculus_finish
+        | intros; calculus_normalize; auto_diff_legacy; calculus_finish
+        | intros; auto_diff_context
+        | intros; lazymatch goal with
+          | |- derivative_at_val ?f ?a ?v =>
+              change (derivative_at f (fun _ => v) a); auto_diff_extended
+          | |- derivative_at_right ?f ?df ?a =>
+              let H := fresh in
+              assert (H : derivative_at f df a) by auto_diff_extended;
+              apply derivative_at_iff in H; tauto
+          | |- derivative_at_left ?f ?df ?a =>
+              let H := fresh in
+              assert (H : derivative_at f df a) by auto_diff_extended;
+              apply derivative_at_iff in H; tauto
+          | |- derivative (fun x => definite_integral ?a x ?f) _ =>
+              apply FTC1_global; auto_cont
+          | |- derivative (fun x => definite_integral x ?b ?f) _ =>
+              apply FTC1'_global; auto_cont
+          | |- derivative _ _ => intro; auto_diff_context
+          end ].
+
+Ltac auto_diff :=
+  first [ solve [ auto_diff_legacy ]
+        | solve [ auto_diff_extended ]
+        | auto_diff_legacy ].
+
 Ltac get_antiderivative g :=
   match goal with
   | |- context [ ∫ ?a ?b ?f ] =>
@@ -961,32 +1160,147 @@ Ltac get_antiderivative g :=
       clear E_name
   end.
 
+Ltac auto_int_simpl_value :=
+  cbn beta zeta;
+  try eval_math_constants;
+  try simp_zero;
+  (* Common endpoint identities should be discharged when their side
+     conditions are easy, but failure here must not roll back the FTC
+     reduction.  The old auto_int deliberately allowed endpoint arithmetic
+     to remain as a follow-up goal. *)
+  try (rewrite exp_log; try solve_R);
+  try (rewrite ln_exp; try solve_R);
+  try calculus_finish;
+  try solve_denoms.
+
+Ltac auto_int_candidate F :=
+  lazymatch goal with
+  | |- definite_integral ?a ?b ?f = ?v =>
+      transitivity (F b - F a);
+      [ apply (FTC2_open a b f F);
+        [ calculus_finish
+        | auto_cont
+        | first [ calculus_finish | auto_cont ]
+        | first [ assumption
+                | apply derivative_imp_derivative_on_open;
+                  [ calculus_finish | assumption ]
+                | auto_diff ] ]
+      | auto_int_simpl_value ]
+  end.
+
+Ltac get_antiderivative_flexible g :=
+  first [ get_antiderivative g
+        | calculus_normalize; get_antiderivative g ].
+
+Ltac auto_int_forward_with F :=
+  auto_int_candidate F.
+
+Ltac auto_int_reverse_with F :=
+  lazymatch goal with
+  | |- definite_integral ?a ?b ?f = ?v =>
+      rewrite (integral_b_a_neg a b f);
+      replace v with (- (- v)) by ring;
+      f_equal;
+      auto_int_candidate F
+  end.
+
+Ltac auto_int_cases_with F :=
+  lazymatch goal with
+  | |- definite_integral ?a ?b ?f = ?v =>
+      destruct (Rtotal_order a b) as [Hlt | [Heq | Hgt]];
+      [ auto_int_forward_with F
+      | subst; rewrite integral_n_n; calculus_finish
+      | auto_int_reverse_with F ]
+  end.
+
+Ltac auto_int_forward :=
+  first
+    [ match goal with
+      | H : antiderivative ?f ?F |- definite_integral _ _ ?f = _ =>
+          let HD := fresh "Hderivative" in
+          pose proof H as HD;
+          unfold antiderivative in HD;
+          auto_int_forward_with F
+      | H : derivative ?F ?f |- definite_integral _ _ ?f = _ =>
+          auto_int_forward_with F
+      end
+    | let g := fresh "primitive" in
+      get_antiderivative_flexible g;
+      let F := eval unfold g in g in
+      clear g;
+      auto_int_forward_with F ].
+
+Ltac auto_int_reverse :=
+  first
+    [ match goal with
+      | H : antiderivative ?f ?F |- definite_integral _ _ ?f = _ =>
+          let HD := fresh "Hderivative" in
+          pose proof H as HD;
+          unfold antiderivative in HD;
+          auto_int_reverse_with F
+      | H : derivative ?F ?f |- definite_integral _ _ ?f = _ =>
+          auto_int_reverse_with F
+      end
+    | let g := fresh "primitive" in
+      get_antiderivative_flexible g;
+      let F := eval unfold g in g in
+      clear g;
+      auto_int_reverse_with F ].
+
+Ltac auto_int_unknown_order :=
+  first
+    [ match goal with
+      | H : antiderivative ?f ?F |- definite_integral _ _ ?f = _ =>
+          let HD := fresh "Hderivative" in
+          pose proof H as HD;
+          unfold antiderivative in HD;
+          auto_int_cases_with F
+      | H : derivative ?F ?f |- definite_integral _ _ ?f = _ =>
+          auto_int_cases_with F
+      end
+    | (* Generate the primitive once, then reuse it in every order case. *)
+      let g := fresh "primitive" in
+      get_antiderivative_flexible g;
+      let F := eval unfold g in g in
+      clear g;
+      auto_int_cases_with F ].
+
 Ltac auto_int :=
   intros;
-  try solve [ solve_R ];
-  match goal with
-  | |- ∫ ?a ?b ?f = ?v =>
-      let g := fresh "g" in
-      get_antiderivative g;
-      let H1 := fresh "H" in
-      assert (H1 : a < b);
-      [ clear g; try eval_math_constants; try solve_denoms
-      | let H2 := fresh "H" in
-        assert (H2 : continuous_on f [a, b]);
-        [ clear H1 g; auto_cont; try eval_math_constants; try solve_denoms
-        | let H3 := fresh "H" in
-          assert (H3 : continuous_on g [a, b]);
-          [ clear H1 H2; unfold g; auto_cont; try eval_math_constants; try solve_denoms
-          | let H4 := fresh "H" in
-            assert (H4 : ⟦ der ⟧ g (a, b) = f);
-            [ clear H1 H2 H3; unfold g; auto_diff; try eval_math_constants; try solve_denoms
-            | let H_FTC := fresh "H_FTC" in
-              pose proof (FTC2_open a b f g H1 H2 H3 H4) as H_FTC;
-              rewrite H_FTC; unfold g; clear H_FTC H4 H3 H2 H1 g; try eval_math_constants; simp_zero; try solve_denoms ] ] ] ]
+  try solve [ assumption | reflexivity ];
+  lazymatch goal with
   | |- antiderivative ?f ?F =>
-      unfold antiderivative; auto_diff
+      unfold antiderivative;
+      auto_diff
+
   | |- antiderivative_on ?f ?F ?D =>
-      unfold antiderivative_on; auto_diff
+      unfold antiderivative_on;
+      auto_diff
+
+  | |- integrable_on ?a ?b ?f =>
+      apply theorem_13_3;
+      [ calculus_finish | auto_cont ]
+
+  | |- definite_integral ?a ?b ?f = ?v =>
+      (* Commit to an orientation before primitive synthesis whenever the
+         current hypotheses already determine it. This avoids speculative
+         calls to the OCaml antiderivative generator. *)
+      let Heq := fresh "Heq" in
+      tryif assert (Heq : a = b) by calculus_finish
+      then (rewrite Heq; rewrite integral_n_n; calculus_finish)
+      else
+        let Hlt := fresh "Horder" in
+        tryif assert (Hlt : a < b) by calculus_finish
+        then auto_int_forward
+        else
+          let Hgt := fresh "Horder" in
+          tryif assert (Hgt : b < a) by calculus_finish
+          then auto_int_reverse
+          else auto_int_unknown_order
+
+  | _ =>
+      (* Preserve the old convenience on simple non-integral side goals. *)
+      try solve [ solve_R | calculus_finish ]
   end.
 
 Ltac compute_Der :=
@@ -1108,7 +1422,7 @@ Module Tactic_Tests_Advanced.
 
 Lemma test_auto_diff_rpower : ⟦ der ⟧ (fun x => x ^^ 5) (1, 2) = (fun x => 5 * x ^^ 4).
 Proof.
-  auto_diff. replace (5-1) with 4 by lra. reflexivity.
+  auto_diff.
 Qed.
 
 Lemma test_auto_diff_ln : ⟦ der ⟧ (fun x => ln (x + 1)) (0, 1) = (fun x => 1 / (x + 1)).
@@ -1198,8 +1512,9 @@ Proof. auto_int. Qed.
 
 Lemma test_int_trig_3 : ∫ 0 (π/4) (λ x, sec x ^ 2) = 1.
 Proof.
-  auto_int. simpl. rewrite Rmult_1_r. solve_denoms. unfold sec. solve_R.
-  2 : { solve_denoms. } apply pythagorean_identity.
+  auto_int. simpl. rewrite Rmult_1_r. solve_denoms. solve_denoms.
+  unfold sec. field_simplify; try solve_denoms.
+  rewrite pythagorean_identity; reflexivity.
 Qed.
 
 Lemma test_int_trig_4 : ∫ 0 π (λ x, sin x * cos x) = 0.
@@ -1209,10 +1524,10 @@ Lemma test_int_exp_1 : ∫ 0 1 (λ x, exp x) = e - 1.
 Proof. auto_int. Qed.
 
 Lemma test_int_exp_2 : ∫ 0 (log 2) (λ x, exp x) = 1.
-Proof. auto_int. rewrite exp_log; lra. Qed.
+Proof. auto_int. Qed.
 
 Lemma test_int_exp_3 : ∫ 0 1 (λ x, exp (2 * x)) = (exp 2 - 1) / 2.
-Proof. auto_int. eval_math_constants; lra. Qed.
+Proof. auto_int. Qed.
 
 Lemma test_int_log_1 : ∫ 1 e (λ x, 1 / x) = 1.
 Proof. auto_int. Qed.
@@ -1222,18 +1537,12 @@ Proof. auto_int. Qed.
 
 Lemma test_int_sqrt_1 : ∫ 0 1 (λ x, sqrt x) = 2 / 3.
 Proof. 
-  auto_int. pose proof sqrt_lt_R0 x ltac:(solve_R) as H1.
-  pose proof (sqrt_sqrt x ltac:(solve_R)) as H2.
-  apply Rmult_eq_reg_r with (r := 3 * √x); solve_R.
+  auto_int.
 Qed.
 
 Lemma test_int_sqrt_2 : ∫ 0 3 (λ x, 1 / sqrt (x + 1)) = 2.
 Proof.
   auto_int.
-  - rewrite Rplus_comm. solve_R.
-    pose proof sqrt_lt_R0 (x + 1). lra.  
-  - rewrite sqrt_1. replace (1 + 3) with (2 * 2) by lra.
-    rewrite sqrt_square; lra.
 Qed.
 
 Lemma test_int_invtrig_1 : ∫ 0 1 (λ x, 1 / (x^2 + 1)) = π / 4.

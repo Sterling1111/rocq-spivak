@@ -177,7 +177,6 @@ Proof.
   rewrite integral_b_a_neg'; try lra. replace (- Rdiv 1)%function with (λ t : ℝ, -1 / t).
   2 : { extensionality t. lra. }
   apply integral_neg; solve_R.
-  pose proof Rdiv_pos_pos 1 x0 ltac:(lra) ltac:(lra). lra.
   apply theorem_13_3; solve_R.
 Qed.
 
@@ -186,9 +185,7 @@ Proof.
   intros x y H1 H2 H3.
   replace y with (x * (y / x)) by (field; solve_R).
   rewrite theorem_18_1; solve_R.
-  2 : { apply Rdiv_pos_pos; lra. }
-  assert (H4 : y / x > 1).
-  { apply Rmult_gt_reg_r with (r := x); field_simplify; lra. }
+  assert (H4 : y / x > 1) by solve_R.
   apply log_pos in H4.
   lra.
 Qed.
@@ -219,7 +216,7 @@ Proof.
   destruct (INR_archimed (log 2) M H2) as [n H3].
   set (x := 2 ^ (S n)).
   assert (H4 : x ∈ (0, ∞)).
-  { unfold x. auto_interval. pose proof (Rpow_gt_0 n 2 ltac:(lra)); lra. }
+  { unfold x. auto_interval. } 
   specialize (H1 (log x)).
   assert (H5 : exists x0, x0 ∈ (0, ∞) /\ log x = log x0).
   { exists x. split; auto. }
@@ -443,6 +440,7 @@ Proof.
   - pose proof exp_pos (b * log a); lra.
 Qed.
 
+
 Lemma log_Rpower : forall a x,
   a > 0 -> log (a ^^ x) = x * log a.
 Proof.
@@ -581,7 +579,6 @@ Proof.
   destruct H1 as [H1 | H1].
   - apply Rpower_nat; auto.
   - subst. unfold Rpower. destruct (Rlt_dec 0 0); try lra. rewrite pow_i; solve_R.
-    apply INR_lt. solve_R.
 Qed.
 
 Lemma Rpower_IZR_Znonneg : forall a z,
@@ -802,9 +799,7 @@ Proof.
     rewrite Rmult_comm. reflexivity. apply Rpower_gt_0; lra.
   - destruct (Req_dec y 0) as [H3 | H3].
     + subst. rewrite Rmult_0_r. rewrite Rpower_0_0. rewrite pow_i; solve_R.
-      apply INR_lt. solve_R.
     + subst. rewrite Rpower_0_base; try lra. rewrite pow_i; solve_R.
-      2 : { apply INR_lt. solve_R. }
       rewrite Rpower_0_base; solve_R.
 Qed.
 
@@ -1147,6 +1142,70 @@ Qed.
 Lemma derivative_exp : ⟦ der ⟧ exp = exp.
 Proof. apply theorem_18_2. Qed.
 
+Lemma derivative_exp' : ⟦ der ⟧ (λ x, e ^^ x) = λ x, e ^^ x.
+Proof.
+  apply derivative_ext with (f1' := exp).
+  - intros x. admit.
+  - apply derivative_eq with (f1 := exp).
+    + intros x. admit.
+    + apply derivative_exp.
+Admitted.
+
+Lemma e_gt_0 : e > 0.
+  pose proof exp_pos 1 as H1.
+  unfold e.
+  lra.
+Qed.
+
+Theorem theorem_18_5 : ∀ f f',
+  ⟦ der ⟧ f = f' ->
+  (∀ x, f' x = f x) ->
+  ∃ c, ∀ x, f x = c * e ^^ x.
+Proof.
+  intros f f' H1 H2.
+  set (g := λ x, (f x) / (e ^^ x)).
+  set (g' := λ x, (e^^x * f' x - f x * e^^x) / ((e^^x)^2)).
+  assert (H3 : ⟦ der ⟧ g = g').
+  {
+    unfold g, g'.
+    apply derivative_ext with (f1' := λ x : ℝ, (f' x * e^^x - e^^x * f x) / (e^^x * e^^x)).
+    - intros x. simpl. field.
+      pose proof e_gt_0 as H3.
+      pose proof Rpower_gt_0 e x H3 as H4.
+      lra.
+    - apply derivative_div; auto.
+      + apply derivative_exp'.
+      + intros x. pose proof Rpower_gt_0 e x ltac:(apply e_gt_0) as H3.
+        lra.
+  }
+  assert (H4 : ∀ x, g' x = 0).
+  {
+    intros x. unfold g'.
+    rewrite H2.
+    field.
+    pose proof e_gt_0 as H5.
+    pose proof Rpower_gt_0 e x H5 as H6.
+    lra.
+  }
+  assert (H5 : ⟦ der ⟧ g = (λ _, 0)).
+  { apply derivative_ext with (f1' := g'); auto. }
+
+  pose proof derivative_zero_imp_const g.
+  
+  pose proof derivative_zero_imp_const' g H5 as [c H6].
+  exists c.
+  intros x.
+  pose proof H6 x as H7.
+  unfold g in H7.
+  assert (H8 : e ^^ x ≠ 0).
+  {
+    pose proof e_gt_0 as H8.
+    pose proof Rpower_gt_0 e x H8 as H9.
+    lra.
+  }
+  apply Rmult_eq_compat_r with (r := e^^x) in H7. field_simplify in H7; lra.
+Qed.
+
 Lemma derivative_ln : forall x, x > 0 -> ⟦ der x ⟧ log = (fun x0 => 1 / x0).
 Proof.
   intros x H. apply derivative_log_x; auto.
@@ -1232,7 +1291,7 @@ Proof.
         assert (H2 : exp (- log x) = 1 / x).
         { replace (- log x) with (log 1 - log x) by (rewrite log_1; lra).
           rewrite <- (corollary_18_2 1 x ltac:(lra) H1).
-          rewrite exp_log; [reflexivity | solve_R]. apply Rdiv_pos_pos; lra. }
+          rewrite exp_log; [reflexivity | solve_R]. }
         rewrite H2. lra.
 Qed.
 

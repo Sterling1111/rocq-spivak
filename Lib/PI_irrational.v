@@ -123,7 +123,7 @@ Proof.
   intros n k r H1.
   rewrite f_n_is_polynomial in H1.
   rewrite nth_derive_mult_const_l in H1.
-  2 : { 
+  2 : {
     apply nth_differentiable_sum; try lia.
     intros l. apply nth_differentiable_mult_const_l.
     apply nth_differentiable_pow. 

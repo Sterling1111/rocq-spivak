@@ -39,11 +39,7 @@ Plot p_giii as "Calculus/Chapter13/Problem8/giii.gp".
 
 Lemma lemma_13_8_iii : ∫ (-(1 / √2)) (1 / √2) (λ x, (1 - x^2) - x^2) = (2 * √2) / 3.
 Proof.
-  auto_int;
-  pose proof sqrt_lt_R0 2;
-  pose proof Rdiv_pos_pos 1 (√2); 
-  pose proof sqrt_sqrt 2; try nra.
-  apply Rmult_eq_reg_r with (r := √2); solve_R.
+  auto_int.
 Qed.
 
 Definition fiv x := x^2.
@@ -60,13 +56,11 @@ Plot p_hiv as "Calculus/Chapter13/Problem8/hiv.gp".
 
 Lemma lemma_13_8_iv : ∫ (-√2) (√2) (λ x, 2 - x^2) - ∫ (-(1 / √2)) (1 / √2) (λ x, (1 - x^2) - x^2) = 2 * √2.
 Proof.
-  assert (H1 : ∫ (-√2) (√2) (λ x, 2 - x^2) = (8 * √2) / 3).
-  { auto_int; admit. }
-  assert (H2 : ∫ (-(1 / √2)) (1 / √2) (λ x, 1 - x^2 - x^2) = (2 * √2) / 3).
-  { auto_int; admit. }
+  assert (H1 : ∫ (-√2) (√2) (λ x, 2 - x^2) = (8 * √2) / 3) by auto_int.
+  assert (H2 : ∫ (-(1 / √2)) (1 / √2) (λ x, 1 - x^2 - x^2) = (2 * √2) / 3) by auto_int.
   rewrite H1, H2.
   lra.
-Admitted.
+Qed.
 
 Definition fv x := x^2.
 Definition gv x := x^2 - 2*x + 4.
@@ -93,8 +87,7 @@ Plot p_gvi as "Calculus/Chapter13/Problem8/gvi.gp".
 
 Lemma lemma_13_8_vi : 2 * √2 - ∫ 0 (√2) (λ y, y^2) = (4 * √2) / 3.
 Proof.
-  assert (H1 : ∫ 0 (√2) (λ y, y^2) = (2 * √2) / 3).
-  { auto_int; admit. }
+  assert (H1 : ∫ 0 (√2) (λ y, y^2) = (2 * √2) / 3) by auto_int.
   rewrite H1.
   lra.
-Admitted.
+Qed.

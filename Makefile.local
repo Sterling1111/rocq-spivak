@@ -15,3 +15,10 @@ PLOT_DONES = $(PLOT_SCRIPTS:generate_plots.sh=.plots_done)
 	@touch $@
 
 post-all:: $(PLOT_DONES)
+
+.PHONY: test-auto-int bench-auto-int
+test-auto-int: Tests/AutoInt.vo
+	python3 -m unittest discover -s Tests -p 'test_auto_int.py' -v
+
+bench-auto-int: Lib/Tactics.vo
+	$(COQC) $(COQFLAGS) $(COQLIBS) -time Tests/AutoIntBench.v

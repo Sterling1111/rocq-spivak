@@ -1444,11 +1444,14 @@ Proof.
   - replace (λ x : ℝ, (x ^ S k)%R) with (λ x : ℝ, (x * x ^ k)) by (extensionality x; reflexivity).
     replace (λ x : ℝ, INR (S k) * x ^ (S k - 1))%R with (λ x : ℝ, 1 * x^k + x * (INR k * x^(k-1))).
     2 : { 
-      extensionality x. replace (S k - 1)%nat with k by lia. solve_R. replace (x * INR k * x ^ (k - 1)) with (INR k * x^k).
-      2 : { 
-        replace (x * INR k * x ^ (k - 1)) with (INR k * (x * x ^ (k - 1))) by lra. rewrite tech_pow_Rmult.
-        destruct k; solve_R. rewrite Nat.sub_0_r. reflexivity. 
-      } solve_R. 
+      extensionality x.
+      destruct k as [|k].
+      - simpl; ring.
+      - replace (S k - 1)%nat with k by lia.
+        replace (S (S k) - 1)%nat with (S k) by lia.
+        rewrite !S_INR.
+        simpl pow.
+        ring.
     }
     apply derivative_at_mult; auto. apply derivative_at_id.
 Qed.
@@ -1461,11 +1464,11 @@ Proof.
   - replace (λ x : ℝ, (x ^ S k)%R) with (λ x : ℝ, (x * x ^ k)) by (extensionality x; reflexivity).
     replace (λ x : ℝ, INR (S k) * x ^ (S k - 1))%R with (λ x : ℝ, 1 * x^k + x * (INR k * x^(k-1))).
     2 : { 
-      extensionality x. replace (S k - 1)%nat with k by lia. solve_R. replace (x * INR k * x ^ (k - 1)) with (INR k * x^k).
-      2 : { 
-        replace (x * INR k * x ^ (k - 1)) with (INR k * (x * x ^ (k - 1))) by lra. rewrite tech_pow_Rmult.
-        destruct k; solve_R. rewrite Nat.sub_0_r. reflexivity. 
-      } solve_R. 
+      extensionality x.
+      destruct k as [|k]; solve_R.
+      replace (S k - 1)%nat with k by lia.
+      simpl pow.
+      solve_R.
     }
     apply derivative_at_right_mult; auto. apply derivative_at_right_id.
 Qed.
@@ -1478,11 +1481,14 @@ Proof.
   - replace (λ x : ℝ, (x ^ S k)%R) with (λ x : ℝ, (x * x ^ k)) by (extensionality x; reflexivity).
     replace (λ x : ℝ, INR (S k) * x ^ (S k - 1))%R with (λ x : ℝ, 1 * x^k + x * (INR k * x^(k-1))).
     2 : { 
-      extensionality x. replace (S k - 1)%nat with k by lia. solve_R. replace (x * INR k * x ^ (k - 1)) with (INR k * x^k).
-      2 : { 
-        replace (x * INR k * x ^ (k - 1)) with (INR k * (x * x ^ (k - 1))) by lra. rewrite tech_pow_Rmult.
-        destruct k; solve_R. rewrite Nat.sub_0_r. reflexivity. 
-      } solve_R. 
+      extensionality x.
+      destruct k as [|k].
+      - simpl; ring.
+      - replace (S k - 1)%nat with k by lia.
+        replace (S (S k) - 1)%nat with (S k) by lia.
+        rewrite !S_INR.
+        simpl pow.
+        ring.
     }
     apply derivative_at_left_mult; auto. apply derivative_at_left_id.
 Qed.
@@ -1839,14 +1845,12 @@ Proof.
     assert (sqrt (a + h) > 0) as H3 by (apply sqrt_lt_R0; solve_R).
     assert (sqrt a > 0) as H4 by (apply sqrt_lt_R0; auto).
     apply Rmult_eq_reg_r with (r := sqrt (a + h) + sqrt a); try lra.
-    field_simplify; try solve [solve_R].
-    repeat rewrite pow2_sqrt; solve_R.
+    field_simplify; solve_R.
   - replace (1 / (2 * sqrt a)) with (1 / (sqrt a + sqrt a)).
     2 : { pose proof sqrt_lt_R0 a H1 as H2. solve_R. }
     apply limit_div; try solve_lim.
     -- apply limit_plus; try solve_lim.
        apply limit_sqrt_f_x; solve_lim.
-    -- pose proof sqrt_lt_R0 a H1. lra.
 Qed.
 
 Lemma derivative_at_right_sqrt : forall a,
@@ -2333,6 +2337,19 @@ Proof.
     apply derivative_at_unique with (f := f); tauto.
   } unfold f1, f2 in H10.
   apply Rmult_eq_compat_r with (r := (x - a)) in H10. field_simplify in H10; lra.
+Qed.
+
+Lemma derivative_zero_imp_const' : forall f, 
+  ⟦ der ⟧ f = (λ _, 0) -> ∃ c, ∀ x, f x = c.
+Proof.
+  intros f H1.
+  exists (f 1).
+  intros x.
+  pose proof derivative_imp_derivative_on f (λ x, 0) [(Rmin (-1) x) - 1, (Rmax 1 x) + 1] ltac:(apply differentiable_domain_closed; solve_R) H1 as H2.
+  pose proof derivative_zero_imp_const f ((Rmin (-1) x) - 1) ((Rmax 1 x) + 1) ltac:(solve_R) H2 as [c H3].
+  specialize (H3 x ltac:(solve_R)) as H4.
+  specialize (H3 1 ltac:(solve_R)).
+  solve_R.
 Qed.
 
 Corollary corollary_11_2 : forall f f' g g' a b, 
@@ -3344,7 +3361,7 @@ Theorem cauchy_mvt : forall f f' g g' a b,
     (forall x, x ∈ (a, b) -> g' x <> 0) -> g b <> g a -> exists x, x ∈ (a, b) /\ (f b - f a) / (g b - g a) = f' x / g' x.
 Proof.
   intros f f' g g' a b H1 H2 H3 H4 H5 H6 H7. pose proof cauchy_mean_value_theorem f f' g g' a b H1 H2 H3 H4 H5 as [x [H8 H9]].
-  exists x; split; auto. solve_R; split; solve_R.
+  exists x; split; auto. specialize (H6 x H8). solve_R.
 Qed.
 
 Theorem lhopital_0_0 : forall f f' g g' a L,
@@ -6105,7 +6122,7 @@ Proof.
         2 : { extensionality y. replace (S n - 1)%nat with n by lia. reflexivity. }
         apply derivative_pow.
       * replace (λ x : ℝ, (S n)! / (S n - S p)! * x ^ (S n - S p)) with (λ x : ℝ, (S n) * (n ! / (S n - S p)! * x ^ (S n - S p))).
-        2 : { extensionality x. assert (n = 0 \/ n > 0)%nat as [H2 | H2] by lia. rewrite H2. simpl. lra. rewrite fact_simpl. solve_R. apply INR_fact_neq_0. }
+        2 : { extensionality x. assert (n = 0 \/ n > 0)%nat as [H2 | H2] by lia. rewrite H2. simpl. lra. rewrite fact_simpl. solve_R. }
         apply nth_derivative_mult_const_l; auto. apply IH; lia.
 Qed.
 
@@ -6116,7 +6133,7 @@ Proof.
   intros n k a H1.
   pose proof (nth_derivative_pow n k H1) as H2.
   destruct k as [| p].
-  - simpl in *. rewrite Nat.sub_0_r. solve_R. apply INR_fact_neq_0.
+  - simpl in *. rewrite Nat.sub_0_r. pose proof INR_fact_neq_0 n as H3. solve_R.
   - simpl in *. destruct H2 as [x [H2 H3]].
     exists 1, x. split; [lra |]. split.
     + apply nth_derivative_imp_nth_derivative_on.

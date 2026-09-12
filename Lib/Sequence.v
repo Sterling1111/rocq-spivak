@@ -921,7 +921,6 @@ Proof.
       {
         intros n. specialize (H3 (/ (n + 1))).
         assert (/ (n + 1) > 0) as H4; solve_R.
-        { apply Rinv_pos. pose proof pos_INR n; lra. }
       }
       apply choice in H4 as [a H4]. exists a. intros n. specialize (H4 n); auto.
     }

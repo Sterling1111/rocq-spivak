@@ -58,7 +58,7 @@ Proof.
       extensionality y. assert (y^2 >= 1 \/ y^2 < 1) as [H2 | H2] by lra.
       - pose proof sqrt_neg_0 (1 - y^2) ltac:(lra) as H3.
         rewrite H3, Rmult_0_r, Rdiv_0_r, Rmult_0_r. lra.
-      - solve_R. intros H3. pose proof sqrt_lt_R0 (1 - y^2) ltac:(lra) as H4. simpl in *. lra.
+      - solve_R.
     }
       apply derivative_at_mult_const_l.
     set (f := (λ x0 : R, x0)). set (h := (λ x0, 1 - x0^2)). set (g := (λ x0 : R, √(h x0))).
@@ -84,7 +84,7 @@ Proof.
     apply Rmult_eq_reg_r with (r := √(1 - y^2)); try lra. field_simplify; try lra.
     rewrite pow2_sqrt; try lra.
     + apply derivative_on_imp_derivative_at with (D := [-1, 1]); auto_interval.
-      apply FTC1'; try lra. apply continuous_on_sqrt_comp. replace (λ x0 : ℝ, 1 - x0 * (x0 * 1)) with (polynomial [-1; 0; 1]).
+      apply FTC1'; try lra. apply continuous_on_sqrt_comp. replace (λ x0 : ℝ, 1 - x0^2) with (polynomial [-1; 0; 1]).
       2 : { extensionality y. compute. lra. }
       apply continuous_on_polynomial.
 Qed.

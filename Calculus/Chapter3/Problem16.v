@@ -62,7 +62,6 @@ Proof.
     intros n H7.
     replace (/ (-n)) with (- (/ n)) by (solve_R; apply not_0_INR; auto).
     rewrite H4, H6; solve_R.
-    apply not_0_INR; auto.
   }
   assert (H8 : forall (z : Z) (y : R), f (z * y) = z * f y).
   { 

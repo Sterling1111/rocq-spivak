@@ -86,7 +86,7 @@ Ltac solve_min :=
   end;
   try field; try nra; try nia.
 
-Ltac solve_R :=
+Ltac solve_R_basic :=
   unfold Ensembles.In in *; 
   try solve_INR; 
   try solve_abs; 
@@ -95,6 +95,112 @@ Ltac solve_R :=
   try lra; 
   try tauto; 
   auto.
+
+(* The default solver is atomic and does not change global hint databases. *)
+Ltac solve_R_strong_assert P tac :=
+  match goal with
+  | _ : P |- _ => fail 1
+  | _ => let H := fresh "Hreal" in assert P as H by tac
+  end.
+
+Ltac solve_R_strong_casts :=
+  repeat match goal with
+  | H : (?x < ?y)%nat |- _ =>
+      solve_R_strong_assert (INR x < INR y) ltac:(apply lt_INR; exact H)
+  | H : (?x <= ?y)%nat |- _ =>
+      solve_R_strong_assert (INR x <= INR y) ltac:(apply le_INR; exact H)
+  | H : @eq nat ?x ?y |- _ =>
+      solve_R_strong_assert (INR x = INR y) ltac:(now rewrite H)
+  | H : not (@eq nat ?x ?y) |- _ =>
+      solve_R_strong_assert (INR x <> INR y) ltac:(apply not_INR; exact H)
+  | H : (?x < ?y)%Z |- _ =>
+      solve_R_strong_assert (IZR x < IZR y) ltac:(apply IZR_lt; exact H)
+  | H : (?x <= ?y)%Z |- _ =>
+      solve_R_strong_assert (IZR x <= IZR y) ltac:(apply IZR_le; exact H)
+  | H : @eq Z ?x ?y |- _ =>
+      solve_R_strong_assert (IZR x = IZR y) ltac:(now rewrite H)
+  | H : not (@eq Z ?x ?y) |- _ =>
+      solve_R_strong_assert (IZR x <> IZR y)
+        ltac:(apply eq_IZR_contrapositive; exact H)
+  end;
+  repeat first
+    [ progress rewrite ?plus_INR, ?mult_INR, ?S_INR, ?pow_INR, ?INR_0, ?INR_1,
+        ?plus_IZR, ?mult_IZR, ?minus_IZR, ?opp_IZR in *
+    | progress rewrite minus_INR in * by lia
+    | match goal with
+      | |- context[INR (?n - ?m)] =>
+          let E := fresh in assert ((n - m)%nat = 0%nat) as E by lia;
+          rewrite E in *; clear E
+      | H : context[INR (?n - ?m)] |- _ =>
+          let E := fresh in assert ((n - m)%nat = 0%nat) as E by lia;
+          rewrite E in *; clear E
+      end ].
+
+(* Add each fact at most once. Repeating the scan lets facts about inner
+   expressions discharge side conditions for outer expressions. *)
+Ltac solve_R_strong_term t :=
+  lazymatch t with
+  | INR ?n =>
+      solve_R_strong_assert (0 <= INR n) ltac:(apply pos_INR)
+  | sqrt ?x => first
+      [ solve_R_strong_assert (0 <= sqrt x) ltac:(apply sqrt_pos)
+      | solve_R_strong_assert (sqrt x * sqrt x = x)
+          ltac:(apply sqrt_sqrt; nra)
+      | solve_R_strong_assert (sqrt x = 0) ltac:(apply sqrt_neg_0; nra) ]
+  | / ?x => first
+      [ solve_R_strong_assert (x * / x = 1) ltac:(apply Rinv_r; nra)
+      | solve_R_strong_assert (0 < / x) ltac:(apply Rinv_0_lt_compat; nra)
+      | solve_R_strong_assert (/ x < 0) ltac:(apply Rinv_lt_0_compat; nra)
+      | solve_R_strong_assert (/ x = 0)
+          ltac:(let H := fresh in assert (x = 0) as H by nra;
+                rewrite H; apply Rinv_0) ]
+  | ?x ^ ?n => first
+      [ solve_R_strong_assert (0 <= x ^ n) ltac:(apply pow_le; nra)
+      | solve_R_strong_assert (0 < x ^ n) ltac:(apply pow_lt; nra) ]
+  end.
+
+Ltac solve_R_strong_facts :=
+  repeat match goal with
+  | |- context[?t] => solve_R_strong_term t
+  | H : context[?t] |- _ => solve_R_strong_term t
+  end.
+
+Ltac solve_R_strong_arith :=
+  solve [ assumption | reflexivity | lra | nra | lia | nia ].
+
+Ltac solve_R_strong_core :=
+  intros;
+  unfold Ensembles.In in *;
+  repeat match goal with
+  | H : _ /\ _ |- _ => destruct H
+  | H : _ \/ _ |- _ => destruct H
+  end;
+  (* Transfer natural-number inequality goals to real arithmetic. *)
+  try lazymatch goal with
+  | |- (?n < ?m)%nat => apply INR_lt
+  | |- (?n > ?m)%nat => apply INR_lt
+  | |- (?n <= ?m)%nat => apply INR_le
+  | |- (?n >= ?m)%nat => apply INR_le
+  end;
+  solve_R_strong_casts;
+  unfold Rdiv in *;
+  (* Split all three piecewise operations together, including mixed nesting. *)
+  unfold Rabs, Rmin, Rmax in *;
+  repeat match goal with
+  | |- context[if Rcase_abs ?x then _ else _] => destruct (Rcase_abs x)
+  | H : context[if Rcase_abs ?x then _ else _] |- _ => destruct (Rcase_abs x)
+  | |- context[if Rle_dec ?x ?y then _ else _] => destruct (Rle_dec x y)
+  | H : context[if Rle_dec ?x ?y then _ else _] |- _ => destruct (Rle_dec x y)
+  end;
+  solve_R_strong_facts;
+  solve [ solve_R_strong_arith
+        | split; solve_R_strong_arith
+        | field_simplify; solve_R_strong_arith
+        | intuition (solve_R_strong_arith) ].
+
+Ltac solve_R :=
+  (* Keep unsolved goals unchanged so semicolon application can make progress. *)
+  try solve [ solve_R_basic | solve_R_strong_core ].
 
 Lemma pow2_gt_0 : forall r, r <> 0 -> r ^ 2 > 0.
 Proof.
@@ -225,7 +331,6 @@ Lemma nat_pos_Rpos_iff : ∀ n : nat,
   n > 0 <-> (n > 0)%nat.
 Proof.
   intros n; split; intros H1; solve_R.
-  apply INR_lt. solve_R.
 Qed.
 
 Lemma nat_gt_Rgt_iff : ∀ n m : nat,
@@ -520,7 +625,6 @@ Proof.
   exists N.
   specialize (H2 N ltac:(solve_R)).
   rewrite Rabs_right in H2; solve_R.
-  apply Rle_ge. apply pow_le. lra.
 Qed.
 
 Lemma floor_gt_0 : ∀ x : R, x ≥ 1 → ⌊x⌋ > 0.
@@ -575,7 +679,7 @@ Proof.
   intros n d H1.
   symmetry.
   apply floor_unique.
-  - apply Rdiv_ge_0; solve_R. apply Rle_ge, pos_INR.
+  - apply Rdiv_ge_0; solve_R.
   - split.
     + apply Rle_div_r; solve_R.
       rewrite <- mult_INR. apply le_INR.
@@ -585,12 +689,6 @@ Proof.
       rewrite Rmult_plus_distr_r, Rmult_1_l, <- mult_INR, <- plus_INR.
       apply lt_INR.
       rewrite Nat.mul_comm.
-      assert (H2 : (d > 0)%nat).
-      { 
-        replace 0 with (INR 0) in H1 by reflexivity.
-        apply INR_lt in H1. 
-        exact H1. 
-      }
       pose proof Nat.div_mod n d ltac:(lia) as H3.
       pose proof Nat.mod_upper_bound n d ltac:(lia) as H4.
       lia.
@@ -669,17 +767,8 @@ Proof.
   destruct (Rtotal_order r2 0) as [H2 | [H2 | H2]]; 
   destruct (Rtotal_order r1 0) as [H3 | [H3 | H3]];
   subst; try solve [solve_R].
-  - solve_R. pose proof Rdiv_neg_neg r1 r2 ltac:(lra) ltac:(lra). nra.
+  - rewrite Rabs_R0, Rdiv_0_r, Rdiv_0_r. solve_R.
   - repeat rewrite Rabs_R0, Rdiv_0_r; reflexivity.
-  - pose proof Rdiv_neg_pos r1 r2 ltac:(lra) ltac:(lra). solve_R.
-  - pose proof Rdiv_pos_pos r1 r2 ltac:(lra) ltac:(lra). solve_R.
-  - rewrite Rdiv_diag; solve_R.
-  - rewrite Rabs_R0, Rdiv_0_r. solve_R.
-  - rewrite Rdiv_diag; solve_R.
-  - pose proof Rdiv_neg_neg r1 r2 ltac:(lra) ltac:(lra). solve_R.
-  - pose proof Rdiv_pos_neg r1 r2 ltac:(lra) ltac:(lra). solve_R.
-  - repeat rewrite Rabs_R0, Rdiv_0_r; reflexivity.
-  - pose proof Rdiv_pos_pos r1 r2 ltac:(lra) ltac:(lra). solve_R.
 Qed.
 
 Lemma pow_over_factorial_tends_to_0 : ∀ x ε,
@@ -724,10 +813,9 @@ Proof.
         lra.
       }
       replace (INR ((n0 + k)! + (n0 + k) * (n0 + k)!)) with (INR (S (n0 + k)) * INR ((n0 + k)!)) by solve_R.
-      replace (x ^ S (n0 + k) / (INR (S (n0 + k)) * INR ((n0 + k)!))) with ((x / INR (S (n0 + k))) * (x ^ (n0 + k) / INR ((n0 + k)!))).
-      2 : { solve_R. split. apply INR_fact_neq_0. pose proof pos_INR n0. pose proof pos_INR k. lra. }
+      replace (x ^ S (n0 + k) / (INR (S (n0 + k)) * INR ((n0 + k)!))) with ((x / INR (S (n0 + k))) * (x ^ (n0 + k) / INR ((n0 + k)!))) by solve_R.
       replace ((1 / 2) ^ S k * (x ^ n0 / INR (n0!))) with ((1 / 2) * ((1 / 2) ^ k * (x ^ n0 / INR (n0!)))).
-      2 : { solve_R. apply INR_fact_neq_0. }
+      2 : { simpl. solve_R. }
       apply Rle_trans with ((1 / 2) * (x ^ (n0 + k) / INR ((n0 + k)!))); try lra.
       apply Rmult_le_compat_r; auto. apply Rlt_le, Rdiv_pos_pos; auto. apply Rpow_gt_0; lra.
   }
@@ -1369,7 +1457,7 @@ Proof.
   intros a b n H1. set (f := fun x => ((b - a) / INR n) * x + a).
   replace a with (f 0). 2 : { unfold f. rewrite Rmult_0_r. lra. }
   rewrite map_nth. replace 0 with (INR 0) by auto. rewrite map_nth. 
-  unfold f. rewrite seq_nth; try lia. solve_R. apply not_0_INR; auto.
+  unfold f. rewrite seq_nth; try lia. solve_R.
 Qed.
 
 Lemma a_In_list_delta_lt : forall a b n,

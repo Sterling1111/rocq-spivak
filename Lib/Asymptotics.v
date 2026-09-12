@@ -799,13 +799,6 @@ Proof.
     + rewrite H4. pose proof INR_fact_ge_1 N as H5. pose proof Rpow_gt_0 N b ltac:(lra) as H6. nra.
     + specialize (IH ltac:(solve_R)). 
       simpl. solve_R.
-      apply Rle_trans with (b * (b ^ N * INR (fact k))).
-* apply Rmult_le_compat_l; [lra | apply IH].
-* replace (b * (b ^ N * k!)) with (b^N * (b * k!)) by lra.
-  apply Rmult_le_compat_l; [ apply pow_le; lra |].
-  replace (k! + k * k!) with ((1 + k) * k!) by lra.
-  apply Rmult_le_compat_r; [apply pos_INR |].
-  apply Rle_trans with k; solve_R.
 Qed.
 
 Lemma big_o_mult_const : forall f g c,
@@ -949,8 +942,7 @@ Section Examples.
     - apply big_o_ext with (f2 := λ n, (ln n)^2) (g2 := λ n, (n ^^ (3/10))^2).
       + intros n. reflexivity.
       + intros n. rewrite Rpower_pow; solve_R.
-        2 : { pose proof pos_INR n as H1; lra. }
-        replace ((0 + 1 + 1) * (3 / 10)) with (3 / 5) by lra. auto.
+        replace (2%nat * (3 / 10)) with (3 / 5) by solve_R. auto.
       + apply big_o_pow. set (f := λ n, n ^ (3/10)).
         apply big_o_log_poly with (k := 3/10); try lra.
         * pose proof e_bounds; lra.

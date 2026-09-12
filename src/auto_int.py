@@ -1,9 +1,10 @@
 import sympy
 import sys
-import argparse
 
 def to_prefix_lines(expr):
     if isinstance(expr, sympy.Symbol):
+        if expr != sympy.Symbol("x"):
+            raise ValueError(f"Unsupported symbol: {expr}")
         return ["EVar"]
     elif isinstance(expr, sympy.Number):
         if expr.is_Integer:
@@ -20,18 +21,13 @@ def to_prefix_lines(expr):
             lines.extend(["EConst", str(q)])
             return lines
         else:
-            return ["EConst", str(float(expr))]
-    elif isinstance(expr, sympy.Add):
-        args = expr.args
-        lines = to_prefix_lines(args[0])
-        for arg in args[1:]:
-            lines = ["EAdd"] + lines + to_prefix_lines(arg)
-        return lines
-    elif isinstance(expr, sympy.Mul):
-        args = expr.args
-        lines = to_prefix_lines(args[0])
-        for arg in args[1:]:
-            lines = ["EMul"] + lines + to_prefix_lines(arg)
+            raise ValueError(f"Inexact numeric primitive: {expr}")
+    elif isinstance(expr, (sympy.Add, sympy.Mul)):
+        # Keep the existing left-associated tree without repeatedly copying it.
+        token = "EAdd" if isinstance(expr, sympy.Add) else "EMul"
+        lines = [token] * (len(expr.args) - 1)
+        for arg in expr.args:
+            lines.extend(to_prefix_lines(arg))
         return lines
     elif isinstance(expr, sympy.Pow):
         base_lines = to_prefix_lines(expr.base)
@@ -101,32 +97,37 @@ def to_prefix_lines(expr):
         return ["ETanh"] + to_prefix_lines(expr.args[0])
     elif isinstance(expr, sympy.log):
         return ["ELog"] + to_prefix_lines(expr.args[0])
-    elif isinstance(expr, sympy.StrictGreaterThan):
-        return []
     else:
         raise ValueError(f"Unknown expression type: {type(expr)} for {expr}")
 
-def main():
-    if len(sys.argv) != 3:
-        print("Usage: python auto_int.py <in.txt> <out.txt>")
-        sys.exit(1)
-        
-    in_file = sys.argv[1]
-    out_file = sys.argv[2]
-
-    with open(in_file, 'r') as f:
-        expr_str = f.read().strip()
-    
+def integrate(expr_str):
+    """Return a candidate only; Rocq checks its derivative and domain."""
     x = sympy.Symbol('x')
     f = sympy.sympify(expr_str)
-    
-    F = sympy.integrate(f, x)
-    
-    lines = to_prefix_lines(F)
-    
-    with open(out_file, 'w') as f:
-        for line in lines:
-            f.write(line + "\n")
+    return to_prefix_lines(sympy.integrate(f, x))
+
+
+def serve():
+    # One line per request/response; errors leave the stream synchronized.
+    for line in sys.stdin:
+        try:
+            response = "OK " + " ".join(integrate(line.strip()))
+        except Exception as exc:
+            response = "ERROR " + " ".join(str(exc).split())
+        print(response, flush=True)
+
+
+def main():
+    if sys.argv[1:] == ["--server"]:
+        serve()
+    elif len(sys.argv) == 3:
+        with open(sys.argv[1]) as source:
+            lines = integrate(source.read().strip())
+        with open(sys.argv[2], 'w') as output:
+            output.write("\n".join(lines) + "\n")
+    else:
+        sys.exit("Usage: python auto_int.py <in.txt> <out.txt> | --server")
+
 
 if __name__ == "__main__":
     main()

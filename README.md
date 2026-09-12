@@ -152,7 +152,96 @@ An extensive compatibility layer bridges the custom definitions in this reposito
 - **Core Calculus**: Equivalences for limits, continuity, derivatives, and the Fundamental Theorem of Calculus.
 - **Transcendental Functions**: Custom definitions for trigonometric functions, `exp`, `log`, as well as constants `PI` and `e` are formally proven equivalent to their `Reals` counterparts.
 
+## MathComp Compatibility (`Lib/MathCompCompat.v`)
+
+The compatibility layer uses MathComp SSReflect 2.4.0 and MathComp Analysis 1.16.0.
+It connects standard natural-number comparisons and their `INR` real counterparts
+to MathComp boolean comparisons, and standard list/`FromList` membership to
+MathComp sequence membership. It also translates `sum_f` to MathComp's generic
+big operators:
+
+```coq
+Lemma mc_sum_f_big_compat (f : nat -> R) (first last : nat) :
+  sum_f first last f =
+  \big[Rplus/0%R]_(i <- iota first (S (Nat.sub last first))) f i.
+```
+
+The sequence includes both endpoints. When `last < first`, this project's
+`sum_f` returns `f first`, so the translated sequence still has one element.
+The limit bridges `mc_limit_compat`, `mc_right_limit_compat`, and
+`mc_left_limit_compat` identify the project's epsilon–delta limits with MathComp
+filter convergence on punctured, right-hand, and left-hand neighborhoods:
+
+```coq
+Lemma mc_limit_compat (f : R -> R) (a L : R) :
+  ⟦ lim a ⟧ f = L <-> (f @ within [set~ a] (nbhs a) --> L).
+```
+
+The shared `mc_within_limit_compat` lemma handles arbitrary restricted domains.
+Continuity and derivative bridges are not implemented.
+
 ## Custom Automation
+
+`solve_R` (from `Lib.Reals_util`) includes automation for square roots,
+reciprocals, signs of variable powers, mixed `Rabs`/`Rmin`/`Rmax` expressions,
+and natural/integer casts in hypotheses and goals.
+It closes goals it can solve and leaves other goals unchanged, so
+`tactic; solve_R` can solve some generated goals and leave the rest for later
+proof steps. Use `solve [solve_R]` when complete success is required.
+It checks nonzero denominators and square-root domain conditions; natural
+subtraction is normalized only when its ordering condition is established.
+Proofs that relied on partial progress may need adjustment.
+
+```coq
+Goal forall x : R, 0 < x -> 0 < / sqrt x.
+Proof. solve_R. Qed.
+```
+
+Regression proofs are in `Tests/SolveR.v`; run them with `make Tests/SolveR.vo`.
+
+The calculus tactics in `Lib.Tactics` provide opt-in `strong` forms. Each
+tries the original tactic first, then additional automation, and either closes
+the goal completely or fails without changing the proof state. Plain invocations
+retain their existing behavior, including partial progress.
+
+| Tactic | Additional automation |
+| --- | --- |
+| `auto_limit strong` | Stronger arithmetic and domain checks, combinations of supplied two-sided or one-sided limits, and limits restricted to a set. |
+| `auto_cont strong` | Nested `Rmin`/`Rmax`, reciprocal notation, one-sided continuity, and continuity from derivative hypotheses. |
+| `auto_diff strong` | Numerical derivative values, one-sided derivatives, local product/chain-rule hypotheses, and stronger domain and algebra checks. |
+| `auto_int strong` | Reversed and equal bounds, symbolic bounds of unknown order, supplied antiderivatives, integrability from continuity, and stronger verification of computed primitives. |
+
+For example:
+
+```coq
+Goal continuous (fun x => Rmax (sin x) (Rmin (x^2) (exp x))).
+Proof. auto_cont strong. Qed.
+
+Goal definite_integral 2 0 (fun x => x^2) = -8/3.
+Proof. auto_int strong. Qed.
+```
+
+Run `make Tests/CalculusStrong.vo` for the calculus regression proofs. These
+tactics remain heuristic: they do not solve every calculus problem, and the
+integral solver must verify the domain conditions of its proposed primitive.
+
+`auto_int` reuses one SymPy worker per Rocq process and caches up to 256
+computed primitives. Every use still proves continuity, the derivative, and
+the endpoint equality in Rocq; cached candidates do not bypass proof checking.
+Supplied antiderivatives are checked by differentiation without starting Python.
+The worker is stopped when Rocq exits or a request times out. Set
+`AUTO_INT_TIMEOUT` to change the 30-second request limit, `AUTO_INT_PYTHON` to
+choose the Python executable, or `AUTO_INT_SCRIPT` to locate `src/auto_int.py`
+when running outside the repository. Without that override, the plugin searches
+the current directory and its parents.
+
+Run `make test-auto-int` for proof and worker regression tests, and
+`make bench-auto-int` for per-command timings on 35 representative tactic calls.
+The benchmark covers distinct and repeated definite integrals, supplied
+antiderivatives, and larger rational primitives (including explicitly aborted
+partial proofs). Exact rational constants and arbitrarily large integer
+coefficients are transported without rounding; unsupported symbolic constants
+fail explicitly.
 
 To efficiently discharge complex differential, continuity, and limit goals without manually applying properties like the chain rule or product rule, this project provides a robust custom tactical suite: `auto_diff`, `auto_cont`, and `auto_limit`. These heavily optimize evaluation and avoid the overhead of manually decomposing layered compositions.
 
@@ -206,8 +295,15 @@ opam repo add coq-released https://coq.inria.fr/opam/released
 ```
 
 **3. Install Rocq/Coq, required mathematical libraries, and IDE support:**
+
+Run these commands from the repository root. The local bigenough metadata keeps
+its upstream source/checksum and corrects `<= "2.4"` to `< "2.5~"`, allowing
+MathComp 2.4.0. Keeping this MathComp version avoids the Coquelicot 3.4.4 build
+failure observed with MathComp 2.6.0.
+
 ```bash
-opam install rocq-core.9.1.1 rocq-stdlib.9.1.0 coq-interval coq-coquelicot coq-flocq coq-mathcomp-ssreflect vsrocq-language-server -y
+OPAMEDITOR="cp $PWD/opam/rocq-mathcomp-bigenough.opam" opam pin edit rocq-mathcomp-bigenough.1.0.4 -n -y
+opam install rocq-core.9.1.1 rocq-stdlib.9.1.0 coq-interval coq-coquelicot coq-flocq coq-mathcomp-ssreflect.2.4.0 rocq-mathcomp-ssreflect.2.4.0 rocq-mathcomp-analysis.1.16.0 rocq-mathcomp-finmap.2.2.2 vsrocq-language-server -y
 ```
 
 ### Compiling the Project
