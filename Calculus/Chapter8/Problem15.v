@@ -1,6 +1,6 @@
 From Calculus.Chapter8 Require Import Prelude.
 
-Lemma lemma_8_15 : ∀ f a b,
+Lemma lemma_8_15_midpoint_step : ∀ f a b,
   a < b ->
   continuous_on f [a, b] ->
   f a < 0 < f b ->
@@ -15,3 +15,10 @@ Proof.
     + right. right. split; auto.
     + right. left. split; lra.
 Qed.
+
+Lemma lemma_8_15 : ∀ f a b,
+  a < b ->
+  continuous_on f [a, b] ->
+  f a < 0 < f b ->
+  ∃ x, x ∈ [a, b] /\ f x = 0.
+Proof. Abort.

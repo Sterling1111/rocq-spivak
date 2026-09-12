@@ -4,7 +4,8 @@ Lemma lemma_8_3_a : ∀ f a b,
   continuous_on f [a, b] ->
   a < b ->
   f a < 0 /\ 0 < f b ->
-  ∃ x, x ∈ [a, b] /\ f x = 0 /\ (∀ y, y ∈ [a, b] -> f y = 0 -> y <= x).
+  ∃ x, x ∈ [a, b] /\ f x = 0 /\
+    (∀ y, y ∈ [a, b] -> f y = 0 -> y <= x).
 Proof.
   intros f a b H1 H2 H3.
   set (g := fun x => - f (a + b - x)).
@@ -20,15 +21,35 @@ Proof.
     assert (H13 : g (a + b - y) = 0).
     { unfold g. replace (a + b - (a + b - y)) with y by lra. lra. }
     specialize (H9 (a + b - y) ltac:(solve_R) H13).
-    lra. 
+    lra.
 Qed.
+
+Lemma lemma_8_3_a_second_smallest_not_necessary :
+  ∃ f a b z0,
+    continuous_on f [a, b] /\
+    a < b /\
+    f a < 0 /\ 0 < f b /\
+    z0 ∈ [a, b] /\ f z0 = 0 /\
+    (∀ y, y ∈ [a, b] -> f y = 0 -> z0 <= y) /\
+    (∃ y, y ∈ [a, b] /\ f y = 0 /\ z0 < y) /\
+    ¬ (∃ z1,
+        z1 ∈ [a, b] /\ f z1 = 0 /\ z0 < z1 /\
+        ∀ y, y ∈ [a, b] -> f y = 0 -> z0 < y -> z1 <= y).
+Proof. Abort.
 
 Lemma lemma_8_3_b : ∀ f a b,
   continuous_on f [a, b] ->
   a < b ->
   f a < 0 /\ 0 < f b ->
   ∃ x, is_lub (fun y => a <= y /\ y <= b /\ f y < 0) x /\ f x = 0.
-Proof.
-  intros f a b H1 H2 H3.
-  
-Abort.
+Proof. Abort.
+
+Lemma lemma_8_3_b_sets_can_differ :
+  ∃ f a b x,
+    continuous_on f [a, b] /\
+    a < b /\
+    f a < 0 /\ 0 < f b /\
+    x ∈ (fun t => a <= t /\ t <= b /\ f t < 0) /\
+    x ∉ (fun t => a <= t /\ t <= b /\
+      ∀ y, y ∈ [a, t] -> f y < 0).
+Proof. Abort.

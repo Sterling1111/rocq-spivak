@@ -5,11 +5,12 @@ Definition shadow_point (f : R -> R) (x : R) :=
 
 Lemma lemma_8_20_a : ∀ f a b,
   continuous f ->
+  a < b ->
   (∀ x, a < x < b -> shadow_point f x) ->
   ~ shadow_point f a ->
   ~ shadow_point f b ->
   f a > f b ->
-  ∀ x, a <= x <= b -> f x <= f a.
+  ∀ x, x ∈ [a, b] -> x <> a -> f x < f a.
 Proof. Abort.
 
 Lemma lemma_8_20_b : ∀ f a b,

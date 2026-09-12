@@ -51,3 +51,10 @@ Proof.
   unfold ε in H10.
   solve_R.
 Qed.
+
+Lemma lemma_8_6_c_strict_cannot_replace_nonstrict :
+  ∃ f g A,
+    continuous f /\ continuous g /\ dense A /\
+    (∀ x, x ∈ A -> f x > g x) /\
+    ¬ (∀ x, f x > g x).
+Proof. Abort.
