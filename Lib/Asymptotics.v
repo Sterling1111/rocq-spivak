@@ -625,7 +625,7 @@ Proof.
   rewrite Rabs_right; [| lra].
   rewrite Rabs_right; [| apply Rle_ge; apply pow_le; lra].
   replace (f n) with (f n ^ 1) at 1. 2 : { simpl; lra. }
-  apply Rle_pow; solve_R. apply INR_le. solve_R.
+  apply Rle_pow; solve_R.
 Qed.
 
 Lemma big_o_poly_poly : forall p q,

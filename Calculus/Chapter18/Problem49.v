@@ -22,11 +22,11 @@ Proof.
   rewrite Rpower_mult in H4; try lra.
   assert (b = 0 \/ b <> 0)%Z as [H5 | H5] by lia.
   - subst. rewrite Rdiv_0_r, Rpower_0 in H1; lra.
-  - replace (a / b * b) with (IZR a) in H2 by (field; apply not_0_IZR; auto).
+  - replace (a / b * b) with (a : R) in H2 by (field; apply not_0_IZR; auto).
     destruct (Z.eq_dec a 0) as [H6 | H6].
     + subst a. rewrite Rdiv_0_l, Rpower_0 in H1; lra.
     + Set Printing Coercions.
-      replace (IZR a / IZR b * IZR b)%R with (IZR a) in H4 by solve_R.
+      replace (a / b * b)%R with (a : R) in H4 by solve_R.
       do 2 (rewrite Rpower_IZR_Znonneg in H4); try lra; apply lt_IZR in H2, H3; try lia.
       pose proof (z_pow_factor_primes 2 (Z.to_nat b) ltac:(lia)) as [l1 [H9 [H10 H11]]].
       pose proof (z_pow_factor_primes 10 (Z.to_nat a) ltac:(lia)) as [l2 [H12 [H13 H14]]].

@@ -1,6 +1,17 @@
 From Calculus.Chapter18 Require Import Prelude.
 
-Lemma lemma_18_45 : forall f,
-  differentiable f ->
-  limit_at_point (fun x => (f x)^(1/x)) 0 (exp (⟦ der ⟧ f 0)).
+(* A list of at most m coefficients represents a polynomial of degree < m;
+   the empty list represents zero, including when m=0. *)
+From Lib Require Import Polynomial.
+
+Lemma lemma_18_45_a : ∀ n f, (1 <= n)%nat ->
+  ((∃ g, ⟦ der ^ (n-1) ⟧ f = g /\ ⟦ der ⟧ g = g) <->
+   (∃ c l, (List.length l <= n-1)%nat /\
+  ∀ x, f x = c * exp x + polynomial l x)).
+Abort.
+
+Lemma lemma_18_45_b : ∀ n f, (2 <= n)%nat ->
+  ((∃ g, ⟦ der ^ (n-2) ⟧ f = g /\ ⟦ der ^ 2 ⟧ g = g) <->
+   (∃ a b l, (List.length l <= n-2)%nat /\
+  ∀ x, f x = a * exp x + b * exp (-x) + polynomial l x)).
 Abort.

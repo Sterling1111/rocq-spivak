@@ -1,6 +1,15 @@
 From Calculus.Chapter18 Require Import Prelude.
 
-(* Problem 15: 
-   (a) Find the minimum value of f(x) = e^x/x^n for x > 0, and conclude that f(x) > e^n/n^n for x > n. 
-   (b) Using the expression f'(x) = e^x(x-n)/x^{n+1}, prove that f'(x) > e^{n+1}/(n+1)^{n+1} for x > n+1 and thus obtain another proof that \lim_{x \to \infty} f(x) = \infty. *)
-Lemma problem_18_15_a : forall (n:nat) x, (n > 0)%nat -> x > 0 -> exp x / x^n >= exp (INR n) / (INR n)^n. Abort.
+Lemma lemma_18_15_a : ∀ (n : ℕ), (0 < n) ->
+  (∀ x, x > 0 -> exp x / x^n >= exp n / n^n) /\
+  (∀ x, x > n -> exp x / x^n > exp n / n^n).
+Proof.
+Abort.
+
+Lemma lemma_18_15_b : ∀ (n : nat), (0 < n)%nat ->
+  (⟦ der ⟧ (λ x, exp x / x^n) (0, ∞) =
+    (λ x, exp x * (x - n) / x^(S n))) /\
+  (∀ x, x > (S n) ->
+    exp x * (x - n) / x^(S n) > exp (S n) / (S n)^(S n)) /\
+  ⟦ lim ∞ ⟧ (λ x, exp x / x^n) = ∞.
+Abort.

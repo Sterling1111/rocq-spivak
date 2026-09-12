@@ -106,75 +106,159 @@ Ltac solve_R_strong_assert P tac :=
 Ltac solve_R_strong_casts :=
   repeat match goal with
   | H : (?x < ?y)%nat |- _ =>
-      solve_R_strong_assert (INR x < INR y) ltac:(apply lt_INR; exact H)
+      solve_R_strong_assert (INR x < INR y)
+        ltac:(apply lt_INR; exact H)
+
   | H : (?x <= ?y)%nat |- _ =>
-      solve_R_strong_assert (INR x <= INR y) ltac:(apply le_INR; exact H)
+      solve_R_strong_assert (INR x <= INR y)
+        ltac:(apply le_INR; exact H)
+
   | H : @eq nat ?x ?y |- _ =>
-      solve_R_strong_assert (INR x = INR y) ltac:(now rewrite H)
+      solve_R_strong_assert (INR x = INR y)
+        ltac:(now rewrite H)
+
+  (* A nonzero natural is at least 1.  Keep this as a nat fact first;
+     the <= case above will then cast it to R automatically. *)
+  | H : not (@eq nat ?n 0%nat) |- _ =>
+      solve_R_strong_assert ((1 <= n)%nat)
+        ltac:(lia)
+
+  | H : not (@eq nat 0%nat ?n) |- _ =>
+      solve_R_strong_assert ((1 <= n)%nat)
+        ltac:(lia)
+
   | H : not (@eq nat ?x ?y) |- _ =>
-      solve_R_strong_assert (INR x <> INR y) ltac:(apply not_INR; exact H)
+      solve_R_strong_assert (INR x <> INR y)
+        ltac:(apply not_INR; exact H)
+
   | H : (?x < ?y)%Z |- _ =>
-      solve_R_strong_assert (IZR x < IZR y) ltac:(apply IZR_lt; exact H)
+      solve_R_strong_assert (IZR x < IZR y)
+        ltac:(apply IZR_lt; exact H)
+
   | H : (?x <= ?y)%Z |- _ =>
-      solve_R_strong_assert (IZR x <= IZR y) ltac:(apply IZR_le; exact H)
+      solve_R_strong_assert (IZR x <= IZR y)
+        ltac:(apply IZR_le; exact H)
+
   | H : @eq Z ?x ?y |- _ =>
-      solve_R_strong_assert (IZR x = IZR y) ltac:(now rewrite H)
+      solve_R_strong_assert (IZR x = IZR y)
+        ltac:(now rewrite H)
+
   | H : not (@eq Z ?x ?y) |- _ =>
       solve_R_strong_assert (IZR x <> IZR y)
         ltac:(apply eq_IZR_contrapositive; exact H)
   end;
+
   repeat first
-    [ progress rewrite ?plus_INR, ?mult_INR, ?S_INR, ?pow_INR, ?INR_0, ?INR_1,
+    [ progress rewrite
+        ?plus_INR, ?mult_INR, ?S_INR, ?pow_INR, ?INR_0, ?INR_1,
         ?plus_IZR, ?mult_IZR, ?minus_IZR, ?opp_IZR in *
+
     | progress rewrite minus_INR in * by lia
+
     | match goal with
       | |- context[INR (?n - ?m)] =>
-          let E := fresh in assert ((n - m)%nat = 0%nat) as E by lia;
-          rewrite E in *; clear E
+          let E := fresh in
+          assert ((n - m)%nat = 0%nat) as E by lia;
+          rewrite E in *;
+          clear E
+
       | H : context[INR (?n - ?m)] |- _ =>
-          let E := fresh in assert ((n - m)%nat = 0%nat) as E by lia;
-          rewrite E in *; clear E
-      end ].
+          let E := fresh in
+          assert ((n - m)%nat = 0%nat) as E by lia;
+          rewrite E in *;
+          clear E
+      end
+    ].
 
 (* Add each fact at most once. Repeating the scan lets facts about inner
    expressions discharge side conditions for outer expressions. *)
 Ltac solve_R_strong_term t :=
   lazymatch t with
   | INR ?n =>
-      solve_R_strong_assert (0 <= INR n) ltac:(apply pos_INR)
+      solve_R_strong_assert (0 <= INR n)
+        ltac:(apply pos_INR)
+
   | sqrt ?x => first
-      [ solve_R_strong_assert (0 <= sqrt x) ltac:(apply sqrt_pos)
+      [ solve_R_strong_assert (0 <= sqrt x)
+          ltac:(apply sqrt_pos)
+
       | solve_R_strong_assert (sqrt x * sqrt x = x)
           ltac:(apply sqrt_sqrt; nra)
-      | solve_R_strong_assert (sqrt x = 0) ltac:(apply sqrt_neg_0; nra) ]
+
+      | solve_R_strong_assert (sqrt x = 0)
+          ltac:(apply sqrt_neg_0; nra)
+      ]
+
   | / ?x => first
-      [ solve_R_strong_assert (x * / x = 1) ltac:(apply Rinv_r; nra)
-      | solve_R_strong_assert (0 < / x) ltac:(apply Rinv_0_lt_compat; nra)
-      | solve_R_strong_assert (/ x < 0) ltac:(apply Rinv_lt_0_compat; nra)
+      [ solve_R_strong_assert (x * / x = 1)
+          ltac:(apply Rinv_r; nra)
+
+      | solve_R_strong_assert (0 < / x)
+          ltac:(apply Rinv_0_lt_compat; nra)
+
+      | solve_R_strong_assert (/ x < 0)
+          ltac:(apply Rinv_lt_0_compat; nra)
+
       | solve_R_strong_assert (/ x = 0)
-          ltac:(let H := fresh in assert (x = 0) as H by nra;
-                rewrite H; apply Rinv_0) ]
+          ltac:(
+            let H := fresh in
+            assert (x = 0) as H by nra;
+            rewrite H;
+            apply Rinv_0
+          )
+      ]
+
   | ?x ^ ?n => first
-      [ solve_R_strong_assert (0 <= x ^ n) ltac:(apply pow_le; nra)
-      | solve_R_strong_assert (0 < x ^ n) ltac:(apply pow_lt; nra) ]
+      [ solve_R_strong_assert (0 <= x ^ n)
+          ltac:(apply pow_le; nra)
+
+      | solve_R_strong_assert (0 < x ^ n)
+          ltac:(apply pow_lt; nra)
+      ]
+  end.
+
+Ltac solve_R_strong_discrete_signs :=
+  repeat match goal with
+  | H : not (@eq Z ?n 0%Z) |- _ =>
+      let Hsign := fresh "Hsign" in
+      assert ((n < 0)%Z \/ (1 <= n)%Z) as Hsign by lia;
+      clear H;
+      destruct Hsign
   end.
 
 Ltac solve_R_strong_facts :=
   repeat match goal with
-  | |- context[?t] => solve_R_strong_term t
-  | H : context[?t] |- _ => solve_R_strong_term t
+  | |- context[?t] =>
+      solve_R_strong_term t
+  | H : context[?t] |- _ =>
+      solve_R_strong_term t
   end.
 
 Ltac solve_R_strong_arith :=
-  solve [ assumption | reflexivity | lra | nra | lia | nia ].
+  solve [
+    assumption
+  | reflexivity
+  | lra
+  | nra
+  | lia
+  | nia
+  ].
 
 Ltac solve_R_strong_core :=
   intros;
   unfold Ensembles.In in *;
+
   repeat match goal with
   | H : _ /\ _ |- _ => destruct H
   | H : _ \/ _ |- _ => destruct H
   end;
+
+  (* Preserve discrete information from nonzero integers. *)
+  solve_R_strong_discrete_signs;
+
+  (* Solve purely nat/Z arithmetic before coercing to R. *)
+  try solve [lia | nia];
+
   (* Transfer natural-number inequality goals to real arithmetic. *)
   try lazymatch goal with
   | |- (?n < ?m)%nat => apply INR_lt
@@ -182,25 +266,38 @@ Ltac solve_R_strong_core :=
   | |- (?n <= ?m)%nat => apply INR_le
   | |- (?n >= ?m)%nat => apply INR_le
   end;
+
   solve_R_strong_casts;
+
   unfold Rdiv in *;
-  (* Split all three piecewise operations together, including mixed nesting. *)
+
   unfold Rabs, Rmin, Rmax in *;
   repeat match goal with
-  | |- context[if Rcase_abs ?x then _ else _] => destruct (Rcase_abs x)
-  | H : context[if Rcase_abs ?x then _ else _] |- _ => destruct (Rcase_abs x)
-  | |- context[if Rle_dec ?x ?y then _ else _] => destruct (Rle_dec x y)
-  | H : context[if Rle_dec ?x ?y then _ else _] |- _ => destruct (Rle_dec x y)
+  | |- context[if Rcase_abs ?x then _ else _] =>
+      destruct (Rcase_abs x)
+  | H : context[if Rcase_abs ?x then _ else _] |- _ =>
+      destruct (Rcase_abs x)
+  | |- context[if Rle_dec ?x ?y then _ else _] =>
+      destruct (Rle_dec x y)
+  | H : context[if Rle_dec ?x ?y then _ else _] |- _ =>
+      destruct (Rle_dec x y)
   end;
+
   solve_R_strong_facts;
-  solve [ solve_R_strong_arith
-        | split; solve_R_strong_arith
-        | field_simplify; solve_R_strong_arith
-        | intuition (solve_R_strong_arith) ].
+
+  solve [
+    solve_R_strong_arith
+  | split; solve_R_strong_arith
+  | field_simplify; solve_R_strong_arith
+  | intuition (solve_R_strong_arith)
+  ].
 
 Ltac solve_R :=
   (* Keep unsolved goals unchanged so semicolon application can make progress. *)
-  try solve [ solve_R_basic | solve_R_strong_core ].
+  try solve [
+    solve_R_basic
+  | solve_R_strong_core
+  ].
 
 Lemma pow2_gt_0 : forall r, r <> 0 -> r ^ 2 > 0.
 Proof.

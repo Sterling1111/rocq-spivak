@@ -4,7 +4,7 @@ Definition grows_faster f g : Prop :=
   ⟦ lim ∞ ⟧ (f / g) = ∞.
   
 Definition grows_same f g : Prop :=
-  exists L, L <> 0 /\ ⟦ lim ∞ ⟧ (f / g) = L.
+  ∃ L, L <> 0 /\ ⟦ lim ∞ ⟧ (f / g) = L.
 
 Fixpoint chained_grows_faster (l : list (ℝ -> ℝ)) : Prop :=
   match l with

@@ -1,4 +1,7 @@
 From Calculus.Chapter18 Require Import Prelude.
 
-(* Problem 23: Prove that if f(x) = \int_0^x f(t) dt, then f = 0. *)
-Lemma problem_18_23 : forall f, (forall x, f x = ∫ 0 x f) -> f = fun _ => 0. Abort.
+(* Newton's law of cooling, with positive cooling constant k. *)
+Lemma lemma_18_23 : ∀ T M k,
+  k > 0 -> ⟦ der ⟧ T = (λ t, - k * (T t - M)) ->
+  ∀ t, T t = M + (T 0 - M) * exp (- k * t).
+Abort.

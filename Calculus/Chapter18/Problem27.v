@@ -1,11 +1,17 @@
 From Calculus.Chapter18 Require Import Prelude.
 
-(* Problem 27: Gronwall's inequality *)
-Lemma problem_18_27_a : forall f g a C,
-  (forall x, f x <= C + ∫ a x (fun t => f t * g t)) ->
-  (forall x, f x <= C * exp (∫ a x g)). Abort.
+(* Each half-line may remain zero forever (None), or leave zero at
+   a threshold A >= 1 for 1+x^2 (Some A). *)
+Definition admissible_threshold (a : option R) : Prop :=
+  match a with None => True | Some A => 1 <= A end.
+Definition delayed_log (a : option R) (x : R) : R :=
+  match a with
+  | None => 0
+  | Some A => Rmax 0 (log ((1 + x^2) / A)) / 4
+  end.
 
-Lemma problem_18_27_b : forall f g,
-  (forall x, 0 <= f x) -> (forall x, 0 <= g x) ->
-  ⟦ der ⟧ f = (fun x => g x * f x) -> f 0 = 0 ->
-  f = fun _ => 0. Abort.
+Lemma lemma_18_27 : ∀ f,
+  (continuous f /\ ∀ x, (f x)^2 = ∫ 0 x (λ t, f t * t / (1 + t^2))) <->
+  (∃ a b, admissible_threshold a /\ admissible_threshold b /\
+  ∀ x, f x = if Rle_dec 0 x then delayed_log a x else delayed_log b x).
+Abort.

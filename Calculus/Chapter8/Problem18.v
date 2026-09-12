@@ -6,6 +6,9 @@ Definition almost_upper_bound (A : Ensemble ℝ) (x : ℝ) :=
 Definition almost_lower_bound (A : Ensemble ℝ) (x : ℝ) :=
   Finite_set (fun y => y ∈ A /\ y <= x).
 
+Definition lim_sup (A : Ensemble ℝ) (l : ℝ) :=
+  is_glb (fun x => almost_upper_bound A x) l.
+
 Lemma lemma_8_18_b_1 : ∀ A,
   Infinite_set A -> has_upper_bound A -> has_lower_bound A ->
   (fun x => almost_upper_bound A x) ≠ ∅.
@@ -15,9 +18,6 @@ Lemma lemma_8_18_b_2 : ∀ A,
   Infinite_set A -> has_upper_bound A -> has_lower_bound A ->
   has_lower_bound (fun x => almost_upper_bound A x).
 Proof. Abort.
-
-Definition lim_sup (A : Ensemble ℝ) (l : ℝ) :=
-  is_glb (fun x => almost_upper_bound A x) l.
 
 Lemma lemma_8_18_c : ∀ A l,
   Infinite_set A -> has_upper_bound A -> has_lower_bound A ->

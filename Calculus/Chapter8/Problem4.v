@@ -6,16 +6,16 @@ Lemma lemma_8_4_a : ∀ f a b x0,
   x0 ∈ [a, b] ->
   f x0 > 0 ->
   ∃ c d, a <= c < x0 < d <= b /\
-  f c = f d = 0 /\ ∀ x, x ∈ (c, d) -> f x > 0.
-Proof.
-Abort.
+  f c = f d = 0 /\
+  ∀ x, x ∈ (c, d) -> f x > 0.
+Proof. Abort.
 
 Lemma lemma_8_4_b : ∀ f a b,
   continuous_on f [a, b] ->
   a < b ->
   f a < f b ->
-  ∃ c d, a <= c < d <= b ->
-  f c = f a /\ f d = f b /\
-  ∀ x, c < x < d -> f a < f x < f b.
-Proof. 
-Abort.
+  ∃ c d, a <= c < d <= b /\
+  f c = f a /\
+  f d = f b /\
+  ∀ x, c < x < d -> f a < f x < f d.
+Proof. Abort.

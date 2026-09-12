@@ -4,7 +4,9 @@ Lemma lemma_9_29 : forall n f,
   (0 < n)%nat ->
   (forall x, x >= 0 -> f x = x^n) ->
   (forall x, x <= 0 -> f x = 0) ->
-  nth_differentiable (n - 1) f /\ ~ nth_differentiable_at n f 0.
+  ⟦ der ^ (n - 1) ⟧ f =
+    (fun x => if Rle_dec 0 x then INR (fact n) * x else 0) /\
+  ~ nth_differentiable_at n f 0.
 Proof.
   intros n f H1 H2 H3.
 

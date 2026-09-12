@@ -1,6 +1,6 @@
 From Calculus.Chapter8 Require Import Prelude.
 
-Lemma lemma_8_16 : ∀ f a b,
+Lemma lemma_8_16_a : ∀ f a b,
   ¬ bounded_on f [a, b] ->
   ¬ bounded_on f [a, (a + b)/2] \/ 
   ¬ bounded_on f [(a + b)/2, b].
@@ -18,3 +18,10 @@ Proof.
     ]; 
   solve_R.
 Qed.
+
+Lemma lemma_8_16_b : ∀ f a b,
+  a < b ->
+  continuous_on f [a, b] ->
+  bounded_on f [a, b].
+Proof.
+Abort.

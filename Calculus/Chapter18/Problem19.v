@@ -1,6 +1,10 @@
 From Calculus.Chapter18 Require Import Prelude.
 
-(* Problem 19: (a) Let f(x) = \log|x| for x \ne 0. Prove that f'(x) = 1/x for x \ne 0. 
-   (b) If f(x) \ne 0 for all x, prove that (\log|f|)' = f'/f. *)
-Lemma problem_18_19_a : forall x, x <> 0 -> ⟦ der ⟧ (fun x => log (Rabs x)) x = 1 / x. Abort.
-Lemma problem_18_19_b : forall f x, f x <> 0 -> ⟦ der ⟧ (fun x => log (Rabs (f x))) x = ⟦ der ⟧ f x / f x. Abort.
+(* One dollar, annual percentage rate a, compounded k times per year. *)
+Definition compounded_amount (a : R) (k : nat) :=
+  (1 + a / (100 * k)) ^ k.
+
+Lemma lemma_18_19 : ∀ a, 0 <= a ->
+  is_lub (λ y, ∃ k : nat, (0 < k)%nat /\ y = compounded_amount a k)
+    (exp (a / 100)).
+Abort.

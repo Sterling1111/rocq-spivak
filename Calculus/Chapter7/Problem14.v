@@ -7,34 +7,109 @@ Definition norm (f : ℝ -> ℝ) : ℝ :=
 
 Notation "‖ f ‖" := (norm f) (at level 35, format "‖ f ‖").
 
-Lemma norm_spec : forall f x,
-  continuous_on f [0, 1] -> x ∈ [0, 1] -> |f x| <= ‖ f ‖.
+Lemma norm_spec_full : forall f,
+  continuous_on f [0, 1] ->
+  (forall x, x ∈ [0, 1] -> |f x| <= ‖ f ‖) /\
+  (forall M, (forall x, x ∈ [0, 1] -> |f x| <= M) -> ‖ f ‖ <= M).
 Proof.
-  intros f x H1 H2. unfold norm.
-  assert (H3 : exists M, forall x0, x0 ∈ [0, 1] -> |f x0| <= M).
+  intros f H1. unfold norm.
+
+  assert (H2 : exists M, forall x, x ∈ [0, 1] -> |f x| <= M).
   {
-    assert (H4 : 0 < 1) by solve_R.
-    pose proof (continuous_on_interval_bounded_below_le f 0 1 H4 H1) as [M1 H5].
-    pose proof (continuous_on_interval_bounded_below_ge f 0 1 H4 H1) as [M2 H6].
+    assert (H3 : 0 < 1) by solve_R.
+    pose proof
+      (continuous_on_interval_bounded_below_le f 0 1 H3 H1)
+      as [M1 H4].
+    pose proof
+      (continuous_on_interval_bounded_below_ge f 0 1 H3 H1)
+      as [M2 H5].
+
     exists (Rmax (|M1|) (|M2|)).
-    intros x0 H7.
-    specialize (H5 x0 H7).
-    specialize (H6 x0 H7).
+    intros x H6.
+    specialize (H4 x H6).
+    specialize (H5 x H6).
     solve_R.
   }
-  destruct H3 as [M H3].
-  set (A := fun y => exists x0, x0 ∈ [0, 1] /\ y = |f x0|).
-  assert (H4 : has_upper_bound A).
-  { exists M. intros y H4. destruct H4 as [x0 [H5 H6]]. rewrite H6. apply H3. exact H5. }
-  assert (H5 : A ≠ ∅).
-  { apply not_Empty_In. exists (|f 0|). exists 0. split; [solve_R | reflexivity]. }
-  destruct (completeness_upper_bound A H4 H5) as [M' [H6 H7]].
-  assert (H8 : exists M0, (forall x0, x0 ∈ [0, 1] -> | f x0 | <= M0) /\ (forall M1, (forall x0, x0 ∈ [0, 1] -> | f x0 | <= M1) -> M0 <= M1)).
-  { exists M'. split.
-    - intros x0 H8. apply H6. exists x0. split; [exact H8 | reflexivity].
-    - intros M0 H8. apply H7. intros y H9. destruct H9 as [x0 [H10 H11]]. rewrite H11. apply H8. exact H10. }
-  pose proof (epsilon_spec (inhabits 0) _ H8) as [H9 H10].
-  apply H9. exact H2.
+
+  destruct H2 as [M H2].
+
+  set (A := fun y => exists x, x ∈ [0, 1] /\ y = |f x|).
+
+  assert (H3 : has_upper_bound A).
+  {
+    exists M.
+    intros y [x [H4 H5]].
+    rewrite H5.
+    apply H2.
+    exact H4.
+  }
+
+  assert (H4 : A ≠ ∅).
+  {
+    apply not_Empty_In.
+    exists (|f 0|).
+    exists 0.
+    split; [solve_R | reflexivity].
+  }
+
+  destruct (completeness_upper_bound A H3 H4) as [M' [H5 H6]].
+
+  assert (H7 :
+    exists M0,
+      (forall x, x ∈ [0, 1] -> |f x| <= M0) /\
+      (forall M1,
+        (forall x, x ∈ [0, 1] -> |f x| <= M1) ->
+        M0 <= M1)).
+  {
+    exists M'.
+    split.
+
+    - intros x H7.
+      apply H5.
+      exists x.
+      split; [exact H7 | reflexivity].
+
+    - intros M0 H7.
+      apply H6.
+      intros y [x [H8 H9]].
+      rewrite H9.
+      apply H7.
+      exact H8.
+  }
+
+  exact (epsilon_spec (inhabits 0) _ H7).
+Qed.
+
+Lemma norm_spec : forall f x,
+  continuous_on f [0, 1] ->
+  x ∈ [0, 1] ->
+  |f x| <= ‖ f ‖.
+Proof.
+  intros f x H1 H2.
+  destruct (norm_spec_full f H1) as [H3 _].
+  apply H3.
+  exact H2.
+Qed.
+
+Lemma norm_least : forall f M,
+  continuous_on f [0, 1] ->
+  (forall x, x ∈ [0, 1] -> |f x| <= M) ->
+  ‖ f ‖ <= M.
+Proof.
+  intros f M H1 H2.
+  destruct (norm_spec_full f H1) as [_ H3].
+  apply H3.
+  exact H2.
+Qed.
+
+Lemma norm_nonneg : forall f,
+  continuous_on f [0, 1] ->
+  0 <= ‖ f ‖.
+Proof.
+  intros f H1.
+  pose proof (norm_spec f 0 H1 ltac:(solve_R)) as H2.
+  pose proof (Rabs_pos (f 0)) as H3.
+  lra.
 Qed.
 
 Lemma lemma_7_14_a : forall f c,

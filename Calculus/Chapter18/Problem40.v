@@ -1,5 +1,6 @@
 From Calculus.Chapter18 Require Import Prelude.
 
-Lemma lemma_18_40 : forall x,
-  x > 0 -> exp x = 1 + x + x^2 / 2 + sum_f_R0 (fun k => x^k / INR (fact k)) 3.
+Lemma lemma_18_40 : ∀ f,
+  f 0 = 0 -> (∀ x, x <> 0 -> f x = exp (-1 / x^2)) ->
+  ∀ k : nat, ⟦ der ^ k 0 ⟧ f = (λ _, 0).
 Abort.

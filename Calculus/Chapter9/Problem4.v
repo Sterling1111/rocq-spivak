@@ -4,7 +4,7 @@ Open Scope R_scope.
 
 Lemma limit_sum_h : forall m n c,
   (m <= n)%nat ->
-  ⟦ lim 0 ⟧ (fun h => sum_f m n (fun j => c j * h ^ (j - m))) = c m.
+  ⟦ lim 0 ⟧ (fun h => sum_f m n (fun j => c j * h ^ (j - m))) = c m. \sig
 Proof.
   intros m n. revert m.
   induction n as [| n' IH].

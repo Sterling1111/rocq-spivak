@@ -4,13 +4,13 @@ Lemma lemma_8_17_a : ∀ a,
   let A := (fun x => x < a) in
   (∀ x y, x ∈ A -> y < x -> y ∈ A) /\
   (A ≠ ∅) /\
-  (A ≠ (fun x => True)) /\
+  (A ≠ (Full_set R)) /\
   (∀ x, x ∈ A -> ∃ x', x' ∈ A /\ x < x').
 Proof.
   intros a A. repeat split.
   - intros x y H1 H2. unfold A in *; solve_R.
   - apply not_Empty_In. exists (a - 1); unfold A; solve_R.
-  - intros H1. assert (H2 : a ∈ A). { rewrite H1. exact I. }
+  - intros H1. assert (H2 : a ∈ A). { rewrite H1. apply Full_intro. }
     unfold A in *; solve_R.
   - intros x H1. exists ((x + a) / 2). unfold A in *; solve_R.
 Qed.
