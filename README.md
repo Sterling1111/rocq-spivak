@@ -8,9 +8,9 @@ The project develops textbook-style definitions of limits, continuity, derivativ
 
 ## Exercise progress
 
-As of September 12, 2026, **653 problems have substantive formal statements**, and **323 of those have completed proofs**. The remaining **330 stated problems** have unfinished proofs or placeholder parts.
+As of September 13, 2026, **624 problems have substantive formal statements**, and **323 of those have completed proofs**. The remaining **301 stated problems** have unfinished proofs or placeholder parts.
 
-Counts cover `Calculus/Chapter*/Problem*.v`, including appendix problems, with each file counted once regardless of its number of subparts. A problem counts as stated when it contains at least one non-placeholder lemma or theorem statement, including statements followed by `Abort` or `Admitted`. Statements whose conclusion is just `True` are excluded. Of the 690 problem files, 37 contain only placeholders, imports, definitions, or plots and do not count as stated problems. The shared library and `ATTAM/` are outside these counts.
+Counts cover `Calculus/Chapter*/Problem*.v`, including appendix problems, with each file counted once regardless of its number of subparts. A problem counts as stated when it contains at least one non-placeholder lemma or theorem statement, including statements followed by `Abort` or `Admitted`. Statements whose conclusion is just `True` are excluded. Of the 647 problem files, 23 contain only placeholders, imports, definitions, or plots and do not count as stated problems. The shared library and `ATTAM/` are outside these counts.
 
 A problem counts as completed when its statements have proofs closed with `Qed` or `Defined`, with no placeholder statements, `Admitted`, `Abort`, `admit`, or local axiom/parameter declarations in the file. Comments are ignored. These are source-level counts of the parts currently present; they do not certify coverage of every textbook subpart or the absence of assumptions in imported dependencies.
 
@@ -19,7 +19,6 @@ A problem counts as completed when its statements have proofs closed with `Qed` 
 | 1 | 25 | 24 |
 | 2 | 26 | 26 |
 | 3 | 28 | 25 |
-| 4 (including appendices) | 29 | 0 |
 | 5 | 36 | 31 |
 | 6 | 16 | 15 |
 | 7 | 18 | 16 |
@@ -39,19 +38,20 @@ A problem counts as completed when its statements have proofs closed with `Qed` 
 | 23 | 30 | 0 |
 | 24 | 25 | 0 |
 | 28 | 1 | 1 |
-| **Total** | **653** | **323** |
+| **Total** | **624** | **323** |
 
 ## Explore the mathematics
 
 | Topic | Starting points |
 | --- | --- |
-| Real numbers, sets, and completeness | [Reals_util.v](Lib/Reals_util.v), [Sets.v](Lib/Sets.v), [Completeness.v](Lib/Completeness.v) |
+| Real numbers, sets, and completeness | [Real.v](Lib/Real.v), [Reals_util.v](Lib/Reals_util.v), [Sets.v](Lib/Sets.v), [Completeness.v](Lib/Completeness.v) |
 | Limits and continuity | [Limit.v](Lib/Limit.v), [Continuity.v](Lib/Continuity.v) |
 | Derivatives, Rolle’s theorem, and the mean value theorem | [Derivative.v](Lib/Derivative.v) |
 | Partitions, integration, and the fundamental theorem of calculus | [Partition.v](Lib/Partition.v), [Integral.v](Lib/Integral.v) |
 | Sequences, series, and Taylor’s theorem | [Sequence.v](Lib/Sequence.v), [Series.v](Lib/Series.v), [Taylor.v](Lib/Taylor.v) |
 | Trigonometric and exponential functions | [Trigonometry.v](Lib/Trigonometry.v), [Exponential.v](Lib/Exponential.v) |
 | Complex numbers and complex analysis | [Complex.v](Lib/Complex.v), [ComplexFunctions.v](Lib/ComplexFunctions.v) |
+| Vectors and matrices, as lists and coordinate functions | [Guide](Lib/LinearAlgebra.md), [FunctionalVector.v](Lib/FunctionalVector.v), [FunctionalMatrix.v](Lib/FunctionalMatrix.v), [examples](Lib/VectorMatrixExamples.v) |
 | Exercise proofs | [Calculus/](Calculus/), [ATTAM/](ATTAM/) |
 
 The notation follows the textbook where practical. For example, the two parts of the fundamental theorem of calculus are stated in `Lib/Integral.v` as:
@@ -172,6 +172,8 @@ Proof. auto_limit. Qed.
 
 The calculus tactics combine proof by reflection with Ltac automation: they reify supported expressions into an `expr` syntax tree, compute over that representation, and apply proved correctness lemmas such as `derive_correct` and `cont_correct`. For example, `auto_diff` computes a symbolic derivative with `derive_expr` and uses its correctness theorem to reduce the goal to domain conditions and algebraic equalities. Rocq’s kernel checks the resulting proofs.
 
+For vector and matrix equality, `auto_vec` / `solve_vec` and `auto_mat` / `solve_mat` handle concrete entries and symbolic algebra. Import `FunctionalMatrix` to use them with both list and functional representations. See the [linear algebra guide](Lib/LinearAlgebra.md#equality-solvers) for examples, supported rules, and the `vec_simpl` / `mat_simpl` tactics for exposing coordinate goals.
+
 Proof search and the automation for side conditions are heuristic, so some goals may require subsequent proof steps. `solve_R` closes goals it can solve and otherwise leaves them unchanged; use `solve [solve_R]` when complete success is required.
 
 `auto_int` asks a persistent Python/SymPy worker for an antiderivative, then checks the required continuity, derivative, and endpoint obligations in Rocq. Cached candidates still go through proof checking. The worker can be configured with:
@@ -186,11 +188,14 @@ Proof search and the automation for side conditions are heuristic, so some goals
 
 [`Lib/RealTactics.v`](Lib/RealTactics.v) provides arithmetic automation for the
 custom `Real` type from `Lib/Real.v`. Import it and open `Real_scope` to use
-integer numerals, fractions, and natural-number powers:
+integer and decimal numerals, fractions, and natural-number powers:
 
 ```coq
 From Lib Require Import RealTactics.
 Open Scope Real_scope.
+
+Example decimal_sum : 1.23 + 2.56 = 3.79.
+Proof. real_lra. Qed.
 
 Example linear_bound : forall x : Real, 2 * x + 3 < 7 -> x < 2.
 Proof. real_lra. Qed.
@@ -210,12 +215,13 @@ checked by Rocq. They fail without changing the goal if they cannot solve it.
 Use `real_to_R` to expose the translated goal for further manual tactics.
 The existing `ring` and `field` tactics also remain available.
 
+Decimal literals are exact: `1.23` embeds the rational `123/100`, with no
+floating-point rounding. Scientific notation such as `1.23e-2` is also supported.
+The literals `0` and `1` still use the original `Rzero` and `Rone` definitions.
 `Real_of_Q (1#2)%Q` embeds an exact rational; `(1 / 2)%Real` uses the custom
 field operations. This is symbolic proof automation, not a decimal evaluator
 for arbitrary cuts, whose definitions use classical choice. Nonlinear proof
 search is incomplete, and division identities can require nonzero hypotheses.
-
-Run `make test-real` to check the examples and solver regression tests.
 
 ## Compatibility with other libraries
 
@@ -231,7 +237,7 @@ Calculus/     Spivak exercises organized by chapter and problem
 ATTAM/        Companion exercise developments
 src/          OCaml plugins, SymPy worker, and C++ simplex helper
 _CoqProject   Logical paths, compiler options, and default build inputs
-Makefile.local  Additional build rules for plots and development targets
+Makefile.local  Additional build rules for plots
 ```
 
 ## Contributing

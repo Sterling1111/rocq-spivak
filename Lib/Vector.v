@@ -132,13 +132,15 @@ Ltac auto_op :=
   try lra; try nra; try lia; try reflexivity.
 
 Ltac auto_vec_core :=
-  repeat (try apply vector_eq; try simpl in *; try f_equal; 
-          try unfold add in *; try unfold mul in *; 
-          try unfold vector_dot in *; try unfold scale in *;
-          try unfold Add_R in *; try unfold Mul_R in *; 
-          try unfold Scale_R in *; try unfold Add_nat in *; 
-          try unfold Mul_nat in *; try unfold Scale_nat in *; 
-          auto_op).
+  repeat first
+    [ progress (cbv beta iota zeta delta
+        [add mul scale vector_dot vector_fold vector_map2 vector_map
+         Add_Vector Mul_Vector Scale_Vector Add_R Mul_R Scale_R
+         Add_nat Mul_nat Scale_nat] in *)
+    | progress simpl in *
+    | apply vector_eq
+    | match goal with |- @eq (list _) (_ :: _) (_ :: _) => f_equal end
+    | solve [auto_op] ].
 
 Ltac auto_vec :=
   solve [ auto_op | auto_vec_core ].
@@ -274,3 +276,166 @@ Proof.
 Qed.
 
 End Vector_Theorems.
+
+(** A proof-independent coordinate accessor for rewriting symbolic expressions. *)
+Definition vector_coord {A n} `{Zero A} (v : vector A n) (i : nat) : A :=
+  List.nth i (vlist v) zero.
+
+Lemma vector_coord_ext {A n} `{Zero A} (v w : vector A n) :
+  (forall i, (i < n)%nat -> vector_coord v i = vector_coord w i) -> v = w.
+Proof.
+  destruct v as [v Hv], w as [w Hw]. intros Hcoord.
+  apply vector_ext. intros i Hi. exact (Hcoord i Hi).
+Qed.
+
+Lemma vector_empty_eq {A} (v w : vector A 0) : v = w.
+Proof.
+  destruct v as [v Hv], w as [w Hw]. apply vector_eq. simpl.
+  destruct v, w; simpl in *; congruence.
+Qed.
+
+Lemma vector_coord_map {A B n} `{Zero A} `{Zero B} (f : A -> B) (v : vector A n) i :
+  (i < n)%nat -> vector_coord (vector_map f v) i = f (vector_coord v i).
+Proof.
+  destruct v as [l Hl]. unfold vector_coord, vector_map. simpl.
+  subst n. revert i. induction l as [|x xs IH]; intros [|i] Hi; simpl in *; try lia; auto.
+  apply IH. lia.
+Qed.
+
+Lemma vector_coord_map2 {A B C n} `{Zero A} `{Zero B} `{Zero C}
+    (f : A -> B -> C) (v : vector A n) (w : vector B n) i :
+  (i < n)%nat -> vector_coord (vector_map2 f v w) i = f (vector_coord v i) (vector_coord w i).
+Proof.
+  destruct v as [v Hv], w as [w Hw]. unfold vector_coord, vector_map2. simpl.
+  subst n. revert w Hw i. induction v as [|x xs IH]; intros [|y ys] Hw [|i] Hi;
+    simpl in *; try lia; auto.
+  apply IH; lia.
+Qed.
+
+Lemma vector_coord_zero {A n} `{Zero A} i :
+  vector_coord (zero : vector A n) i = (zero : A).
+Proof.
+  unfold vector_coord, zero, Zero_Vector. simpl.
+  revert i. induction n; intros [|i]; simpl; auto.
+Qed.
+
+Lemma vector_coord_add {A n} `{Zero A} `{Add A} (v w : vector A n) i :
+  (i < n)%nat -> vector_coord (add v w) i = add (vector_coord v i) (vector_coord w i).
+Proof. apply vector_coord_map2. Qed.
+
+Lemma vector_coord_mul {A n} `{Zero A} `{Mul A} (v w : vector A n) i :
+  (i < n)%nat -> vector_coord (mul v w) i = mul (vector_coord v i) (vector_coord w i).
+Proof. apply vector_coord_map2. Qed.
+
+Lemma vector_coord_scale {S A n} `{Zero A} `{Scale S A} (s : S) (v : vector A n) i :
+  (i < n)%nat -> vector_coord (scale s v) i = scale s (vector_coord v i).
+Proof. apply vector_coord_map. Qed.
+
+Create HintDb vector_coords.
+#[export] Hint Rewrite @vector_coord_zero : vector_coords.
+#[export] Hint Rewrite @vector_coord_add @vector_coord_mul @vector_coord_scale
+  @vector_coord_map @vector_coord_map2 using solve [lia] : vector_coords.
+
+(** Extensions supplied by the functional representation are tried without
+    introducing a dependency from this list library back to that representation. *)
+Ltac vector_solver_extension := fail.
+
+Ltac linear_scalar :=
+  cbv beta iota zeta delta [add mul scale zero one Add_R Mul_R Scale_R Zero_R One_R
+    Add_nat Mul_nat Scale_nat Zero_nat One_nat] in *;
+  solve [reflexivity | assumption | ring | congruence | eauto 3 | lra | nra | lia | solve_R].
+
+Ltac vector_coords_simpl :=
+  repeat first [progress autorewrite with vector_coords
+               | rewrite vector_coord_map by lia
+               | rewrite vector_coord_map2 by lia].
+
+(** [vec_simpl] leaves coordinate goals available for manual proof. *)
+Ltac vec_simpl :=
+  vector_coords_simpl;
+  repeat first
+    [ apply vector_empty_eq
+    | apply vector_coord_ext; let i := fresh "i" in let Hi := fresh "Hi" in
+      intros i Hi; vector_coords_simpl ].
+
+Ltac solve_vec :=
+  solve [intros;
+    first [solve [vector_solver_extension]
+          | solve [vec_simpl; linear_scalar]
+          | solve [auto_op | auto_vec_core]]].
+
+Ltac auto_vec ::= solve_vec.
+
+Lemma vector_scale_zero_R {n} (v : vector R n) : scale 0%R v = zero.
+Proof. solve_vec. Qed.
+
+Lemma vector_scale_one_R {n} (v : vector R n) : scale 1%R v = v.
+Proof. solve_vec. Qed.
+
+Lemma vector_scale_add_R {n} (a b : R) (v : vector R n) :
+  scale (a + b)%R v = add (scale a v) (scale b v).
+Proof. solve_vec. Qed.
+
+Lemma vector_scale_distr_R {n} (a : R) (v w : vector R n) :
+  scale a (add v w) = add (scale a v) (scale a w).
+Proof. solve_vec. Qed.
+
+Lemma vector_scale_assoc_R {n} (a b : R) (v : vector R n) :
+  scale a (scale b v) = scale (a * b)%R v.
+Proof. solve_vec. Qed.
+
+Lemma vector_dot_distr_l_R {n} (u v w : vector R n) :
+  vector_dot (add u v) w = (vector_dot u w + vector_dot v w)%R.
+Proof. rewrite vector_dot_comm_R, vector_dot_distr_R. unfold add, Add_R. f_equal; apply vector_dot_comm_R. Qed.
+
+Lemma vector_dot_scale_l_R {n} (a : R) (v w : vector R n) :
+  vector_dot (scale a v) w = (a * vector_dot v w)%R.
+Proof.
+  destruct v as [v Hv], w as [w Hw].
+  unfold vector_dot, vector_fold, vector_map2, scale, Scale_Vector, vector_map.
+  cbv beta iota zeta delta [vlist add Add_R mul Mul_R scale Scale_R zero Zero_R].
+  subst n. revert w Hw. induction v as [|x xs IH]; intros [|y ys] Hw; simpl in *; try discriminate.
+  - ring.
+  - rewrite IH by lia. ring.
+Qed.
+
+Lemma vector_dot_scale_r_R {n} (a : R) (v w : vector R n) :
+  vector_dot v (scale a w) = (a * vector_dot v w)%R.
+Proof. rewrite vector_dot_comm_R, vector_dot_scale_l_R, (vector_dot_comm_R w v). reflexivity. Qed.
+
+Lemma vector_dot_zero_l_R {n} (v : vector R n) : vector_dot zero v = 0%R.
+Proof.
+  rewrite <- (vector_scale_zero_R v), vector_dot_scale_l_R. ring.
+Qed.
+
+Lemma vector_dot_zero_r_R {n} (v : vector R n) : vector_dot v zero = 0%R.
+Proof. rewrite vector_dot_comm_R. apply vector_dot_zero_l_R. Qed.
+
+Lemma vector_dot_empty_R (v w : vector R 0) : vector_dot v w = 0%R.
+Proof. rewrite (vector_empty_eq v zero). apply vector_dot_zero_l_R. Qed.
+
+Create HintDb vector_algebra.
+#[export] Hint Rewrite @vector_dot_distr_R @vector_dot_distr_l_R
+  @vector_dot_scale_l_R @vector_dot_scale_r_R @vector_dot_zero_l_R @vector_dot_zero_r_R
+  vector_dot_empty_R
+  : vector_algebra.
+
+Ltac vector_dot_symmetry :=
+  repeat match goal with
+  | |- context [@vector_dot R ?n Add_R Mul_R Zero_R ?v ?w] =>
+      first [constr_eq v w; fail 1 |
+        match goal with
+        | |- context [@vector_dot R n Add_R Mul_R Zero_R w v] =>
+            replace (vector_dot v w) with (vector_dot w v) by apply vector_dot_comm_R
+        end]
+  end.
+
+Ltac solve_vec ::=
+  solve [intros;
+    first [solve [reflexivity | assumption]
+          | solve [vector_solver_extension]
+          | solve [autorewrite with vector_algebra; vector_dot_symmetry;
+              vec_simpl; linear_scalar]
+          | solve [unfold vector_norm; f_equal;
+              autorewrite with vector_algebra; vector_dot_symmetry; linear_scalar]
+          | solve [auto_op | auto_vec_core; linear_scalar]]].

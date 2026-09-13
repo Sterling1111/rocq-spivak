@@ -6,18 +6,15 @@ Delimit Scope Real_scope with Real.
 Bind Scope Real_scope with Real.
 Open Scope Real_scope.
 
-(* Numerals denote cuts exactly; they do not evaluate a cut's choice functions. *)
 Definition Real_of_Z (z : Z) : Real := cut_of_R (IZR z).
 Definition Real_of_Q (q : Q) : Real := cut_of_R (Q2R q).
 
-Module RealNumerals.
-  Inductive numeral := of_Z : Z -> numeral.
-  Definition parse (z : Z) : numeral := of_Z z.
-  Definition print (n : numeral) : Z := match n with of_Z z => z end.
-End RealNumerals.
-
-Number Notation Real RealNumerals.parse RealNumerals.print
-  (via RealNumerals.numeral mapping [Real_of_Z => RealNumerals.of_Z]) : Real_scope.
+Number Notation Real Rdefinitions.of_number Rdefinitions.to_number
+  (via Rdefinitions.IR
+   mapping [Real_of_Z => Rdefinitions.IRZ, Real_of_Q => Rdefinitions.IRQ,
+            Real.Rmult => Rdefinitions.IRmult, Real.Rdiv => Rdefinitions.IRdiv,
+            Z.pow_pos => QArith_base.IZpow_pos, Z0 => QArith_base.IZ0,
+            Zpos => QArith_base.IZpos, Zneg => QArith_base.IZneg]) : Real_scope.
 
 Fixpoint Real_pow (a : Real) (n : nat) : Real :=
   match n with
@@ -39,7 +36,6 @@ Lemma cut_value_eq : forall a b : Real,
   a = b <-> cut_value a = cut_value b.
 Proof. split; [intros ->; reflexivity|apply cut_value_injective]. Qed.
 
-(* Total inversion also covers /0, so transfer never drops a side condition. *)
 Lemma cut_value_inv_total : forall a,
   cut_value (/a) = (/ cut_value a)%R.
 Proof.
@@ -81,17 +77,33 @@ Proof. intros a b. apply cut_field_gt. Qed.
   cut_value_of_R : real_transfer.
 #[export] Hint Rewrite Rinv_0 Rinv_1 : real_transfer.
 
-(* This tactic exposes the standard-real goal for further manual tactics.
-   The solving tactics below are atomic: failure preserves the original goal. *)
 Ltac real_to_R :=
   intros;
   unfold Ensembles.In, Real.P in *;
   autorewrite with real_order in *;
   unfold Real.Rgt, Real.Rge, Real.Rminus, Real.Rdiv in *;
-  autorewrite with real_transfer in *.
+  autorewrite with real_transfer in *;
+  cbn [Q2R Qnum Qden] in *.
 
 Ltac real_lra := solve [real_to_R; Lra.lra].
 Ltac real_nra := solve [real_to_R; Lra.nra].
 Ltac real_field := solve [real_to_R; field; repeat split; Lra.nra].
 Ltac solve_real := solve [real_to_R;
   solve [Lra.lra | Lra.nra | field; repeat split; Lra.nra | solve_R]].
+
+Close Scope R_scope.
+Open Scope Real_scope.
+
+Example decimal_sum :
+  123 / 100 + 256 / 100 = 379 / 100.
+Proof. real_lra. Qed.
+
+Example decimal_sum' : 1.2 + 2.3 = 3.5.
+Proof.
+  real_lra.
+Qed.
+
+Example real_divide : 6 / 3 = 2.
+Proof.
+  real_lra.
+Qed.

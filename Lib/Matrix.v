@@ -571,3 +571,198 @@ Section Matrix_Coercion.
   Qed.
 
 End Matrix_Coercion.
+
+(** Rewrite entries without exposing the list representation. *)
+Lemma vector_coord_init {A n} `{Zero A} (f : nat -> A) i :
+  (i < n)%nat -> vector_coord (@vector_init A n f) i = f i.
+Proof. apply vector_init_nth. Qed.
+
+Lemma vector_coord_const {A n} `{Zero A} (a : A) i :
+  (i < n)%nat -> vector_coord (vector_const a n) i = a.
+Proof. apply vector_const_nth. Qed.
+
+Lemma matrix_coord_transpose {A m n} `{Zero A} (M : matrix A m n) i j :
+  (i < n)%nat -> (j < m)%nat ->
+  vector_coord (vector_coord (matrix_transpose M) i) j = vector_coord (vector_coord M j) i.
+Proof.
+  intros Hi Hj. unfold matrix_transpose. rewrite vector_coord_init by lia.
+  unfold get_col. rewrite vector_coord_map by lia. reflexivity.
+Qed.
+
+#[export] Hint Rewrite @matrix_coord_transpose @vector_coord_init @vector_coord_const
+  using solve [lia] : vector_coords.
+
+Lemma mat_nth_coord {m n} (M : matrix R m n) i j :
+  mat_nth M i j = vector_coord (vector_coord M i) j.
+Proof. reflexivity. Qed.
+
+Lemma mat_nth_add {m n} (M N : matrix R m n) i j :
+  (i < m)%nat -> (j < n)%nat ->
+  mat_nth (add M N) i j = (mat_nth M i j + mat_nth N i j)%R.
+Proof. intros Hi Hj. rewrite !mat_nth_coord. autorewrite with vector_coords. reflexivity. Qed.
+
+Lemma mat_nth_mul {m n} (M N : matrix R m n) i j :
+  (i < m)%nat -> (j < n)%nat ->
+  mat_nth (mul M N) i j = (mat_nth M i j * mat_nth N i j)%R.
+Proof. intros Hi Hj. rewrite !mat_nth_coord. autorewrite with vector_coords. reflexivity. Qed.
+
+Lemma mat_nth_scale {m n} (a : R) (M : matrix R m n) i j :
+  (i < m)%nat -> (j < n)%nat -> mat_nth (scale a M) i j = (a * mat_nth M i j)%R.
+Proof. intros Hi Hj. rewrite !mat_nth_coord. autorewrite with vector_coords. reflexivity. Qed.
+
+Lemma mat_nth_identity {n} i j :
+  (i < n)%nat -> (j < n)%nat ->
+  mat_nth (@identity_matrix R n Zero_R One_R) i j = (if Nat.eqb i j then 1 else 0)%R.
+Proof.
+  intros Hi Hj. unfold mat_nth, identity_matrix. rewrite !vector_init_nth by lia. reflexivity.
+Qed.
+
+Create HintDb matrix_coords.
+#[export] Hint Rewrite @mat_nth_add @mat_nth_mul @mat_nth_scale
+  @matrix_transpose_nth @mat_nth_zero @vec_to_col_nth using solve [lia] : matrix_coords.
+
+Lemma mat_sum_add n f g :
+  mat_sum n (fun i => (f i + g i)%R) = (mat_sum n f + mat_sum n g)%R.
+Proof.
+  revert f g. induction n; intros f g; [simpl; ring |].
+  rewrite !mat_sum_S, IHn. ring.
+Qed.
+
+Lemma mat_sum_delta n k f :
+  (k < n)%nat -> mat_sum n (fun i => if Nat.eqb i k then f i else 0%R) = f k.
+Proof.
+  revert k f. induction n as [|n IH]; intros [|k] f Hk; try lia.
+  - rewrite mat_sum_S. simpl.
+    rewrite mat_sum_zero_const. ring.
+  - rewrite mat_sum_S. simpl. rewrite IH by lia. ring.
+Qed.
+
+Lemma matrix_mult_add_l_R {m n p} (A B : matrix R m n) (C : matrix R n p) :
+  matrix_mult (add A B) C = add (matrix_mult A C) (matrix_mult B C).
+Proof.
+  apply matrix_ext. intros i j Hi Hj. rewrite mat_nth_add, !matrix_mult_nth by lia.
+  rewrite <- mat_sum_add. apply mat_sum_ext. intros k Hk.
+  rewrite mat_nth_add by lia. ring.
+Qed.
+
+Lemma matrix_mult_add_r_R {m n p} (A : matrix R m n) (B C : matrix R n p) :
+  matrix_mult A (add B C) = add (matrix_mult A B) (matrix_mult A C).
+Proof.
+  apply matrix_ext. intros i j Hi Hj. rewrite mat_nth_add, !matrix_mult_nth by lia.
+  rewrite <- mat_sum_add. apply mat_sum_ext. intros k Hk.
+  rewrite mat_nth_add by lia. ring.
+Qed.
+
+Lemma matrix_mult_scale_l_R {m n p} (a : R) (A : matrix R m n) (B : matrix R n p) :
+  matrix_mult (scale a A) B = scale a (matrix_mult A B).
+Proof.
+  apply matrix_ext. intros i j Hi Hj. rewrite mat_nth_scale, !matrix_mult_nth by lia.
+  rewrite <- mat_sum_mul_l. apply mat_sum_ext. intros k Hk.
+  rewrite mat_nth_scale by lia. ring.
+Qed.
+
+Lemma matrix_mult_scale_r_R {m n p} (a : R) (A : matrix R m n) (B : matrix R n p) :
+  matrix_mult A (scale a B) = scale a (matrix_mult A B).
+Proof.
+  apply matrix_ext. intros i j Hi Hj. rewrite mat_nth_scale, !matrix_mult_nth by lia.
+  rewrite <- mat_sum_mul_l. apply mat_sum_ext. intros k Hk.
+  rewrite mat_nth_scale by lia. ring.
+Qed.
+
+Lemma matrix_mult_zero_l_R {m n p} (A : matrix R n p) :
+  matrix_mult (zero : matrix R m n) A = zero.
+Proof.
+  apply matrix_ext. intros i j Hi Hj. rewrite mat_nth_zero, matrix_mult_nth by lia.
+  rewrite <- (mat_sum_zero_const n). apply mat_sum_ext. intros k Hk.
+  rewrite mat_nth_zero by lia. ring.
+Qed.
+
+Lemma matrix_mult_zero_r_R {m n p} (A : matrix R m n) :
+  matrix_mult A (zero : matrix R n p) = zero.
+Proof.
+  apply matrix_ext. intros i j Hi Hj. rewrite mat_nth_zero, matrix_mult_nth by lia.
+  rewrite <- (mat_sum_zero_const n). apply mat_sum_ext. intros k Hk.
+  rewrite mat_nth_zero by lia. ring.
+Qed.
+
+Lemma matrix_mult_empty_R {m p} (A : matrix R m 0) (B : matrix R 0 p) :
+  matrix_mult A B = zero.
+Proof.
+  apply matrix_ext. intros i j Hi Hj. rewrite matrix_mult_nth, mat_nth_zero by lia. reflexivity.
+Qed.
+
+Lemma matrix_identity_l_R {m n} (A : matrix R m n) : matrix_mult identity_matrix A = A.
+Proof.
+  apply matrix_ext. intros i j Hi Hj. rewrite matrix_mult_nth by lia.
+  rewrite <- (mat_sum_delta m i (fun k => mat_nth A k j) Hi).
+  apply mat_sum_ext. intros k Hk. rewrite mat_nth_identity by lia.
+  rewrite Nat.eqb_sym. destruct (Nat.eqb k i); ring.
+Qed.
+
+Lemma matrix_identity_r_R {m n} (A : matrix R m n) : matrix_mult A identity_matrix = A.
+Proof.
+  apply matrix_ext. intros i j Hi Hj. rewrite matrix_mult_nth by lia.
+  rewrite <- (mat_sum_delta n j (fun k => mat_nth A i k) Hj).
+  apply mat_sum_ext. intros k Hk. rewrite mat_nth_identity by lia.
+  destruct (Nat.eqb k j); ring.
+Qed.
+
+Lemma matrix_transpose_twice_R {m n} (A : matrix R m n) :
+  matrix_transpose (matrix_transpose A) = A.
+Proof. apply matrix_ext. intros i j Hi Hj. autorewrite with matrix_coords. reflexivity. Qed.
+
+Lemma matrix_transpose_add_R {m n} (A B : matrix R m n) :
+  matrix_transpose (add A B) = add (matrix_transpose A) (matrix_transpose B).
+Proof. apply matrix_ext. intros i j Hi Hj. autorewrite with matrix_coords. reflexivity. Qed.
+
+Lemma matrix_transpose_scale_R {m n} (a : R) (A : matrix R m n) :
+  matrix_transpose (scale a A) = scale a (matrix_transpose A).
+Proof. apply matrix_ext. intros i j Hi Hj. autorewrite with matrix_coords. reflexivity. Qed.
+
+Lemma matrix_transpose_mult_R {m n p} (A : matrix R m n) (B : matrix R n p) :
+  matrix_transpose (matrix_mult A B) = matrix_mult (matrix_transpose B) (matrix_transpose A).
+Proof.
+  apply matrix_ext. intros i j Hi Hj. rewrite matrix_transpose_nth, !matrix_mult_nth by lia.
+  apply mat_sum_ext. intros k Hk. autorewrite with matrix_coords. ring.
+Qed.
+
+Lemma matrix_transpose_zero_R {m n} :
+  matrix_transpose (zero : matrix R m n) = zero.
+Proof. apply matrix_ext. intros i j Hi Hj. autorewrite with matrix_coords. reflexivity. Qed.
+
+Lemma matrix_transpose_identity_R {n} :
+  matrix_transpose (@identity_matrix R n Zero_R One_R) = identity_matrix.
+Proof.
+  apply matrix_ext. intros i j Hi Hj. rewrite matrix_transpose_nth, !mat_nth_identity by lia.
+  now rewrite Nat.eqb_sym.
+Qed.
+
+Create HintDb matrix_algebra.
+#[export] Hint Rewrite @matrix_assoc @matrix_mult_add_l_R @matrix_mult_add_r_R
+  @matrix_mult_scale_l_R @matrix_mult_scale_r_R @matrix_mult_zero_l_R @matrix_mult_zero_r_R
+  @matrix_mult_empty_R
+  @matrix_identity_l_R @matrix_identity_r_R @matrix_transpose_twice_R
+  @matrix_transpose_add_R @matrix_transpose_scale_R @matrix_transpose_mult_R
+  @matrix_transpose_zero_R @matrix_transpose_identity_R : matrix_algebra.
+
+Ltac matrix_solver_extension := fail.
+
+(** Normalize noncommutative matrix products before comparing scalar entries.
+    Products of symbolic matrices remain atoms after algebraic normalization. *)
+Ltac mat_simpl :=
+  repeat rewrite to_scalar_mat_nth;
+  autorewrite with matrix_algebra vector_algebra;
+  first [apply matrix_ext; let i := fresh "i" in let j := fresh "j" in
+         let Hi := fresh "Hi" in let Hj := fresh "Hj" in intros i j Hi Hj | idtac];
+  autorewrite with matrix_coords;
+  vec_simpl.
+
+Ltac solve_mat :=
+  solve [intros;
+    first [solve [reflexivity | assumption]
+          | solve [matrix_solver_extension]
+          | solve [mat_simpl; linear_scalar]
+          | solve [solve_vec]
+          | solve [auto_mat_core]]].
+
+Ltac auto_mat ::= solve_mat.

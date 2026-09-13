@@ -48,6 +48,10 @@ Lib/Tactics.v
 Lib/Taylor.v
 Lib/Vector.v
 Lib/Matrix.v
+Lib/FunctionalVector.v
+Lib/FunctionalMatrix.v
+Lib/VectorMatrixExamples.v
+Lib/LinearAlgebraTests.v
 Lib/Asymptotics.v
 Lib/PolySimp.v
 Lib/StdlibCompat.v
