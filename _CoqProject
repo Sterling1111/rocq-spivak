@@ -61,6 +61,7 @@ Lib/ComplexSeries.v
 Lib/ComplexFunctions.v
 Lib/Integral_Table.v
 Lib/Real.v
+Lib/RealTactics.v
 
 
 # ==========================

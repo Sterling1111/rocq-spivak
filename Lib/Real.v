@@ -1,5 +1,5 @@
 Require Import Imports Notations Sets Field WI_SI_WO.
-From Stdlib Require Import Lqa.
+From Stdlib Require Import Lqa Qreals.
 Import SetNotations.
 
 Open Scope Q_scope.
@@ -1044,15 +1044,236 @@ Definition Rmult (α β : Real) : Real :=
 
 Infix "*" := Rmult : Real_scope.
 
+(* Standard-library completeness identifies each rational cut with a unique
+   standard real.  We use this correspondence to prove the remaining laws of
+   the original cut operations. *)
+
+Lemma cut_Q2R_zero : Q2R 0%Q = 0%R.
+Proof. unfold Q2R; simpl; Lra.lra. Qed.
+
+Lemma cut_Q2R_one : Q2R 1%Q = 1%R.
+Proof. unfold Q2R; simpl; Lra.lra. Qed.
+
+Lemma cut_rational_between : forall a b : R,
+  (a < b)%R -> exists q : Q, (a < Q2R q < b)%R.
+Proof.
+  intros a b Hab.
+  pose proof (archimed (/ (b - a))) as [Hn _].
+  assert (Hinv : (0 < / (b - a))%R) by (apply Rinv_0_lt_compat; Lra.lra).
+  assert (Hpos : (0 < up (/ (b - a)))%Z) by (apply lt_IZR; simpl; Lra.lra).
+  destruct (up (/ (b - a))) as [|p|p]; try discriminate.
+  pose proof (archimed (a * IZR (Z.pos p))) as [Hlo Hhi].
+  exists (up (a * IZR (Z.pos p)) # p).
+  unfold Q2R; simpl.
+  assert (Hp : (0 < IZR (Z.pos p))%R) by (apply IZR_lt; reflexivity).
+  assert (Hgap : ((b-a) * / (b-a) = 1)%R) by (apply Rinv_r; Lra.lra).
+  assert (Hgapn : (1 < (b-a) * IZR (Z.pos p))%R) by Lra.nra.
+  split; apply (Rmult_lt_reg_r (IZR (Z.pos p))); try exact Hp;
+    rewrite Rmult_assoc, Rinv_l, Rmult_1_r; try Lra.lra.
+Qed.
+
+Lemma cut_member_below_outside : forall a x y,
+  x ∈ alpha a -> y ∉ alpha a -> (x < y)%Q.
+Proof.
+  intros a x y Hx Hy.
+  destruct (Q_dec x y) as [[Hlt|Hgt]|Heq]; auto.
+  - exfalso. apply Hy. exact (Real_P1 a x y Hx Hgt).
+  - destruct (Real_P4 a x Hx) as [z [Hz Hxz]].
+    exfalso. apply Hy. apply (Real_P1 a z y Hz). Lqa.lra.
+Qed.
+
+Lemma cut_value_exists : forall a : Real,
+  exists r : R, forall q : Q, q ∈ alpha a <-> (Q2R q < r)%R.
+Proof.
+  intros a.
+  pose (S := fun r : R => exists q : Q, q ∈ alpha a /\ r = Q2R q).
+  destruct (proj1 (not_Empty_In _ _) (Real_P2 a)) as [q Hq].
+  assert (Houtside : exists u, u ∉ alpha a).
+  { apply not_all_ex_not. intros H. apply (Real_P3 a).
+    apply Extensionality_Ensembles. split; intros x Hx; [constructor|apply H]. }
+  destruct Houtside as [u Hu].
+  assert (Hb : bound S).
+  { exists (Q2R u). intros r [x [Hx ->]].
+    apply Rlt_le, Qlt_Rlt. exact (cut_member_below_outside a x u Hx Hu). }
+  assert (Hne : exists r, S r) by (exists (Q2R q), q; auto).
+  destruct (completeness S Hb Hne) as [r [Hub Hleast]].
+  exists r. intros x. split.
+  - intros Hx. destruct (Real_P4 a x Hx) as [y [Hy Hxy]].
+    assert (Hyr : (Q2R y <= r)%R) by (apply Hub; exists y; auto).
+    apply Qlt_Rlt in Hxy. Lra.lra.
+  - intros Hx. apply NNPP. intros Hnot.
+    assert (Hr : (r <= Q2R x)%R).
+    { apply Hleast. intros s [y [Hy ->]]. apply Rlt_le, Qlt_Rlt.
+      exact (cut_member_below_outside a y x Hy Hnot). }
+    Lra.lra.
+Qed.
+
+Definition cut_value (a : Real) : R :=
+  proj1_sig (constructive_indefinite_description _ (cut_value_exists a)).
+
+Lemma cut_value_spec : forall a q,
+  q ∈ alpha a <-> (Q2R q < cut_value a)%R.
+Proof.
+  intros a. exact (proj2_sig (constructive_indefinite_description _ (cut_value_exists a))).
+Qed.
+
+Lemma cut_value_unique : forall a r,
+  (forall q, q ∈ alpha a <-> (Q2R q < r)%R) -> cut_value a = r.
+Proof.
+  intros a r H.
+  destruct (Rtotal_order (cut_value a) r) as [Hlt|[Heq|Hgt]]; auto.
+  - destruct (cut_rational_between _ _ Hlt) as [q [Hq1 Hq2]].
+    apply (proj2 (H q)) in Hq2. apply cut_value_spec in Hq2. Lra.lra.
+  - destruct (cut_rational_between _ _ Hgt) as [q [Hq1 Hq2]].
+    apply cut_value_spec in Hq2. apply H in Hq2. Lra.lra.
+Qed.
+
+Lemma cut_value_injective : forall a b, cut_value a = cut_value b -> a = b.
+Proof.
+  intros a b H. apply Real_equiv, Extensionality_Ensembles.
+  split; intros q Hq; apply cut_value_spec; apply cut_value_spec in Hq; Lra.lra.
+Qed.
+
+Lemma cut_value_le : forall a b, a <= b <-> (cut_value a <= cut_value b)%R.
+Proof.
+  intros a b. split.
+  - intros H. apply Rnot_lt_le. intros Hlt.
+    destruct (cut_rational_between _ _ Hlt) as [q [Hq1 Hq2]].
+    apply cut_value_spec in Hq2. apply H in Hq2. apply cut_value_spec in Hq2. Lra.lra.
+  - intros H q Hq. apply cut_value_spec. apply cut_value_spec in Hq. Lra.lra.
+Qed.
+
+Lemma cut_value_lt : forall a b, a < b <-> (cut_value a < cut_value b)%R.
+Proof.
+  intros a b. unfold Rlt. split.
+  - intros [Hle Hne]. apply cut_value_le in Hle.
+    assert (cut_value a <> cut_value b).
+    { intros H. apply cut_value_injective in H. subst. contradiction. }
+    Lra.lra.
+  - intros H. split.
+    + apply cut_value_le. Lra.lra.
+    + intros Heq. apply Real_equiv in Heq. subst. Lra.lra.
+Qed.
+
+Lemma cut_value_zero : cut_value 0 = 0%R.
+Proof.
+  apply cut_value_unique. intros q.
+  unfold Rzero. destruct (constructive_indefinite_description _ theorem_29_5) as [a Ha]; simpl.
+  rewrite Ha. unfold Ensembles.In, Rzero_set.
+  split; [intro H; apply Qlt_Rlt in H; rewrite cut_Q2R_zero in H; exact H|].
+  intro H. apply Rlt_Qlt. rewrite cut_Q2R_zero. exact H.
+Qed.
+
+Lemma cut_value_plus : forall a b,
+  cut_value (a + b) = (cut_value a + cut_value b)%R.
+Proof.
+  intros a b. apply cut_value_unique. intros q.
+  assert (Hs : alpha (a+b) = Rplus_set a b).
+  { exact (proj2_sig (constructive_indefinite_description _ (theorem_29_2 a b))). }
+  rewrite Hs. split.
+  - intros [x [y [Hx [Hy Heq]]]].
+    apply cut_value_spec in Hx. apply cut_value_spec in Hy.
+    apply Qeq_eqR in Heq. rewrite Q2R_plus in Heq. Lra.lra.
+  - intros Hq.
+    destruct (cut_rational_between (Q2R q - cut_value b) (cut_value a))
+      as [x [Hx1 Hx2]]; [Lra.lra|].
+    exists x, (q-x)%Q. split; [apply cut_value_spec; exact Hx2|].
+    split; [apply cut_value_spec; rewrite Q2R_minus; Lra.lra|ring].
+Qed.
+
+Lemma cut_value_opp : forall a, cut_value (-a) = (- cut_value a)%R.
+Proof.
+  intros a. pose proof (f_equal cut_value (theorem_29_8 a)) as H.
+  rewrite cut_value_plus, cut_value_zero in H. Lra.lra.
+Qed.
+
+(* Every open rational lower ray is a cut, including the cuts for 0 and 1. *)
+Definition cut_of_R (r : R) : Real.
+Proof.
+  refine {| alpha := fun q => (Q2R q < r)%R |}.
+  - intros x y Hx Hy. apply Qlt_Rlt in Hy. exact (Rlt_trans _ _ _ Hy Hx).
+  - apply not_Empty_In.
+    destruct (cut_rational_between (r-1)%R r) as [q [Hq1 Hq2]]; [Lra.lra|].
+    exists q. exact Hq2.
+  - intros H.
+    destruct (cut_rational_between r (r+1)%R) as [q [Hq1 Hq2]]; [Lra.lra|].
+    assert (Hq : (fun q => (Q2R q < r)%R) q).
+    { change (q ∈ (fun q => (Q2R q < r)%R)). rewrite H. constructor. }
+    Lra.lra.
+  - intros x Hx.
+    destruct (cut_rational_between (Q2R x) r Hx) as [q [Hq1 Hq2]].
+    exists q. split; [exact Hq2|apply Rlt_Qlt; exact Hq1].
+Defined.
+
+Lemma cut_value_mult_pos : forall a b,
+  (0 <= cut_value a)%R -> (0 <= cut_value b)%R ->
+  cut_value (Rmult_pos a b) = (cut_value a * cut_value b)%R.
+Proof.
+  intros a b Ha Hb. apply cut_value_unique. intros z.
+  assert (Hs : alpha (Rmult_pos a b) = Rmult_set_pos a b).
+  { exact (proj2_sig (constructive_indefinite_description _ (theorem_29_11 a b))). }
+  rewrite Hs. unfold Ensembles.In, Rmult_set_pos. split.
+  - intros [Hz|[x [y [Hx [Hy [Hx0 [Hy0 Hz]]]]]]].
+    + apply Qlt_Rlt in Hz. rewrite cut_Q2R_zero in Hz. Lra.nra.
+    + apply cut_value_spec in Hx. apply cut_value_spec in Hy.
+      apply Qlt_Rlt in Hx0, Hy0, Hz.
+      rewrite cut_Q2R_zero in Hx0, Hy0. rewrite Q2R_mult in Hz. Lra.nra.
+  - intros Hz. destruct (Qlt_le_dec z 0) as [Hz0|Hz0].
+    + left. exact Hz0.
+    + right.
+      assert (Hznonneg : (0 <= Q2R z)%R).
+      { apply Qle_Rle in Hz0. rewrite cut_Q2R_zero in Hz0. exact Hz0. }
+      assert (Ha0 : (0 < cut_value a)%R) by Lra.nra.
+      assert (Hb0 : (0 < cut_value b)%R) by Lra.nra.
+      assert (Heqb : (Q2R z / cut_value b * cut_value b = Q2R z)%R)
+        by (field; Lra.lra).
+      assert (Hdivb : (0 <= Q2R z / cut_value b < cut_value a)%R) by Lra.nra.
+      destruct (cut_rational_between _ _ (proj2 Hdivb)) as [x [Hxlo Hxhi]].
+      assert (Hx0 : (0 < Q2R x)%R) by Lra.lra.
+      assert (Heqx : (Q2R z / Q2R x * Q2R x = Q2R z)%R)
+        by (field; Lra.lra).
+      assert (Hdivx : (0 <= Q2R z / Q2R x < cut_value b)%R) by Lra.nra.
+      destruct (cut_rational_between _ _ (proj2 Hdivx)) as [y [Hylo Hyhi]].
+      exists x, y. repeat split.
+      * apply cut_value_spec. exact Hxhi.
+      * apply cut_value_spec. exact Hyhi.
+      * apply Rlt_Qlt. rewrite cut_Q2R_zero. exact Hx0.
+      * apply Rlt_Qlt. rewrite cut_Q2R_zero. Lra.lra.
+      * apply Rlt_Qlt. rewrite Q2R_mult. Lra.nra.
+Qed.
+
+Lemma cut_value_mult : forall a b,
+  cut_value (a * b) = (cut_value a * cut_value b)%R.
+Proof.
+  intros a b. unfold Rmult, Rabs.
+  destruct (Rle_dec 0 a) as [Ha|Ha]; destruct (Rle_dec 0 b) as [Hb|Hb];
+    try (apply cut_value_le in Ha); try (apply cut_value_le in Hb);
+    try (rewrite cut_value_zero in Ha); try (rewrite cut_value_zero in Hb).
+  - apply cut_value_mult_pos; assumption.
+  - assert (Hbneg : (cut_value b < 0)%R).
+    { apply Rnot_le_lt. intros H. apply Hb, cut_value_le. rewrite cut_value_zero. exact H. }
+    rewrite cut_value_opp, cut_value_mult_pos; rewrite ?cut_value_opp; try Lra.lra; ring.
+  - assert (Haneg : (cut_value a < 0)%R).
+    { apply Rnot_le_lt. intros H. apply Ha, cut_value_le. rewrite cut_value_zero. exact H. }
+    rewrite cut_value_opp, cut_value_mult_pos; rewrite ?cut_value_opp; try Lra.lra; ring.
+  - assert (Haneg : (cut_value a < 0)%R).
+    { apply Rnot_le_lt. intros H. apply Ha, cut_value_le. rewrite cut_value_zero. exact H. }
+    assert (Hbneg : (cut_value b < 0)%R).
+    { apply Rnot_le_lt. intros H. apply Hb, cut_value_le. rewrite cut_value_zero. exact H. }
+    rewrite cut_value_mult_pos; rewrite ?cut_value_opp; try Lra.lra; ring.
+Qed.
+
 Theorem theorem_29_12 : ∀ α β : Real,
   α * β = β * α.
 Proof.
-Admitted.
+  intros a b. apply cut_value_injective. rewrite !cut_value_mult. ring.
+Qed.
 
 Theorem theorem_29_13 : ∀ α β γ : Real,
   α * (β * γ) = (α * β) * γ.
 Proof.
-Admitted.
+  intros a b c. apply cut_value_injective. rewrite !cut_value_mult. ring.
+Qed.
 
 Definition Rone_set : Ensemble ℚ :=
   λ x, (x < 1)%Q.
@@ -1060,28 +1281,106 @@ Definition Rone_set : Ensemble ℚ :=
 Theorem theorem_29_15 : 
   ∃ α : Real, α.(alpha) = Rone_set.
 Proof.
-Admitted.
+  exists (cut_of_R 1%R). apply Extensionality_Ensembles.
+  split; intros q Hq; unfold Ensembles.In, Rone_set in *; simpl in *.
+  - apply Rlt_Qlt. rewrite cut_Q2R_one. exact Hq.
+  - apply Qlt_Rlt in Hq. rewrite cut_Q2R_one in Hq. exact Hq.
+Qed.
 
 Definition Rone : Real := 
   proj1_sig (constructive_indefinite_description _ (theorem_29_15)).
 
 Notation "1" := (Rone) : Real_scope.
 
+Lemma cut_value_one : cut_value 1 = 1%R.
+Proof.
+  apply cut_value_unique. intros q.
+  unfold Rone. destruct (constructive_indefinite_description _ theorem_29_15) as [a Ha]; simpl.
+  rewrite Ha. unfold Ensembles.In, Rone_set. split.
+  - intro H. apply Qlt_Rlt in H. rewrite cut_Q2R_one in H. exact H.
+  - intro H. apply Rlt_Qlt. rewrite cut_Q2R_one. exact H.
+Qed.
+
 Lemma theorem_29_14 : ∀ α : Real,
   α * 1 = α.
 Proof.
-Admitted.
+  intros a. apply cut_value_injective. rewrite cut_value_mult, cut_value_one. ring.
+Qed.
 
 Definition Rinv_set_pos (α : Real) : Ensemble ℚ :=
   fun z => (z < 0)%Q \/ (α > 0 /\ ∃ r : ℚ, (r > 0)%Q /\ r ∉ α.(alpha) /\ (z < / r)%Q).
 
+Lemma cut_inv_set_spec : forall a, a > 0 -> forall z,
+  z ∈ Rinv_set_pos a <-> (Q2R z < / cut_value a)%R.
+Proof.
+  intros a Ha z.
+  assert (Ha0 : (0 < cut_value a)%R).
+  { apply cut_value_lt in Ha. rewrite cut_value_zero in Ha. exact Ha. }
+  pose proof (Rinv_0_lt_compat _ Ha0) as Hai.
+  pose proof (Rinv_r _ (Rgt_not_eq _ _ Ha0)) as Heqa.
+  unfold Ensembles.In, Rinv_set_pos. split.
+  - intros [Hz|[_ [r [Hr0 [Hr Hz]]]]].
+    + apply Qlt_Rlt in Hz. rewrite cut_Q2R_zero in Hz. Lra.lra.
+    + assert (Hrpos : (0 < Q2R r)%R).
+      { apply Qlt_Rlt in Hr0. rewrite cut_Q2R_zero in Hr0. exact Hr0. }
+      assert (Hra : (cut_value a <= Q2R r)%R).
+      { apply Rnot_lt_le. intros H. apply Hr, cut_value_spec. exact H. }
+      apply Qlt_Rlt in Hz. rewrite Q2R_inv in Hz by Lqa.lra.
+      pose proof (Rinv_le_contravar _ _ Ha0 Hra). Lra.lra.
+  - intros Hz. destruct (Qlt_le_dec z 0) as [Hz0|Hz0]; [left; exact Hz0|].
+    right. split; [exact Ha|].
+    assert (Hznonneg : (0 <= Q2R z)%R).
+    { apply Qle_Rle in Hz0. rewrite cut_Q2R_zero in Hz0. exact Hz0. }
+    assert (Hw : exists r : Q,
+      (cut_value a < Q2R r /\ Q2R z < / Q2R r)%R).
+    { destruct (Req_dec (Q2R z) 0) as [Hzero|Hnz].
+      - destruct (cut_rational_between (cut_value a) (cut_value a+1)%R)
+          as [r [Hr1 Hr2]]; [Lra.lra|].
+        exists r. split; [exact Hr1|]. rewrite Hzero.
+        apply Rinv_0_lt_compat. Lra.lra.
+      - assert (Hzpos : (0 < Q2R z)%R) by Lra.lra.
+        pose proof (Rinv_r _ Hnz) as Heqz.
+        assert (Hupper : (cut_value a < / Q2R z)%R) by Lra.nra.
+        destruct (cut_rational_between _ _ Hupper) as [r [Hr1 Hr2]].
+        exists r. split; [exact Hr1|].
+        assert (Hrpos : (0 < Q2R r)%R) by Lra.lra.
+        pose proof (Rinv_r _ (Rgt_not_eq _ _ Hrpos)) as Heqr.
+        pose proof (Rinv_0_lt_compat _ Hrpos). Lra.nra. }
+    destruct Hw as [r [Hr1 Hr2]]. exists r. repeat split.
+    + apply Rlt_Qlt. rewrite cut_Q2R_zero. Lra.lra.
+    + intros Hr. apply cut_value_spec in Hr. Lra.lra.
+    + apply Rlt_Qlt. rewrite Q2R_inv; [exact Hr2|].
+      intros H. apply Qeq_eqR in H. rewrite cut_Q2R_zero in H. Lra.lra.
+Qed.
+
 Theorem theorem_29_16 : ∀ α : Real,
   ∃ γ : Real, γ.(alpha) = Rinv_set_pos α.
 Proof.
-Admitted.
+  intros a. destruct (Rgt_dec a 0) as [Ha|Ha].
+  - exists (cut_of_R (/ cut_value a)%R).
+    apply Extensionality_Ensembles. split; intros q Hq.
+    + apply (proj2 (cut_inv_set_spec a Ha q)). exact Hq.
+    + apply (proj1 (cut_inv_set_spec a Ha q)). exact Hq.
+  - exists Rzero.
+    assert (Hs : alpha Rzero = Rzero_set).
+    { exact (proj2_sig (constructive_indefinite_description _ theorem_29_5)). }
+    rewrite Hs. apply Extensionality_Ensembles.
+    split; intros q Hq; unfold Ensembles.In, Rzero_set, Rinv_set_pos in *.
+    + left. exact Hq.
+    + destruct Hq as [Hq|[Hq _]]; [exact Hq|contradiction].
+Qed.
 
 Definition Rinv_pos (α : Real) : Real :=
   proj1_sig (constructive_indefinite_description _ (theorem_29_16 α)).
+
+Lemma cut_value_inv_pos : forall a, a > 0 ->
+  cut_value (Rinv_pos a) = (/ cut_value a)%R.
+Proof.
+  intros a Ha. apply cut_value_unique. intros q.
+  assert (Hs : alpha (Rinv_pos a) = Rinv_set_pos a).
+  { exact (proj2_sig (constructive_indefinite_description _ (theorem_29_16 a))). }
+  rewrite Hs. apply cut_inv_set_spec. exact Ha.
+Qed.
 
 Definition Rinv (α : Real) : Real :=
   match Rtotal_order_dec α 0 with
@@ -1097,19 +1396,39 @@ Definition Rdiv (α β : Real) : Real :=
 
 Infix "/" := Rdiv : Real_scope.
 
+Lemma cut_value_inv : forall a, a <> 0 ->
+  cut_value (/ a) = (/ cut_value a)%R.
+Proof.
+  intros a Ha. unfold Rinv.
+  destruct (Rtotal_order_dec a 0) as [[Hneg|Hzero]|Hpos].
+  - assert (Hopp : -a > 0).
+    { apply cut_value_lt. rewrite cut_value_opp, cut_value_zero.
+      apply cut_value_lt in Hneg. rewrite cut_value_zero in Hneg. Lra.lra. }
+    rewrite cut_value_opp, (cut_value_inv_pos _ Hopp), cut_value_opp, Rinv_opp. ring.
+  - contradiction.
+  - apply cut_value_inv_pos. exact Hpos.
+Qed.
+
 Theorem theorem_29_17 : ∀ α : Real,
   α ≠ 0 -> α * (/ α) = 1.
 Proof.
-Admitted.
+  intros a Ha. apply cut_value_injective.
+  rewrite cut_value_mult, cut_value_inv, cut_value_one; [|exact Ha].
+  apply Rinv_r. intros H. apply Ha, cut_value_injective. rewrite cut_value_zero. exact H.
+Qed.
 
 Theorem theorem_29_18 : ∀ α β γ : Real,
   α * (β + γ) = (α * β) + (α * γ).
 Proof.
-Admitted.
+  intros a b c. apply cut_value_injective.
+  rewrite !cut_value_plus, !cut_value_mult, cut_value_plus. ring.
+Qed.
 
 Lemma Rone_neq_Rzero : Rone <> Rzero.
 Proof.
-Admitted.
+  intros H. apply (f_equal cut_value) in H.
+  rewrite cut_value_one, cut_value_zero in H. Lra.lra.
+Qed.
 
 Lemma theorem_29_13_sym : ∀ α β γ : Real,
   (α * β) * γ = α * (β * γ).
@@ -1135,7 +1454,11 @@ Defined.
 Theorem theorem_29_19 : ∀ α β : Real,
   α ∈ P -> β ∈ P -> (α * β) ∈ P.
 Proof.
-Admitted.
+  intros a b Ha Hb. change (0 < a * b).
+  apply cut_value_lt. rewrite cut_value_zero, cut_value_mult.
+  apply Rmult_lt_0_compat; apply cut_value_lt in Ha, Hb;
+    rewrite cut_value_zero in Ha, Hb; assumption.
+Qed.
 
 Instance OrderedField_Real : OrderedField Real.
 Proof.
@@ -1145,10 +1468,52 @@ Proof.
   - exact theorem_29_19.
 Defined.
 
+(* The generic ordered-field interface defines order by positive differences. *)
+Lemma cut_field_gt : forall a b : Real, Field.gt a b <-> b < a.
+Proof.
+  intros a b. change (0 < a + (-b) <-> b < a).
+  rewrite !cut_value_lt, cut_value_plus, cut_value_opp, cut_value_zero. Lra.lra.
+Qed.
+
+Lemma cut_field_ge : forall a b : Real, Field.ge a b <-> b <= a.
+Proof.
+  intros a b. unfold Field.ge. rewrite cut_field_gt.
+  split.
+  - intros [H|H].
+    + apply cut_value_le. apply cut_value_lt in H. Lra.lra.
+    + subst. intros q Hq. exact Hq.
+  - intros H. apply cut_value_le in H.
+    destruct (Req_dec (cut_value a) (cut_value b)) as [Heq|Hne].
+    + right. apply cut_value_injective. exact Heq.
+    + left. apply cut_value_lt. Lra.lra.
+Qed.
+
+Lemma cut_field_le : forall a b : Real, Field.le a b <-> a <= b.
+Proof.
+  intros a b. unfold Field.le, Field.lt. rewrite cut_field_gt.
+  split.
+  - intros [H|H].
+    + apply cut_value_le. apply cut_value_lt in H. Lra.lra.
+    + subst. intros q Hq. exact Hq.
+  - intros H. apply cut_value_le in H.
+    destruct (Req_dec (cut_value a) (cut_value b)) as [Heq|Hne].
+    + right. apply cut_value_injective. exact Heq.
+    + left. apply cut_value_lt. Lra.lra.
+Qed.
+
 Theorem theorem_29_20 : ∀ A : Ensemble Real,
   (∃ a, a ∈ A) -> Field.bounded_above A -> ∃ x, Field.is_least_upper_bound A x.
 Proof.
-Admitted.
+  intros A Hne [u Hu].
+  assert (Hnonempty : A ≠ ∅) by (apply not_Empty_In; exact Hne).
+  assert (Hbounded : bounded_above A).
+  { exists u. intros a Ha. apply cut_field_ge. apply Hu. exact Ha. }
+  destruct (theorem_29_1 A Hnonempty Hbounded) as [m [Hm Hleast]].
+  exists m. split.
+  - intros a Ha. apply cut_field_ge. apply Hm. exact Ha.
+  - intros v Hv. apply cut_field_le. apply Hleast.
+    intros a Ha. apply cut_field_ge. apply Hv. exact Ha.
+Qed.
 
 Instance CompleteOrderedField_Real : CompleteOrderedField Real.
 Proof.

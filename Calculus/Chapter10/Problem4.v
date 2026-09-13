@@ -8,11 +8,7 @@ Lemma lemma_10_4_i : ∀ f f',
 Proof.
   intros f f' H1 H2 x H3 H4.
   assert (H5 : ⟦ der (f x) ⟧ f = (λ y, -1 / (y + 1)^2)).
-  {
-    subst f. auto_diff. intro H5.
-    apply Rmult_eq_compat_r with (r := (x + 1)) in H5.
-    field_simplify in H5; nra.
-  }
+  { subst f. auto_diff. }
   pose proof derivative_at_unique f f' (λ y, -1 / (y + 1)^2) (f x) (H2 (f x)) H5 as H6.
   rewrite H6, H1.
   solve_R.

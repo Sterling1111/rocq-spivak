@@ -182,6 +182,41 @@ Proof search and the automation for side conditions are heuristic, so some goals
 | `AUTO_INT_SCRIPT` | Path to `src/auto_int.py`; otherwise the plugin searches the current directory and its parents. |
 | `AUTO_INT_TIMEOUT` | Request timeout in seconds; defaults to 30. |
 
+### Arithmetic with the Dedekind-cut `Real` type
+
+[`Lib/RealTactics.v`](Lib/RealTactics.v) provides arithmetic automation for the
+custom `Real` type from `Lib/Real.v`. Import it and open `Real_scope` to use
+integer numerals, fractions, and natural-number powers:
+
+```coq
+From Lib Require Import RealTactics.
+Open Scope Real_scope.
+
+Example linear_bound : forall x : Real, 2 * x + 3 < 7 -> x < 2.
+Proof. real_lra. Qed.
+
+Example square_nonnegative : forall x : Real, 0 <= x ^ 2.
+Proof. real_nra. Qed.
+
+Example cancel_fraction : forall x : Real, x <> 0 -> x / x = 1.
+Proof. solve_real. Qed.
+```
+
+Use `real_lra` for linear arithmetic, `real_nra` for polynomial arithmetic,
+`real_field` for rational identities, and `solve_real` to also try automation
+for absolute values and reciprocals. These tactics translate the goal and
+hypotheses through the proved `cut_value` correspondence and produce proofs
+checked by Rocq. They fail without changing the goal if they cannot solve it.
+Use `real_to_R` to expose the translated goal for further manual tactics.
+The existing `ring` and `field` tactics also remain available.
+
+`Real_of_Q (1#2)%Q` embeds an exact rational; `(1 / 2)%Real` uses the custom
+field operations. This is symbolic proof automation, not a decimal evaluator
+for arbitrary cuts, whose definitions use classical choice. Nonlinear proof
+search is incomplete, and division identities can require nonzero hypotheses.
+
+Run `make test-real` to check the examples and solver regression tests.
+
 ## Compatibility with other libraries
 
 - [`Lib/StdlibCompat.v`](Lib/StdlibCompat.v) connects the project’s definitions to standard-library limits, continuity, derivatives, sequences, series, and transcendental functions.
