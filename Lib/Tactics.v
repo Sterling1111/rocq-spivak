@@ -1,5 +1,5 @@
 From Lib Require Import Imports Notations Reals_util Sets Limit Continuity Derivative Integral Trigonometry 
-                        Functions Interval Sums Exponential StdlibCompat.
+                        Functions Interval Sums Exponential StdlibCompat Binomial.
 Import IntervalNotations SetNotations FunctionNotations DerivativeNotations LimitNotations IntegralNotations SumNotations.
 
 Declare ML Module "auto_int_plugin.plugin".
@@ -1303,6 +1303,57 @@ Ltac auto_int :=
       try solve [ solve_R | calculus_finish ]
   end.
 
+(* Prune neutral arithmetic before differentiating again. This only proposes
+   an expression; compute_Der_simplified_step proves its equality below. *)
+Ltac simplify_derivative_expr e :=
+  let e := lazymatch e with
+  | ?op ?a ?b =>
+      let a := lazymatch type of a with
+        | expr => simplify_derivative_expr a | _ => a end in
+      let b := lazymatch type of b with
+        | expr => simplify_derivative_expr b | _ => b end in
+      constr:(op a b)
+  | ?op ?a =>
+      let a := lazymatch type of a with
+        | expr => simplify_derivative_expr a | _ => a end in
+      constr:(op a)
+  | _ => e
+  end in
+  lazymatch e with
+  | EAdd (EConst 0) ?b => b
+  | EAdd ?a (EConst 0) => a
+  | ESub ?a (EConst 0) => a
+  | EMul (EConst 0) _ => constr:(EConst 0)
+  | EMul _ (EConst 0) => constr:(EConst 0)
+  | EMul (EConst 1) ?b => b
+  | EMul ?a (EConst 1) => a
+  | EDiv (EConst 0) _ => constr:(EConst 0)
+  | EDiv ?a (EConst 1) => a
+  | ENeg (EConst 0) => constr:(EConst 0)
+  | ENeg (ENeg ?a) => a
+  | EPow _ O => constr:(EConst 1)
+  | EPow ?a (S O) => a
+  | _ => e
+  end.
+
+Ltac compute_Der_simplified_step f e_ast :=
+  let de := eval cbv [derive_expr] in (derive_expr e_ast) in
+  let de := simplify_derivative_expr de in
+  let df := eval cbv [eval_expr] in (fun y => eval_expr de y) in
+  let HD := fresh "Hderive" in
+  assert (HD : derive f = df) by
+    (change (derive (fun y => eval_expr e_ast y) = df);
+     rewrite (Der_correct_global e_ast);
+     [ let y := fresh "y" in extensionality y;
+       cbv [eval_expr derive_expr];
+       autorewrite with simp_zero_db;
+       rewrite ?Ropp_0, ?Ropp_involutive, ?Rdiv_1_r, ?pow_O, ?pow_1;
+       reflexivity
+     | intro; simpl; repeat split;
+       try solve [exact I | assumption | lra];
+       try eval_math_constants; try solve_denoms; try solve_R; auto ]);
+  rewrite HD; clear HD; cbn beta.
+
 Ltac compute_Der :=
   repeat match goal with
   | |- context [ nth_derive_at ?n ?f ?a ] => change (nth_derive_at n f a) with ((nth_derive n f) a)
@@ -1322,20 +1373,38 @@ Ltac compute_Der :=
           let e := reify_expr x fx in
           exact e
       )) with fun _ => ?e => e end in
-      change (derive f) with (derive (fun y => eval_expr e_ast y));
-      rewrite (Der_correct_global e_ast);
-      [ cbv [eval_expr derive_expr] 
-      | intro; simpl; try eval_math_constants; repeat split; 
-        try solve [try solve_denoms; try lra; solve_R]; auto ]
+      first [ compute_Der_simplified_step f e_ast
+            | (* Preserve partial progress and domain obligations when the
+                 simplified step cannot be proved outright. *)
+              change (derive f) with (derive (fun y => eval_expr e_ast y));
+              rewrite (Der_correct_global e_ast);
+              [ cbv [eval_expr derive_expr]
+              | intro; simpl; try eval_math_constants; repeat split;
+                try solve [try solve_denoms; try lra; solve_R]; auto ] ]
   end;
   
-  cbn -[pow]; try eval_math_constants.
+  cbn -[pow]; try simp_zero; try eval_math_constants; try simp_zero.
+
+Ltac compute_tp_factorials :=
+  repeat match goal with
+  | |- context [INR (fact ?n)] =>
+      (* Leave symbolic degrees alone, including factorials under a sum. *)
+      let n := eval cbv in n in
+      let rec numeral k := lazymatch k with
+        | O => idtac | S ?j => numeral j end in
+      numeral n;
+      rewrite (INR_fact_eq_IZR_Z_fact n);
+      let z := eval vm_compute in (Z_fact n) in
+      change (Z_fact n) with z
+  end.
 
 Ltac compute_tp :=
   intros;
   autounfold with taylor_polynomial;
   repeat rewrite sum_f_i_Sn_f; try lia;
   try rewrite sum_f_0_0; try lia;
+  (* Convert factorials to binary integers before cbn can expand unary n!. *)
+  compute_tp_factorials;
   compute_Der;
   try solve_R.
 

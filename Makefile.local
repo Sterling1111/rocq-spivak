@@ -22,3 +22,7 @@ test-auto-int: Tests/AutoInt.vo
 
 bench-auto-int: Lib/Tactics.vo
 	$(COQC) $(COQFLAGS) $(COQLIBS) -time Tests/AutoIntBench.v
+
+.PHONY: test-compute-tp
+test-compute-tp: Calculus/Chapter20/Prelude.vo
+	$(COQC) $(COQFLAGS) $(COQLIBS) -time Tests/ComputeTp.v
