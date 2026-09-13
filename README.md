@@ -6,6 +6,41 @@ The project develops textbook-style definitions of limits, continuity, derivativ
 
 **Work in progress:** some files contain unfinished proofs or placeholder statements. The default build covers the files listed in [`_CoqProject`](_CoqProject), which is a subset of the source tree. A successful build does not establish that every exercise is complete: Rocq accepts statements closed with `Admitted` as assumptions.
 
+## Exercise progress
+
+As of September 12, 2026, **653 problems have substantive formal statements**, and **323 of those have completed proofs**. The remaining **330 stated problems** have unfinished proofs or placeholder parts.
+
+Counts cover `Calculus/Chapter*/Problem*.v`, including appendix problems, with each file counted once regardless of its number of subparts. A problem counts as stated when it contains at least one non-placeholder lemma or theorem statement, including statements followed by `Abort` or `Admitted`. Statements whose conclusion is just `True` are excluded. Of the 690 problem files, 37 contain only placeholders, imports, definitions, or plots and do not count as stated problems. The shared library and `ATTAM/` are outside these counts.
+
+A problem counts as completed when its statements have proofs closed with `Qed` or `Defined`, with no placeholder statements, `Admitted`, `Abort`, `admit`, or local axiom/parameter declarations in the file. Comments are ignored. These are source-level counts of the parts currently present; they do not certify coverage of every textbook subpart or the absence of assumptions in imported dependencies.
+
+| Chapter | Problems with statements | Completed problems |
+| --- | ---: | ---: |
+| 1 | 25 | 24 |
+| 2 | 26 | 26 |
+| 3 | 28 | 25 |
+| 4 (including appendices) | 29 | 0 |
+| 5 | 36 | 31 |
+| 6 | 16 | 15 |
+| 7 | 18 | 16 |
+| 8 | 20 | 14 |
+| 9 | 30 | 30 |
+| 10 | 31 | 19 |
+| 11 (including appendix) | 44 | 39 |
+| 12 | 14 | 11 |
+| 13 (including appendix) | 45 | 9 |
+| 14 | 30 | 11 |
+| 15 | 30 | 20 |
+| 18 | 44 | 9 |
+| 19 (including appendix) | 62 | 5 |
+| 20 | 28 | 5 |
+| 21 | 8 | 0 |
+| 22 | 33 | 13 |
+| 23 | 30 | 0 |
+| 24 | 25 | 0 |
+| 28 | 1 | 1 |
+| **Total** | **653** | **323** |
+
 ## Explore the mathematics
 
 | Topic | Starting points |
