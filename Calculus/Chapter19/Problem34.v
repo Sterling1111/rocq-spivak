@@ -1,7 +1,6 @@
 From Calculus.Chapter19 Require Import Prelude.
 
-Lemma lemma_19_34 : forall f a b,
-  a < b ->
-  continuous_on (⟦ der ⟧ f) [a, b] ->
-  limit_at_infinity (fun lambda => ∫ a b (fun t => f t * sin (lambda * t))) 0.
+Lemma lemma_19_34 : ∀ f f' a b, a < b ->
+  derivative_on f f' [a,b] -> continuous_on f' [a,b] ->
+  limit_pinf (λ k, ∫ a b (λ t, f t*sin (k*t))) 0.
 Abort.

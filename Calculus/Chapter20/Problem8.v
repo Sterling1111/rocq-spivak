@@ -12,7 +12,7 @@ Lemma lemma_20_8_b : ∀ k : ℕ,
 Abort.
 
 Lemma lemma_20_8_c : ∀ g m k,
-  (0 < m)%nat -> (∀ j, nth_differentiable j g) ->
+  (0 < m)%nat -> nth_differentiable k g ->
   ⟦ der ^ k 0 ⟧ (λ x, g (x^m)) =
     (λ _, if Nat.eq_dec (k mod m) 0
           then (fact k) / (fact (k/m)) * ⟦ Der ^ (k/m) 0 ⟧ g else 0).

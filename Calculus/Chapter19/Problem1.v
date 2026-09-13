@@ -1,6 +1,6 @@
 From Calculus.Chapter19 Require Import Prelude.
 
-Lemma lemma_19_1_i : forall c,
+Lemma lemma_19_1_i : ∀ c,
   ∫ (λ x, ((x ^^ (3 / 5)) + (x ^^ (1 / 6))) / √ x) (0, ∞) =
   (λ x, 10 / 11 * (x ^^ (11 / 10)) + 3 / 2 * (x ^^ (2 / 3)) + c).
 Proof.
@@ -16,7 +16,7 @@ Proof.
   - pose proof sqrt_lt_R0 x ltac:(solve_R). lra.
 Qed.
     
-Lemma lemma_19_1_ii : forall c,
+Lemma lemma_19_1_ii : ∀ c,
   ∫ (λ x, 1 / (√ (x - 1) + √ (x + 1))) (1, ∞) =
   (λ x, 1 / 3 * ((x + 1) ^^ (3 / 2)) - 1 / 3 * ((x - 1) ^^ (3 / 2)) + c).
 Proof.
@@ -37,7 +37,7 @@ Proof.
   nra.
 Qed.
 
-Lemma lemma_19_1_iii : forall c,
+Lemma lemma_19_1_iii : ∀ c,
   ∫ (λ x, (exp x + exp (2 * x) + exp (3 * x)) / exp (4 * x)) =
   (λ x, -1 / 3 * exp (-3 * x) - 1 / 2 * exp (-2 * x) - exp (-x) + c).
 Proof.
@@ -53,7 +53,7 @@ Proof.
   - apply exp_neq_0.
 Qed.
 
-Lemma lemma_19_1_iv : forall a b c, a > 0 -> b > 0 -> a <> b ->
+Lemma lemma_19_1_iv : ∀ a b c, a > 0 -> b > 0 -> a <> b ->
   ∫ (λ x, (a ^^ x) / (b ^^ x)) =
   (λ x, ((a / b) ^^ x) / log (a / b) + c).
 Proof.
@@ -64,12 +64,12 @@ Proof.
     rewrite Rpower_div; solve_R. repeat split; solve_R. rewrite ln_eq_log; auto.
 Qed.
 
-Lemma lemma_19_1_v : forall c,
+Lemma lemma_19_1_v : ∀ c,
   ∫ (λ x, (tan x) ^ 2) (-π / 2, π / 2) = 
   (λ x, tan x - x + c).
 Proof.
   intros c. unfold antiderivative_on. pose proof π_bounds as H1.
-  assert (H2 : forall x, x ∈ (- π / 2, π / 2) -> cos x <> 0).
+  assert (H2 : ∀ x, x ∈ (- π / 2, π / 2) -> cos x <> 0).
   {
     intros x H2.
     assert (x = 0 \/ 0 < x < π / 2 \/ - (π / 2) < x < 0) as [H3 | [H3 | H3]] by solve_R.
@@ -84,14 +84,14 @@ Proof.
   solve_R.
 Qed.
 
-Lemma lemma_19_1_vi : forall a c, a <> 0 ->
+Lemma lemma_19_1_vi : ∀ a c, a <> 0 ->
   ∫ (λ x, 1 / (a ^ 2 + x ^ 2)) =
   (λ x, 1 / a * arctan (x / a) + c).
 Proof.
   intros a c H1. unfold antiderivative. auto_diff.
 Qed.
 
-Lemma lemma_19_1_vii : forall a c, a > 0 ->
+Lemma lemma_19_1_vii : ∀ a c, a > 0 ->
   ∫ (λ x, 1 / √ (a ^ 2 - x ^ 2)) (-a, a) = 
   (λ x, arcsin (x / a) + c).
 Proof.
@@ -101,7 +101,7 @@ Proof.
   - admit.
 Abort.
 
-Lemma lemma_19_1_viii : forall c,
+Lemma lemma_19_1_viii : ∀ c,
   ∫ (λ x, 1 / (1 + sin x)) (-π / 2, π / 2) = 
   (λ x, tan x - 1 / cos x + c).
 Proof.
@@ -118,14 +118,14 @@ Proof.
   pose proof pythagorean_identity x. solve_R.
 Qed.
 
-Lemma lemma_19_1_ix : forall c,
+Lemma lemma_19_1_ix : ∀ c,
   ∫ (λ x, (8 * x ^ 2 + 6 * x + 4) / (x + 1)) (-0.5, 0.5) =
   (λ x, 4 * x ^ 2 - 2 * x + 6 * log (x + 1) + c).
 Proof.
   auto_int.
 Qed.
 
-Lemma lemma_19_1_x : forall c,
+Lemma lemma_19_1_x : ∀ c,
   ∫ (λ x, 1 / √ (2 * x - x ^ 2)) (0, 2) = 
   (λ x, arcsin (x - 1) + c).
 Proof.

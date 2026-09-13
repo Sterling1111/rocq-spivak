@@ -1,4 +1,5 @@
 From Calculus.Chapter20 Require Import Prelude.
+From Lib Require Import Completeness.
 
 Section DerivativeBounds.
 Variables f f' f'' : ℝ -> ℝ.

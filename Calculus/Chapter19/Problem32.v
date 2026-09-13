@@ -1,11 +1,9 @@
 From Calculus.Chapter19 Require Import Prelude.
 
-Lemma lemma_19_32_a : forall a,
-  a > 0 ->
-  ∫ 0 (2*π) (fun t => √((⟦ der ⟧ (fun t => a * (t - sin t)) t)^2 + (⟦ der ⟧ (fun t => a * (1 - cos t)) t)^2)) = 8 * a.
+From Calculus.Chapter19 Require Import Problem29.
+Lemma lemma_19_32_a : ∀ a, 0 < a ->
+  has_length_19 (λ t, a*(t-sin t)) (λ t, a*(1-cos t)) 0 (2*π) (8*a).
 Abort.
-
-Lemma lemma_19_32_b : forall a,
-  a > 0 ->
-  ∫ 0 (2*π) (fun t => a * (1 - cos t) * ⟦ der ⟧ (fun t => a * (t - sin t)) t) = 3 * π * a^2.
+Lemma lemma_19_32_b : ∀ a, 0 < a ->
+  ∫ 0 (2*π) (λ t, a*(1-cos t) * (a*(1-cos t))) = 3*π*a^2.
 Abort.

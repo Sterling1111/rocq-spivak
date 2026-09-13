@@ -1,11 +1,13 @@
 From Calculus.Chapter19 Require Import Prelude.
 
-Lemma lemma_19_22_a : forall n c,
-  (n > 0)%nat ->
-  ∫ (λ x, x^n * exp x) = (λ x, x^n * exp x - INR n * ∫ (λ x, x^(n-1) * exp x) x + c).
+Lemma lemma_19_22_a : ∀ (n : nat) c, (0 < n)%nat ->
+  ∫ (λ x, x^n * exp x) =
+    (λ x, x^n*exp x - n * ∫ 0 x (λ t, t^(n-1)*exp t) + c).
+Proof.
+  intros n c H1.
 Abort.
 
-Lemma lemma_19_22_b : forall n c,
-  (n > 0)%nat ->
-  ∫ (λ x, (log x)^n) = (λ x, x * (log x)^n - INR n * ∫ (λ x, (log x)^(n-1)) x + c).
+Lemma lemma_19_22_b : ∀ (n : nat) c, (0 < n)%nat ->
+  ∫ (λ x, log x^n) (0, ∞) =
+    (λ x, x*log x^n - n * ∫ 1 x (λ t, log t^(n-1)) + c).
 Abort.

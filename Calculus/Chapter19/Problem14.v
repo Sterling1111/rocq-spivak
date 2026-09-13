@@ -1,8 +1,7 @@
 From Calculus.Chapter19 Require Import Prelude.
 
-(* Problem 14: Where does C come from in e^x sin x integration? *)
-
-Lemma lemma_19_14 : forall F c,
-  (forall x, F x = exp x * (sin x - cos x) / 2 + c) ->
-  ⟦ der ⟧ F = (fun x => exp x * sin x).
+(* An indefinite integral denotes a family of primitives, each with its own constant. *)
+Lemma lemma_19_14 : ∀ F,
+  (⟦ der ⟧ F = (λ x, exp x * sin x)) <->
+  ∃ c, ∀ x, F x = exp x * (sin x - cos x)/2 + c.
 Abort.

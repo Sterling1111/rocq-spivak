@@ -1,27 +1,27 @@
 From Calculus.Chapter19 Require Import Prelude.
 
-Lemma lemma_19_2_i : forall c,
+Lemma lemma_19_2_i : ∀ c,
   ∫ (λ x, exp x * sin (exp x)) =
   (λ x, - cos (exp x) + c).
 Proof.
   auto_int.
 Qed.
 
-Lemma lemma_19_2_ii : forall c,
+Lemma lemma_19_2_ii : ∀ c,
   ∫ (λ x, x * exp (- x ^ 2)) =
   (λ x, - 1 / 2 * exp (- x ^ 2) + c).
 Proof.
   auto_int.
 Qed.
 
-Lemma lemma_19_2_iii : forall c,
+Lemma lemma_19_2_iii : ∀ c,
   ∫ (λ x, log x / x) (0, ∞) =
   (λ x, 1 / 2 * (log x) ^ 2 + c).
 Proof.
   auto_int.
 Qed.
 
-Lemma lemma_19_2_iv : forall c,
+Lemma lemma_19_2_iv : ∀ c,
   ∫ (λ x, exp x / (exp (2 * x) + 2 * exp x + 1)) =
   (λ x, - 1 / (exp x + 1) + c).
 Proof.
@@ -31,14 +31,14 @@ Proof.
     replace (- (-1 * exp x)) with (exp x) by lra. f_equal. lra.
 Qed.
 
-Lemma lemma_19_2_v : forall c,
+Lemma lemma_19_2_v : ∀ c,
   ∫ (λ x, exp (exp x) * exp x) =
   (λ x, exp (exp x) + c).
 Proof.
   auto_int.
 Qed.
 
-Lemma lemma_19_2_vi : forall c,
+Lemma lemma_19_2_vi : ∀ c,
   ∫ (λ x, x / √ (1 - x ^ 4)) (-1, 1) =
   (λ x, 1 / 2 * arcsin (x ^ 2) + c).
 Proof.
@@ -48,14 +48,14 @@ Proof.
   f_equal. f_equal. lra.
 Qed.
 
-Lemma lemma_19_2_vii : forall c,
+Lemma lemma_19_2_vii : ∀ c,
   ∫ (λ x, exp (√ x) / √ x) (0, ∞) =
   (λ x, 2 * exp (√ x) + c).
 Proof.
   auto_int.
 Qed.
 
-Lemma lemma_19_2_viii : forall c,
+Lemma lemma_19_2_viii : ∀ c,
   ∫ (λ x, x * √ (1 - x ^ 2)) (-1, 1) =
   (λ x, - 1 / 3 * ((1 - x ^ 2) ^^ (3 / 2)) + c).
 Proof.
@@ -67,7 +67,7 @@ Proof.
   - destruct H; nra.
 Qed.
 
-Lemma lemma_19_2_ix : forall c,
+Lemma lemma_19_2_ix : ∀ c,
   ∫ (λ x, log (cos x) * tan x) (-π / 2, π / 2) =
   (λ x, - 1 / 2 * (log (cos x)) ^ 2 + c).
 Proof.
@@ -75,7 +75,7 @@ Proof.
   unfold tan. lra.
 Qed.
 
-Lemma lemma_19_2_x : forall c,
+Lemma lemma_19_2_x : ∀ c,
   ∫ (λ x, log (log x) / (x * log x)) (1, ∞) =
   (λ x, 1 / 2 * (log (log x)) ^ 2 + c).
 Proof.

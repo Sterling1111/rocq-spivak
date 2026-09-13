@@ -1,6 +1,10 @@
 From Calculus.Chapter19 Require Import Prelude.
 
-Definition Gamma (x : R) := ∫ 0 ∞ (fun t => exp (-t) * t^(x - 1)).
-
-Lemma lemma_19_40 : forall x, x > 0 -> Gamma (x + 1) = x * Gamma x.
+Lemma lemma_19_40_a : ∀ x, 0 < x -> gamma_value_19 x (gamma_19 x).
+Abort.
+Lemma lemma_19_40_b : ∀ x, 0 < x -> gamma_19 (x+1) = x*gamma_19 x.
+Abort.
+Lemma lemma_19_40_c_one : gamma_19 1 = 1.
+Abort.
+Lemma lemma_19_40_c : ∀ n : nat, (0 < n)%nat -> gamma_19 n = fact (n-1).
 Abort.

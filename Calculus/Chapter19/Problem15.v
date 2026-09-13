@@ -1,6 +1,6 @@
 From Calculus.Chapter19 Require Import Prelude.
 
-Lemma lemma_19_15 : forall f f'',
+Lemma lemma_19_15 : ∀ f f'',
   ⟦ der ^ 2 ⟧ f = f'' ->
   continuous f'' ->
   ∫ 0 π (λ x, (f x + f'' x) * sin x) = 2 ->
@@ -38,7 +38,7 @@ Proof.
   lra.
 Qed.
 
-Lemma lemma_19_15' : forall f f' f'',
+Lemma lemma_19_15' : ∀ f f' f'',
   ⟦ der ⟧ f = f' ->
   ⟦ der ⟧ f' = f'' ->
   continuous f'' ->
