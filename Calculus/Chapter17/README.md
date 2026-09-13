@@ -115,8 +115,8 @@ Check Theorem4.
 
 **Theorem 1.** For a twice differentiable, nonzero position curve on an open
 interval, central acceleration is equivalent to
-`swept_area c v t0 t = rate * (t - t0)`. The conservation theorem also gives
-`det(c(t), v(t)) = det(c(t0), v(t0))`.
+`swept_area c v t₀ t = rate * (t - t₀)`. The conservation theorem also gives
+`det(c(t), v(t)) = det(c(t₀), v(t₀))`.
 
 Swept area means the **signed** integral of `det(c,v)/2`. Its derivative follows
 from the fundamental theorem of calculus. For increasing polar angle this is
@@ -128,19 +128,19 @@ of the region swept out by a possibly self-intersecting curve.
 `M` satisfies
 
 ```text
-r(t) * (1 + beta * cos(theta(t)) + gamma * sin(theta(t))) = M² / mu.
+r(t) * (1 + β * cos(θ(t)) + γ * sin(θ(t))) = M² / μ.
 ```
 
 This is the focal conic equation without choosing a rotation angle. The vector
-`⟨beta, gamma⟩` specifies its orientation and eccentricity. The theorem
+`⟨β, γ⟩` specifies its orientation and eccentricity. The theorem
 `focal_conic_cartesian` proves the equivalent geometric equation
 
 ```text
-‖ position(t) ‖ + ⟨beta, gamma⟩ · position(t) = M² / mu.
+‖ position(t) ‖ + ⟨β, γ⟩ · position(t) = M² / μ.
 ```
 
-The proof conserves `vx(v) + mu/M * sin(theta)` and
-`vy(v) - mu/M * cos(theta)`. These are the integration constants in Spivak's
+The proof conserves `vx(v) + μ/M * sin(θ)` and
+`vy(v) - μ/M * cos(θ)`. These are the integration constants in Spivak's
 velocity-as-a-function-of-angle argument. Differentiating them in time avoids
 constructing an inverse angle function. The result describes the portion of a
 conic occupied by an orbit; it does not assert that every orbit covers an entire
@@ -156,27 +156,27 @@ a³ / T² = G / (4 * π²)
 
 for every planet. Here `a` and `b` are explicitly **semiaxes**. An
 `elliptic_revolution` supplies the focal and eccentric-anomaly coordinate
-descriptions, `b² = a * ell`, positive geometric parameters, and an anomaly
+descriptions, `b² = a * ℓ`, positive geometric parameters, and an anomaly
 increment of `2π` over a positive period. These are explicit geometric and
 traversal hypotheses, not assumptions about the force coefficient.
 
 `ellipse_area_per_revolution` proves the swept area is `π*a*b` by differentiating
-`a*b/2 * (psi - e*sin(psi))`. Thus the period proof does not depend on the
+`a*b/2 * (ψ - e*sin(ψ))`. Thus the period proof does not depend on the
 unfinished ellipse-area exercise in Chapter 13. It yields
-`M*T = 2*π*a*b` and `M²/ell = 4*π²*a³/T²`.
+`M*T = 2*π*a*b` and `M²/ℓ = 4*π²*a³/T²`.
 
 **Theorem 4.** A central-force orbit satisfying the focal conic equation with
-positive semilatus rectum `ell` and nonzero angular momentum obeys the attractive
-inverse-square law with coefficient `M²/ell`.
+positive semilatus rectum `ℓ` and nonzero angular momentum obeys the attractive
+inverse-square law with coefficient `M²/ℓ`.
 
 ## Domains and assumptions
 
-`polar_motion l u` records `r, theta`, their first and second derivatives, and
+`polar_motion l u` records `r, θ`, their first and second derivatives, and
 `r(t) > 0` for `l < t < u`. All derivative witnesses are checked using the
 project's limit-based scalar derivative. No global extension of an orbit or
 smoothness at interval endpoints is required.
 
-The hypotheses `M <> 0`, `mu > 0`, and `ell > 0` appear wherever the mathematical
+The hypotheses `M <> 0`, `μ > 0`, and `ℓ > 0` appear wherever the mathematical
 argument needs them. In particular, radial trajectories with zero angular
 momentum are excluded from the nondegenerate conic theorems. No mass parameter
 is needed: the force laws are stated as acceleration per unit mass.

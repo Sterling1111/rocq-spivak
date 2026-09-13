@@ -2,16 +2,16 @@ From Calculus.Chapter17 Require Export Prelude.
 Local Open Scope plane_scope.
 
 (** The moving orthonormal frame e, e' used throughout Chapter 17. *)
-Definition radial (theta : ℝ) : plane := ⟨cos theta, sin theta⟩.
-Definition transverse (theta : ℝ) : plane := ⟨-sin theta, cos theta⟩.
+Definition radial (θ : ℝ) : plane := ⟨cos θ, sin θ⟩.
+Definition transverse (θ : ℝ) : plane := ⟨-sin θ, cos θ⟩.
 
-Lemma radial_frame theta :
-  radial theta · radial theta = 1 ∧
-  transverse theta · transverse theta = 1 ∧
-  radial theta · transverse theta = 0 ∧
-  det(radial theta, transverse theta) = 1.
+Lemma radial_frame θ :
+  radial θ · radial θ = 1 ∧
+  transverse θ · transverse θ = 1 ∧
+  radial θ · transverse θ = 0 ∧
+  det(radial θ, transverse θ) = 1.
 Proof.
-  pose proof (pythagorean_identity theta) as H1.
+  pose proof (pythagorean_identity θ) as H1.
   unfold dot, det, vx, vy, radial, transverse, plane_pair. cbn.
   repeat split; nra.
 Qed.
@@ -58,56 +58,56 @@ Proof.
     auto_diff.
 Qed.
 
-Definition polar_curve (r theta : ℝ → ℝ) : vector_function 2 :=
-  λ t, r t • radial (theta t).
-Definition polar_velocity (r r' theta theta' : ℝ → ℝ) : vector_function 2 :=
-  λ t, r' t • radial (theta t) ⊕ (r t * theta' t) • transverse (theta t).
-Definition polar_acceleration (r r' r'' theta theta' theta'' : ℝ → ℝ)
+Definition polar_curve (r θ : ℝ → ℝ) : vector_function 2 :=
+  λ t, r t • radial (θ t).
+Definition polar_velocity (r r' θ θ' : ℝ → ℝ) : vector_function 2 :=
+  λ t, r' t • radial (θ t) ⊕ (r t * θ' t) • transverse (θ t).
+Definition polar_acceleration (r r' r'' θ θ' θ'' : ℝ → ℝ)
     : vector_function 2 :=
-  λ t, (r'' t - r t * theta' t ^ 2) • radial (theta t)
-    ⊕ (2 * r' t * theta' t + r t * theta'' t) • transverse (theta t).
+  λ t, (r'' t - r t * θ' t ^ 2) • radial (θ t)
+    ⊕ (2 * r' t * θ' t + r t * θ'' t) • transverse (θ t).
 
 Ltac polar_coordinates :=
   cbv [polar_curve polar_velocity polar_acceleration radial transverse
     plane_pair vx vy fvector_add fvector_scale fvector_map fvector_map2
     add scale Add_R Scale_R list_function Fin.caseS'].
 
-Lemma polar_curve_derivative r r' theta theta' t :
-  (⟦ der t ⟧ r = r') → (⟦ der t ⟧ theta = theta') →
-  (⟦ der t ⟧ (polar_curve r theta) = (polar_velocity r r' theta theta'))%vc.
+Lemma polar_curve_derivative r r' θ θ' t :
+  (⟦ der t ⟧ r = r') → (⟦ der t ⟧ θ = θ') →
+  (⟦ der t ⟧ (polar_curve r θ) = (polar_velocity r r' θ θ'))%vc.
 Proof.
   intros H1 H2. apply plane_derivative_iff. split;
     polar_coordinates; orbit_diff; ring.
 Qed.
 
-Lemma polar_velocity_derivative r r' r'' theta theta' theta'' t :
+Lemma polar_velocity_derivative r r' r'' θ θ' θ'' t :
   (⟦ der t ⟧ r = r') → (⟦ der t ⟧ r' = r'') →
-  (⟦ der t ⟧ theta = theta') → (⟦ der t ⟧ theta' = theta'') →
-  (⟦ der t ⟧ (polar_velocity r r' theta theta') =
-    (polar_acceleration r r' r'' theta theta' theta''))%vc.
+  (⟦ der t ⟧ θ = θ') → (⟦ der t ⟧ θ' = θ'') →
+  (⟦ der t ⟧ (polar_velocity r r' θ θ') =
+    (polar_acceleration r r' r'' θ θ' θ''))%vc.
 Proof.
   intros H1 H2 H3 H4. apply plane_derivative_iff. split;
     polar_coordinates; orbit_diff; ring.
 Qed.
 
-Lemma polar_momentum r r' theta theta' t :
-  det(polar_curve r theta t, polar_velocity r r' theta theta' t) =
-  r t ^ 2 * theta' t.
+Lemma polar_momentum r r' θ θ' t :
+  det(polar_curve r θ t, polar_velocity r r' θ θ' t) =
+  r t ^ 2 * θ' t.
 Proof.
   unfold polar_curve, polar_velocity.
   rewrite det_add_r, !det_scale_l, !det_scale_r, det_self.
-  rewrite (proj2 (proj2 (proj2 (radial_frame (theta t))))). ring.
+  rewrite (proj2 (proj2 (proj2 (radial_frame (θ t))))). ring.
 Qed.
 
-Lemma polar_curve_nonzero r theta t :
-  0 < r t → polar_curve r theta t ≠ ⟨0, 0⟩.
+Lemma polar_curve_nonzero r θ t :
+  0 < r t → polar_curve r θ t ≠ ⟨0, 0⟩.
 Proof.
   intros H1 H2. pose proof (f_equal vx H2) as H3. pose proof (f_equal vy H2) as H4.
   polar_coordinates. unfold polar_curve, radial in H3, H4.
-  change (r t * cos (theta t) = 0) in H3.
-  change (r t * sin (theta t) = 0) in H4.
-  assert (H5 : cos (theta t) = 0 ∧ sin (theta t) = 0) by (split; nra).
-  pose proof (pythagorean_identity (theta t)) as H6. destruct H5 as [H7 H8]. nra.
+  change (r t * cos (θ t) = 0) in H3.
+  change (r t * sin (θ t) = 0) in H4.
+  assert (H5 : cos (θ t) = 0 ∧ sin (θ t) = 0) by (split; nra).
+  pose proof (pythagorean_identity (θ t)) as H6. destruct H5 as [H7 H8]. nra.
 Qed.
 
 Definition position {l u} (p : polar_motion l u) :=

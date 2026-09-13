@@ -54,23 +54,23 @@ Section EllipseArea.
   Local Notation a := (semimajor E).
   Local Notation b := (semiminor E).
   Local Notation e := (eccentricity E).
-  Local Notation psi := (anomaly E).
-  Local Notation psi' := (anomaly' E).
+  Local Notation ψ := (anomaly E).
+  Local Notation "ψ′" := (anomaly' E).
 
-  Definition ellipse_area_primitive t := a * b / 2 * (psi t - e * sin (psi t)).
+  Definition ellipse_area_primitive t := a * b / 2 * (ψ t - e * sin (ψ t)).
 
   Lemma ellipse_velocity t : l < t < u →
-    velocity p t = ⟨-a * sin (psi t) * psi' t, b * cos (psi t) * psi' t⟩.
+    velocity p t = ⟨-a * sin (ψ t) * ψ′ t, b * cos (ψ t) * ψ′ t⟩.
   Proof.
     intro H1. pose proof (anomaly_derivative E t H1) as H2.
     apply plane_ext.
-    - assert (H3 : (⟦ der t ⟧ (λ x, vx (position p x)) = (λ x, -a * sin (psi x) * psi' x))).
-      { eapply scalar_local_ext with (f := λ x, a * (cos (psi x) - e)); eauto.
+    - assert (H3 : (⟦ der t ⟧ (λ x, vx (position p x)) = (λ x, -a * sin (ψ x) * ψ′ x))).
+      { eapply scalar_local_ext with (f := λ x, a * (cos (ψ x) - e)); eauto.
         - intros x H4. rewrite (ellipse_parameterization E x H4). reflexivity.
         - orbit_diff. ring. }
       exact (derivative_at_unique _ _ _ t (position_derivative p t H1 Fin.F1) H3).
-    - assert (H3 : (⟦ der t ⟧ (λ x, vy (position p x)) = (λ x, b * cos (psi x) * psi' x))).
-      { eapply scalar_local_ext with (f := λ x, b * sin (psi x)); eauto.
+    - assert (H3 : (⟦ der t ⟧ (λ x, vy (position p x)) = (λ x, b * cos (ψ x) * ψ′ x))).
+      { eapply scalar_local_ext with (f := λ x, b * sin (ψ x)); eauto.
         - intros x H4. rewrite (ellipse_parameterization E x H4). reflexivity.
         - orbit_diff. ring. }
       exact (derivative_at_unique _ _ _ t (position_derivative p t H1 (Fin.FS Fin.F1)) H3).
@@ -84,7 +84,7 @@ Section EllipseArea.
     unfold areal_velocity, angular_momentum.
     rewrite (ellipse_parameterization E t H1), (ellipse_velocity t H1).
     unfold det. polar_coordinates.
-    pose proof (f_equal (λ z, a * b * psi' t * z) (pythagorean_identity (psi t))) as H3.
+    pose proof (f_equal (λ z, a * b * ψ′ t * z) (pythagorean_identity (ψ t))) as H3.
     nra.
   Qed.
 
@@ -153,12 +153,12 @@ Proof.
   - apply central_conserves_momentum; auto. apply epoch_inside.
 Qed.
 
-Lemma inverse_square_coefficient_unique {l u} (p : polar_motion l u) mu nu t :
-  l < t < u → inverse_square_force p mu → inverse_square_force p nu → mu = nu.
+Lemma inverse_square_coefficient_unique {l u} (p : polar_motion l u) μ ν t :
+  l < t < u → inverse_square_force p μ → inverse_square_force p ν → μ = ν.
 Proof.
   intros H1 H2 H3.
-  assert (H4 : (-mu / radius p t ^ 2) • radial (angle p t) =
-    (-nu / radius p t ^ 2) • radial (angle p t)).
+  assert (H4 : (-μ / radius p t ^ 2) • radial (angle p t) =
+    (-ν / radius p t ^ 2) • radial (angle p t)).
   { rewrite <- H2, <- H3 by exact H1. reflexivity. }
   apply (f_equal (λ v, det(v, transverse (angle p t)))) in H4.
   rewrite !det_scale_l, (proj2 (proj2 (proj2 (radial_frame (angle p t))))) in H4.
