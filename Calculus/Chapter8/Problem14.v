@@ -92,4 +92,16 @@ Lemma lemma_8_14_b :
     (∀ n, b (S n) <= b n) /\
     (∀ n, a n < b n) /\
     ~ (∃ x, ∀ n, a n < x < b n).
-Proof. Abort.
+Proof.
+  exists (λ _, 0), (λ n, 1 / (S n)%nat).
+  repeat split.
+  - intros n. lra.
+  - intros n. apply Rmult_le_reg_r with (r := (S n)%nat * (S (S n))%nat).
+    + solve_R.
+    + field_simplify; solve_R.
+  - intros n. solve_R.
+  - intros [x H1]. pose proof H1 0%nat as H2.
+    destruct (exists_nat_gt_inv_scale 0 1 x ltac:(lra) ltac:(lra)) as [n [H3 H4]].
+    destruct n as [| n]; [lia |].
+    specialize (H1 n). cbv beta in H1. rewrite Rminus_0_r in H4. lra.
+Qed.

@@ -1,6 +1,6 @@
 From Calculus.Chapter18 Require Import Prelude.
 
-Lemma lemma_18_1_i : 
+Lemma lemma_18_1_i :
   ⟦ der ⟧ (λ x, e^^e^^e^^e^^x) = (λ x, e^^e^^e^^e^^x * e^^e^^e^^x * e^^e^^x * e^^x).
 Proof.
   auto_diff.
@@ -36,8 +36,6 @@ Proof.
   auto_diff.
 Qed.
 
-(* As printed, x / sin x is outside [-1,1] whenever it is defined.
-   Thus part (vii) has no real domain and no real derivative to compute. *)
 Lemma lemma_18_1_vii : ∀ x,
   sin x <> 0 -> ~ (-1 <= x / sin x <= 1).
 Abort.

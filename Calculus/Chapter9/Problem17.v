@@ -4,7 +4,7 @@ Lemma lemma_9_17 : ∀ f β,
   0 < β < 1 → (∀ x, |f x| ≥ |x| ^^ β) → f 0 = 0 → ¬ differentiable_at f 0.
 Proof.
   intros f β H1 H2 H3 [L H4].
-  pose proof (limit_locally_bounded (fun h => (f (0 + h) - f 0) / h) 0 L H4) as [δ1 [M [H5 [H6 H7]]]].
+  pose proof (limit_locally_bounded (λ h, (f (0 + h) - f 0) / h) 0 L H4) as [δ1 [M [H5 [H6 H7]]]].
   assert (H8 : β - 1 < 0) by lra.
   pose proof (Rpower_negative_unbounded_zero (β - 1) M H8) as [δ2 [H9 H10]].
   set (h := Rmin (δ1 / 2) (δ2 / 2)).

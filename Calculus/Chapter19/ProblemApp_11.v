@@ -8,8 +8,7 @@ Abort.
 Lemma lemma_19_App_11_b : ∀ r a b, 0 < r -> -r <= a -> a <= b -> b <= r ->
   2*π * ∫ a b (λ x, √(r^2-x^2)*√(1+(-x/√(r^2-x^2))^2)) = 2*π*r*(b-a).
 Abort.
-(* Boards are extended to infinite strips. Their positive widths sum to the
-   diameter, as in the parallel covering. Nonparallel strips cannot cover the disk. *)
+
 Lemma lemma_19_App_11_c : ∀ (n : nat) (w u v c : nat -> R) r,
   0 < r -> (2 <= n)%nat ->
   (∀ i, (1 <= i <= n)%nat -> 0 < w i /\ u i^2+v i^2 = 1) ->

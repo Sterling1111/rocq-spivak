@@ -1,6 +1,5 @@
 From Calculus.Chapter20 Require Import Prelude.
 
-(* Continuity of the highest derivative ensures the integral remainder exists. *)
 Lemma lemma_20_20 : ∀ f n a x δ,
   a < x -> δ > 0 -> nth_differentiable_on (S n) f (a-δ,x+δ) ->
   continuous_on (λ t, ⟦ Der ^ (S n) t ⟧ f) [a,x] ->

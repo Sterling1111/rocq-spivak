@@ -7,15 +7,15 @@ Proof.
   solve_R.
 Qed.
 
-Lemma lemma_1_9_ii : forall a b,
+Lemma lemma_1_9_ii : ∀ a b,
   |(|a + b| - |a| - |b|)| = |a| + |b| - |a + b|.
 Proof. solve_R. Qed.
 
-Lemma lemma_1_9_iii : forall a b c,
+Lemma lemma_1_9_iii : ∀ a b c,
   |(|a + b| + |c| - |a + b + c|)| = |a + b| + |c| - |a + b + c|.
 Proof. solve_R. Qed.
 
-Lemma lemma_1_9_iv : forall x y,
+Lemma lemma_1_9_iv : ∀ x y,
   |x^2 - 2 * x * y + y^2| = x^2 - 2 * x * y + y^2.
 Proof.
   intros x y. pose proof Rtotal_order x y as [H1 | [H1 | H1]]; solve_R.

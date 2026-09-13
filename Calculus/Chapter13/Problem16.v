@@ -1,7 +1,7 @@
 From Calculus.Chapter13 Require Import Prelude.
 
-Lemma lemma_13_16 : forall f a b c,
-  a < b -> c > 0 ->
-  integrable_on (c * a) (c * b) f ->
-  ∫ (c * a) (c * b) f = c * ∫ a b (fun t => f (c * t)).
+Lemma lemma_13_16 : ∀ f a b c,
+  a < b ->
+  integrable_on (Rmin (c * a) (c * b)) (Rmax (c * a) (c * b)) f ->
+  ∫ (c * a) (c * b) f = c * ∫ a b (λ t, f (c * t)).
 Abort.

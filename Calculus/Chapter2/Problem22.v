@@ -1,9 +1,9 @@
 From Calculus.Chapter2 Require Import Prelude.
 
 Definition prod_f (s n : nat) (f:nat -> R) : R :=
-  prod_f_R0 (fun x:nat => f (x + s)%nat) (n - s).
+  prod_f_R0 (λ x:nat, f (x + s)%nat) (n - s).
 
-Lemma prod_f_n_n : forall n f,
+Lemma prod_f_n_n : ∀ n f,
   prod_f n n f = f n.
 Proof.
   intros n f. unfold prod_f. replace (n - n)%nat with 0%nat by lia.
@@ -11,19 +11,19 @@ Proof.
 Qed.
 
 Definition pos_list (l : list R) : Prop :=
-  Forall (fun x => x > 0) l.
+  Forall (λ x, x > 0) l.
 
 Definition arithmetic_mean (l : list R) : R :=
-  fold_right Rplus 0 l / INR (length l).
+  fold_right Rplus 0 l / (length l)%nat.
 
 Definition arithmetic_mean_prime (l : list R) : R :=
-  sum_f 0 (length l - 1) (fun i => nth i l 0) / INR (length l).
+  sum_f 0 (length l - 1) (λ i, nth i l 0) / (length l)%nat.
 
 Definition geometric_mean (l : list R) : R :=
   if eq_nat_dec (length l) 0 then 0 else
-  Rpower (fold_right Rmult 1 l) (1 / INR (length l)).
+  Rpower (fold_right Rmult 1 l) (1 / (length l)%nat).
 
-Lemma pos_list_cons : forall h l,
+Lemma pos_list_cons : ∀ h l,
   pos_list (h :: l) <-> h > 0 /\ pos_list l.
 Proof.
   intros h l. split.
@@ -33,7 +33,7 @@ Proof.
     -- unfold pos_list in H2. rewrite Forall_forall in H2. specialize (H2 x H4); auto.
 Qed.
 
-Lemma pos_list_app_iff : forall l1 l2,
+Lemma pos_list_app_iff : ∀ l1 l2,
   pos_list (l1 ++ l2) <-> pos_list l1 /\ pos_list l2.
 Proof.
   intros l1 l2. split.
@@ -41,7 +41,7 @@ Proof.
   - intros [H1 H2]. unfold pos_list. apply Forall_app. tauto.
 Qed.
 
-Lemma fold_right_mult_pos_list_gt_0 : forall l,
+Lemma fold_right_mult_pos_list_gt_0 : ∀ l,
   pos_list l -> fold_right Rmult 1 l > 0.
 Proof.
   intros l H1. induction l as [| h l' IH].
@@ -49,7 +49,7 @@ Proof.
   - simpl. apply pos_list_cons in H1 as [H1 H2]. apply IH in H2. nra.
 Qed.
 
-Lemma fold_right_plus_pos_list_gt_0 : forall l,
+Lemma fold_right_plus_pos_list_gt_0 : ∀ l,
   pos_list l -> (length l > 0)%nat -> fold_right Rplus 0 l > 0.
 Proof.
   intros l H1 H2. induction l as [| h l' IH].
@@ -59,7 +59,7 @@ Proof.
     -- apply pos_list_cons in H1 as [H1 H3]. apply IH in H3. nra. simpl. lia.
 Qed.
 
-Lemma fold_right_mul_initial_val : forall l a,
+Lemma fold_right_mul_initial_val : ∀ l a,
   fold_right Rmult a l = a * fold_right Rmult 1 l.
 Proof.
   intros l a. induction l as [| h l' IH].
@@ -67,7 +67,7 @@ Proof.
   - simpl. rewrite IH. lra.
 Qed.
 
-Lemma ge_le_arith_2 : forall a b,
+Lemma ge_le_arith_2 : ∀ a b,
   a > 0 -> b > 0 -> sqrt (a * b) <= (a + b) / 2.
 Proof.
   intros a b H1 H2. apply Rmult_le_reg_r with (r := 2). lra.
@@ -78,7 +78,7 @@ Proof.
   pose proof (Rtotal_order a b) as [H3 | [H4 | H5]]; try nra.
 Qed.
 
-Lemma geometric_mean_app : forall l1 l2,
+Lemma geometric_mean_app : ∀ l1 l2,
   pos_list l1 -> pos_list l2 -> length l1 = length l2 ->
   geometric_mean (l1 ++ l2) = sqrt (geometric_mean l1 * geometric_mean l2).
 Proof.
@@ -100,14 +100,14 @@ Proof.
         destruct (length (l1 ++ r0 :: l2)). lia. destruct (length l2). lia. assert (H5 : r * fold_right Rmult 1 l1 > 0). { apply pos_list_cons in H1. assert (fold_right Rmult 1 l1 > 0) by (apply fold_right_mult_pos_list_gt_0; tauto). nra. }
         assert (H6 : r0 * fold_right Rmult 1 l2 > 0). { apply pos_list_cons in H2. assert (fold_right Rmult 1 l2 > 0) by (apply fold_right_mult_pos_list_gt_0; tauto). nra. } rewrite Rpower_mult_distr; auto.
         rewrite <- Rpower_sqrt. rewrite Rpower_mult. rewrite H4. inversion H4 as [H7]. replace (S n1) with (S n). 2 : { inversion H3. inversion H3'. reflexivity. } repeat rewrite S_INR. rewrite plus_INR.
-        replace ((1 / (INR n + 1 + 1) * / 2)) with ((1 / (INR n + INR n + 1 + 1 + 1 + 1))). 2 : { field. split; pose proof pos_INR n; lra. }
+        replace ((1 / (n + 1 + 1) * / 2)) with ((1 / (n + n + 1 + 1 + 1 + 1))). 2 : { field. split; pose proof pos_INR n; lra. }
         replace (r * fold_right Rmult 1 (l1 ++ r0 :: l2)) with (r * fold_right Rmult 1 l1 * (r0 * fold_right Rmult 1 l2)).
         2 : { rewrite fold_right_app. simpl. rewrite fold_right_mul_initial_val with (a := r0 * fold_right Rmult 1 l2). nra. }
         reflexivity.
         apply Rgt_lt. apply Rpower_gt_0. apply Rmult_gt_0_compat; auto.
 Qed.
 
-Lemma pow_2_n_gt_0 : forall n,
+Lemma pow_2_n_gt_0 : ∀ n,
   (2 ^ n > 0)%nat.
 Proof.
   intros n. induction n as [| k IH].
@@ -115,7 +115,7 @@ Proof.
   - simpl. lia.
 Qed.
 
-Lemma fold_right_plus_app : forall l1 l2,
+Lemma fold_right_plus_app : ∀ l1 l2,
   fold_right Rplus 0 (l1 ++ l2) = fold_right Rplus 0 l1 + fold_right Rplus 0 l2.
 Proof.
   intros l1 l2. induction l1 as [| h l1' IH].
@@ -123,7 +123,7 @@ Proof.
   - simpl. rewrite IH. lra.
 Qed.
 
-Lemma fold_right_mult_app_R : forall l1 l2,
+Lemma fold_right_mult_app_R : ∀ l1 l2,
   fold_right Rmult 1 (l1 ++ l2) = fold_right Rmult 1 l1 * fold_right Rmult 1 l2.
 Proof.
   intros l1 l2. induction l1 as [| h l1' IH].
@@ -131,8 +131,8 @@ Proof.
   - simpl. rewrite IH. lra.
 Qed.
 
-Lemma sum_f_fold_right_equiv : forall (l : list R),
-  sum_f 0 (length l - 1) (fun i => nth i l 0) = fold_right Rplus 0 l.
+Lemma sum_f_fold_right_equiv : ∀ (l : list R),
+  sum_f 0 (length l - 1) (λ i, nth i l 0) = fold_right Rplus 0 l.
 Proof.
   induction l as [| h t IH].
   - simpl. rewrite sum_f_0_0. reflexivity.
@@ -140,42 +140,42 @@ Proof.
     replace (h :: t) with ([h] ++ t) by (reflexivity). replace (fold_right Rplus 0 ([h] ++ t)) with (h + fold_right Rplus 0 t).
     2 : { rewrite fold_right_app. reflexivity. } assert (length t = 0 \/ length t > 0)%nat as [H1 | H1] by lia.
     -- rewrite H1. rewrite sum_f_0_0. rewrite length_zero_iff_nil in H1. rewrite H1. simpl; lra.
-    -- rewrite sum_f_Si; try lia. rewrite sum_f_reindex with (s := 1%nat); try lia. replace (fun x : nat => nth (x + 1) ([h] ++ t) 0) with (fun x : nat => nth x t 0).
+    -- rewrite sum_f_Si; try lia. rewrite sum_f_reindex with (s := 1%nat); try lia. replace (λ x : nat, nth (x + 1) ([h] ++ t) 0) with (λ x : nat, nth x t 0).
        2 : { apply functional_extensionality. intro x. rewrite app_nth2. 2 : { simpl. lia. } simpl. replace (x + 1 - 1)%nat with x by lia. reflexivity. } 
        simpl. rewrite <- IH. lra.
 Qed.
 
-Lemma arith_mean_equiv : forall l : list R,
+Lemma arith_mean_equiv : ∀ l : list R,
   arithmetic_mean l = arithmetic_mean_prime l.
 Proof.
   intros l. unfold arithmetic_mean. unfold arithmetic_mean_prime.
   rewrite sum_f_fold_right_equiv. reflexivity.
 Qed.
 
-Lemma exists_nth_lt_gt_arith_mean : forall (l : list R),
-  (nth 0 l 0) < arithmetic_mean l -> exists i, (0 < i < length l)%nat /\ nth i l 0 > arithmetic_mean l.
+Lemma exists_nth_lt_gt_arith_mean : ∀ (l : list R),
+  (nth 0 l 0) < arithmetic_mean l -> ∃ i, (0 < i < length l)%nat /\ nth i l 0 > arithmetic_mean l.
 Proof.
-  intros l H1. pose proof (classic (exists i, (0 < i < length l)%nat /\ nth i l 0 > arithmetic_mean l)) as [H2 | H2]; auto.
-  assert (H3 : forall i, ~(0 < i < (length l))%nat \/ ~nth i l 0 > arithmetic_mean l). 
+  intros l H1. pose proof (classic (∃ i, (0 < i < length l)%nat /\ nth i l 0 > arithmetic_mean l)) as [H2 | H2]; auto.
+  assert (H3 : ∀ i, ~(0 < i < (length l))%nat \/ ~nth i l 0 > arithmetic_mean l).
   { intro i. apply not_and_or. intro H3. apply H2. exists i. apply H3. }
-  assert (H4 : forall i, (0 >= i \/ i >= length l)%nat \/ nth i l 0 <= arithmetic_mean l).
+  assert (H4 : ∀ i, (0 >= i \/ i >= length l)%nat \/ nth i l 0 <= arithmetic_mean l).
   { intro i. specialize (H3 i). destruct H3 as [H3 | H3]. left. lia. right. lra. }
-  assert (H5 : forall i, (0 <= i < length l)%nat -> nth i l 0 <= arithmetic_mean l). { intros i H5. specialize (H4 i). destruct H4 as [[H4 | H4] | H4]. destruct i. apply Rlt_le. apply H1. lia. lia. auto. }
+  assert (H5 : ∀ i, (0 <= i < length l)%nat -> nth i l 0 <= arithmetic_mean l). { intros i H5. specialize (H4 i). destruct H4 as [[H4 | H4] | H4]. destruct i. apply Rlt_le. apply H1. lia. lia. auto. }
   assert (length l = 0 \/ length l > 0)%nat as [H6 | H6] by lia. apply length_zero_iff_nil in H6. rewrite H6 in H1. compute in H1; lra.
-  assert (H7 : sum_f 0 (length l - 1) (fun i => nth i l 0) < arithmetic_mean l * INR (length l)).
+  assert (H7 : sum_f 0 (length l - 1) (λ i, nth i l 0) < arithmetic_mean l * (length l)%nat).
   { replace (length l) with (length l - 1 - 0 + 1)%nat at 2 by lia. apply sum_f_lt; try lia. exists 0%nat. split. lia. auto. intros k H7. apply H5. lia. }
   unfold arithmetic_mean in H7. rewrite <- sum_f_fold_right_equiv in H7. field_simplify in H7. lra. apply not_0_INR. lia.
 Qed.
 
-Lemma fold_right_plus_repeat : forall a n,
-  fold_right Rplus 0 (repeat a n) = a * INR n.
+Lemma fold_right_plus_repeat : ∀ a n,
+  fold_right Rplus 0 (repeat a n) = a * n.
 Proof.
   intros a n. induction n as [| k IH].
   - simpl. lra.
   - simpl. rewrite IH. destruct k; simpl; lra.
 Qed.
 
-Lemma fold_right_mult_repeat : forall a n,
+Lemma fold_right_mult_repeat : ∀ a n,
   fold_right Rmult 1 (repeat a n) = a ^ n.
 Proof.
   intros a n. induction n as [| k IH].
@@ -183,23 +183,23 @@ Proof.
   - simpl. rewrite IH. lra.
 Qed.
 
-Lemma arithmetic_mean_repeat : forall n x,
+Lemma arithmetic_mean_repeat : ∀ n x,
   (n <> 0)%nat -> arithmetic_mean (repeat x n) = x.
 Proof.
   intros n x H1. unfold arithmetic_mean. rewrite repeat_length. rewrite fold_right_plus_repeat. field. apply not_0_INR. lia.
 Qed.
 
-Lemma geometric_mean_repeat : forall n x,
+Lemma geometric_mean_repeat : ∀ n x,
   (n <> 0)%nat -> x > 0 -> geometric_mean (repeat x n) = x.
 Proof.
   intros n x H1 H2. unfold geometric_mean. rewrite repeat_length. rewrite fold_right_mult_repeat. 
   destruct (Nat.eq_dec n 0) as [H3 | H3]; try lia. apply pow_eq_1 with (n := n); try lia; try lra. 
   apply Rpower_gt_0. apply Rpow_gt_0; auto. rewrite <- Rpower_pow. rewrite Rpower_mult.
-  replace (1 / INR n * INR n) with 1 by (field; apply not_0_INR; lia). rewrite Rpower_1; auto.
+  replace (1 / n * n) with 1 by (field; apply not_0_INR; lia). rewrite Rpower_1; auto.
   apply Rpow_gt_0; auto. apply Rpower_gt_0. apply Rpow_gt_0; auto.
 Qed.
 
-Lemma ordered_Rlist_Sorted : forall l : list R,
+Lemma ordered_Rlist_Sorted : ∀ l : list R,
   ordered_Rlist l -> Sorted Rle l.
 Proof.
   intros l H1. induction l as [| h t IH].
@@ -209,7 +209,7 @@ Proof.
     -- destruct t. constructor. constructor. specialize (H1 0%nat). simpl in H1. apply H1. lia.
 Qed.
 
-Lemma ordered_Rlist_cons : forall h l,
+Lemma ordered_Rlist_cons : ∀ h l,
   ordered_Rlist l -> h <= hd 0 l -> ordered_Rlist (h :: l).
 Proof.
   intros h l H1 H2. replace (h :: l) with ([h] ++ l) by reflexivity. apply RList_P25; auto.
@@ -217,7 +217,7 @@ Proof.
   - simpl. destruct l; auto.
 Qed.
 
-Lemma Sorted_ordered_Rlist : forall l : list R,
+Lemma Sorted_ordered_Rlist : ∀ l : list R,
   Sorted Rle l -> ordered_Rlist l.
 Proof.
   intros l H1. induction l as [| h t IH].
@@ -227,7 +227,7 @@ Proof.
     -- apply ordered_Rlist_cons; auto. apply HdRel_inv in H3. simpl. lra.
 Qed.
 
-Lemma insert_count_occ_eq : forall l x,
+Lemma insert_count_occ_eq : ∀ l x,
   count_occ Req_dec_T (insert l x) x = S (count_occ Req_dec_T l x).
 Proof.
   intros l x. induction l as [| h t IH].
@@ -242,7 +242,7 @@ Proof.
          2 : { destruct (Rle_dec h x); auto; lra. } rewrite count_occ_cons_eq; auto. rewrite count_occ_cons_neq; auto.
 Qed.
 
-Lemma insert_count_occ_neq : forall l x y,
+Lemma insert_count_occ_neq : ∀ l x y,
   x <> y -> count_occ Req_dec_T (insert l x) y = count_occ Req_dec_T l y.
 Proof.
   intros l x y H1. induction l as [| h t IH].
@@ -260,8 +260,8 @@ Proof.
          2 : { destruct (Rle_dec h x); auto; lra. } rewrite count_occ_cons_neq; auto. rewrite count_occ_cons_neq; auto.
 Qed.
 
-Lemma exists_sorted_list_R : forall l1 : list R,
-  exists l2 : list R, Sorted Rle l2 /\ Permutation l1 l2.
+Lemma exists_sorted_list_R : ∀ l1 : list R,
+  ∃ l2 : list R, Sorted Rle l2 /\ Permutation l1 l2.
 Proof.
   induction l1 as [| h t IH].
   - exists []. split. apply Sorted_nil. apply Permutation_refl.
@@ -280,7 +280,7 @@ Proof.
        specialize (H2 x). rewrite H2. reflexivity.        
 Qed.
 
-Lemma fold_right_Rplus_remove_one_In : forall a l,
+Lemma fold_right_Rplus_remove_one_In : ∀ a l,
   In a l -> fold_right Rplus 0 (remove_one Req_dec_T a l) = fold_right Rplus 0 l - a.
 Proof.
   intros a l H1. induction l as [| h t IH].
@@ -291,12 +291,12 @@ Proof.
     + specialize (IH H1). simpl. rewrite IH. nra.
 Qed.
 
-Lemma count_occ_eq_sum_right : forall l1 l2,
-  (forall n, count_occ Req_dec_T l1 n = count_occ Req_dec_T l2 n) ->
+Lemma count_occ_eq_sum_right : ∀ l1 l2,
+  (∀ n, count_occ Req_dec_T l1 n = count_occ Req_dec_T l2 n) ->
   fold_right Rplus 0 l1 = fold_right Rplus 0 l2.
 Proof.
   intros l1 l2 H1. generalize dependent l2. induction l1 as [| h t IH].
-  - intros l2 H1. simpl in *. assert (H2 : forall n, count_occ Req_dec_T l2 n = 0%nat) by (intros n; specialize (H1 n); lia). 
+  - intros l2 H1. simpl in *. assert (H2 : ∀ n, count_occ Req_dec_T l2 n = 0%nat) by (intros n; specialize (H1 n); lia).
     apply count_occ_inv_nil in H2. rewrite H2. reflexivity.
   - intros l2 H1. simpl. specialize (IH (remove_one Req_dec_T h l2)). rewrite IH.
     2 : { 
@@ -312,20 +312,20 @@ Proof.
     { rewrite (count_occ_In Req_dec_T). lia. } rewrite fold_right_Rplus_remove_one_In; auto. lra.
 Qed.
 
-Lemma count_occ_eq_sum_right_prime : forall l1 l2,
+Lemma count_occ_eq_sum_right_prime : ∀ l1 l2,
   count_occ Req_dec_T l1 = count_occ Req_dec_T l2 -> fold_right Rplus 0 l1 = fold_right Rplus 0 l2.
 Proof.
   intros l1 l2 H1. apply count_occ_eq_sum_right. intros n. rewrite H1. reflexivity.
 Qed.
 
-Lemma sum_f_Permutation : forall l1 l2,
-  Permutation l1 l2 -> sum_f 0 (length l1 - 1) (fun i => nth i l1 0) = sum_f 0 (length l2 - 1) (fun i => nth i l2 0).
+Lemma sum_f_Permutation : ∀ l1 l2,
+  Permutation l1 l2 -> sum_f 0 (length l1 - 1) (λ i, nth i l1 0) = sum_f 0 (length l2 - 1) (λ i, nth i l2 0).
 Proof.
   intros l1 l2 H1. rewrite (Permutation_count_occ Req_dec_T) in H1. repeat rewrite sum_f_fold_right_equiv. apply count_occ_eq_sum_right_prime.
   apply functional_extensionality. apply H1.
 Qed.
 
-Lemma In_0_fold_right_eq_0_R: forall l,
+Lemma In_0_fold_right_eq_0_R: ∀ l,
   In 0 l -> fold_right Rmult 1 l = 0.
 Proof.
   intros l H1. induction l as [| h t IH].
@@ -335,7 +335,7 @@ Proof.
     + specialize (IH H1). simpl. nra.
 Qed.
 
-Lemma fold_right_Rmult_remove_one_In : forall a l,
+Lemma fold_right_Rmult_remove_one_In : ∀ a l,
   In a l -> (a <> 0) -> fold_right Rmult 1 (remove_one Req_dec_T a l) = fold_right Rmult 1 l / a.
 Proof.
   intros a l H1 H2. induction l as [| h t IH].
@@ -346,11 +346,11 @@ Proof.
       simpl. nra.
 Qed.
 
-Lemma count_occ_eq_prod_right : forall l1 l2,
-  (forall n, count_occ Req_dec_T l1 n = count_occ Req_dec_T l2 n) -> fold_right Rmult 1 l1 = fold_right Rmult 1 l2.
+Lemma count_occ_eq_prod_right : ∀ l1 l2,
+  (∀ n, count_occ Req_dec_T l1 n = count_occ Req_dec_T l2 n) -> fold_right Rmult 1 l1 = fold_right Rmult 1 l2.
 Proof.
   intros l1 l2 H1. generalize dependent l2. induction l1 as [| h t IH].
-  - intros l2 H1. simpl in *. assert (H2 : forall n, count_occ Req_dec_T l2 n = 0%nat) by (intros n; specialize (H1 n); lia). 
+  - intros l2 H1. simpl in *. assert (H2 : ∀ n, count_occ Req_dec_T l2 n = 0%nat) by (intros n; specialize (H1 n); lia).
     apply count_occ_inv_nil in H2. rewrite H2. reflexivity.
   - intros l2 H1. simpl. specialize (IH (remove_one Req_dec_T h l2)). rewrite IH.
     2 : { 
@@ -367,24 +367,24 @@ Proof.
      rewrite fold_right_Rmult_remove_one_In; auto. field. auto.
 Qed.
 
-Lemma count_occ_eq_prod_right_prime : forall l1 l2,
+Lemma count_occ_eq_prod_right_prime : ∀ l1 l2,
   count_occ Req_dec_T l1 = count_occ Req_dec_T l2 -> fold_right Rmult 1 l1 = fold_right Rmult 1 l2.
 Proof.
   intros l1 l2 H1. apply count_occ_eq_prod_right. intros n. rewrite H1. reflexivity.
 Qed.
 
-Lemma fold_right_Rmult_Permutation : forall l1 l2,
+Lemma fold_right_Rmult_Permutation : ∀ l1 l2,
   Permutation l1 l2 -> fold_right Rmult 1 l1 = fold_right Rmult 1 l2.
 Proof.
   intros l1 l2 H1. rewrite (Permutation_count_occ Req_dec_T) in H1. apply count_occ_eq_prod_right_prime.
   apply functional_extensionality. apply H1.
 Qed.
 
-Lemma arithmetic_mean_all_equal : forall (l : list R) r,
-  (length l > 0)%nat -> Forall (fun x => x = r) l -> arithmetic_mean l = r.
+Lemma arithmetic_mean_all_equal : ∀ (l : list R) r,
+  (length l > 0)%nat -> Forall (λ x, x = r) l -> arithmetic_mean l = r.
 Proof.
   intros l r H1 H2. rewrite arith_mean_equiv. unfold arithmetic_mean_prime. rewrite Forall_forall in H2.
-  replace (sum_f 0 (length l - 1) (fun i : nat => nth i l 0)) with (sum_f 0 (length l - 1) (fun _ => r)).
+  replace (sum_f 0 (length l - 1) (λ i : nat, nth i l 0)) with (sum_f 0 (length l - 1) (λ _, r)).
   2 : { 
         apply sum_f_equiv; try lia. intros i H3. rewrite H2; try lra. assert (i < length l \/ i >= length l)%nat as [H4 | H4] by lia.
         apply nth_In; lia. lia.
@@ -392,20 +392,20 @@ Proof.
   rewrite sum_f_const. replace (length l - 1 - 0 + 1)%nat with (length l) by lia. field. apply not_0_INR. lia.
 Qed.
 
-Lemma arith_mean_Permtation_eq : forall l1 l2,
+Lemma arith_mean_Permtation_eq : ∀ l1 l2,
   Permutation l1 l2 -> arithmetic_mean l1 = arithmetic_mean l2.
 Proof.
   intros l1 l2 H1. assert (length l1 = length l2) as H2. { apply Permutation_length; auto. }
   assert (length l1 = 0 \/ length l1 > 0)%nat as [H3 | H3] by lia.
   - rewrite H3 in H2. apply eq_sym in H2. apply length_zero_iff_nil in H2, H3. rewrite H2, H3. reflexivity.
   - assert (length l2 > 0)%nat as H4 by lia. 
-    repeat rewrite arith_mean_equiv. unfold arithmetic_mean_prime. rewrite H2. apply Rmult_eq_reg_r with (r := INR (length l2)).
+    repeat rewrite arith_mean_equiv. unfold arithmetic_mean_prime. rewrite H2. apply Rmult_eq_reg_r with (r := ((length l2)%nat : ℝ)).
     2 : { apply Rgt_not_eq. apply lt_0_INR; lia. } field_simplify; try (apply not_0_INR; lia). rewrite <- H2 at 1.
     apply sum_f_Permutation; auto.
 Qed.
 
-Lemma fold_right_Rmult_const : forall (l : list R) r,
-  (forall x, In x l -> x = r) ->
+Lemma fold_right_Rmult_const : ∀ (l : list R) r,
+  (∀ x, In x l -> x = r) ->
   fold_right Rmult 1 l = r ^ (length l).
 Proof.
   intros l r H1. induction l as [| h t IH].
@@ -414,17 +414,17 @@ Proof.
     2 : { rewrite H1; auto. left. reflexivity. } lra.
 Qed.
 
-Lemma geometric_mean_all_equal : forall (l : list R) r,
-  (length l > 0)%nat -> pos_list l -> Forall (fun x => x = r) l -> geometric_mean l = r.
+Lemma geometric_mean_all_equal : ∀ (l : list R) r,
+  (length l > 0)%nat -> pos_list l -> Forall (λ x, x = r) l -> geometric_mean l = r.
 Proof.
   intros l r H1 H2 H3. unfold geometric_mean. destruct (eq_nat_dec (length l) 0) as [H4 | H4]; try lia.
   rewrite Forall_forall in H3. rewrite fold_right_Rmult_const with (r := r); auto.
   assert (0 < r) as H5. { unfold pos_list in H2. rewrite Forall_forall in H2. apply H2. destruct l. simpl in H1. lia. left. apply H3. left. auto. }
-  rewrite <- Rpower_pow; auto. rewrite Rpower_mult. replace (INR (length l) * (1 / INR (length l))) with 1. 2 : { field. apply not_0_INR. lia. }
+  rewrite <- Rpower_pow; auto. rewrite Rpower_mult. replace ((length l)%nat * (1 / (length l)%nat)) with 1. 2 : { field. apply not_0_INR. lia. }
   rewrite Rpower_1; auto.
 Qed.
 
-Lemma MinRlist_cons : forall h t,
+Lemma MinRlist_cons : ∀ h t,
   (length t > 0)%nat -> MinRlist (h :: t) = Rmin h (MinRlist t).
 Proof.
   intros h t H1. destruct t.
@@ -432,7 +432,7 @@ Proof.
   - reflexivity.
 Qed.
 
-Lemma MaxRlist_cons : forall h t,
+Lemma MaxRlist_cons : ∀ h t,
   (length t > 0)%nat -> MaxRlist (h :: t) = Rmax h (MaxRlist t).
 Proof.
   intros h t H1. destruct t.
@@ -440,7 +440,7 @@ Proof.
   - reflexivity.
 Qed.
 
-Lemma MinRlist_In : forall l,
+Lemma MinRlist_In : ∀ l,
   (length l > 0)%nat -> In (MinRlist l) l.
 Proof.
   intros l H1. induction l as [| h t IH].
@@ -452,7 +452,7 @@ Proof.
        + right. rewrite MinRlist_cons; auto. assert (H5 : h > MinRlist t) by lra. unfold Rmin. destruct (Rle_dec h (MinRlist t)); try lra. apply IH. auto.
 Qed.
 
-Lemma MaxRlist_In : forall l,
+Lemma MaxRlist_In : ∀ l,
   (length l > 0)%nat -> In (MaxRlist l) l.
 Proof.
   intros l H1. induction l as [| h t IH].
@@ -464,7 +464,7 @@ Proof.
        + left. rewrite MaxRlist_cons; auto. unfold Rmax. destruct (Rle_dec h (MaxRlist t)); lra.
 Qed.
 
-Lemma nth_pos_Rl : forall l i,
+Lemma nth_pos_Rl : ∀ l i,
   nth i l 0 = pos_Rl l i.
 Proof.
   intros l i. generalize dependent i. induction l as [| h t IH].
@@ -474,7 +474,7 @@ Proof.
     -- simpl. apply IH.
 Qed.
 
-Lemma Sorted_MinRlist : forall l,
+Lemma Sorted_MinRlist : ∀ l,
   Sorted Rle l -> (length l > 0)%nat -> MinRlist l = nth 0 l 0.
 Proof.
   intros l H1 H2. assert (H3 : In (MinRlist l) l) by (apply MinRlist_In; auto). apply Sorted_ordered_Rlist in H1.
@@ -482,7 +482,7 @@ Proof.
   pose proof (RList_P5 l (MinRlist l) H1 H3) as H6. rewrite nth_pos_Rl in *. lra.
 Qed.
 
-Lemma Sorted_MaxRlist : forall l,
+Lemma Sorted_MaxRlist : ∀ l,
   Sorted Rle l -> (length l > 0)%nat -> MaxRlist l = nth (length l - 1) l 0.
 Proof.
   intros l H1 H2. assert (H3 : In (MaxRlist l) l) by (apply MaxRlist_In; auto). apply Sorted_ordered_Rlist in H1.
@@ -490,8 +490,8 @@ Proof.
   pose proof (RList_P7 l (MaxRlist l) H1 H3) as H6. rewrite nth_pos_Rl in *. replace (Init.Nat.pred (length l)) with (length l - 1)%nat in H6 by lia. lra.
 Qed.
 
-Lemma Sorted_tail_unique : forall l,
-  Sorted Rle l -> (length l > 0)%nat -> (~Forall (fun x => x = nth 0 l 0) l) -> nth 0 l 0 < nth (length l - 1) l 0.
+Lemma Sorted_tail_unique : ∀ l,
+  Sorted Rle l -> (length l > 0)%nat -> (~Forall (λ x, x = nth 0 l 0) l) -> nth 0 l 0 < nth (length l - 1) l 0.
 Proof.
   intros l H1 H2 H3. assert (H4 : In (nth 0 l 0) l) by (apply nth_In; lia). assert (H5 : In (nth (length l - 1) l 0) l) by (apply nth_In; lia).
   pose proof (Sorted_MinRlist l H1 H2) as H6.  pose proof (Sorted_MaxRlist l H1 H2) as H7. apply neg_Forall_Exists_neg in H3. 2 : { intros x. apply Req_dec_T. } 
@@ -503,30 +503,30 @@ Proof.
     -- pose proof (MaxRlist_P1 l x H3) as H11. pose proof (MinRlist_P1 l x H3); lra.
 Qed.
 
-Lemma MinElementLessThanMean : forall (l : list R),
-  ~Forall (fun x => x = nth 0 l 0) l -> (length l > 0)%nat -> Sorted Rle l -> nth 0 l 0 < arithmetic_mean l.
+Lemma MinElementLessThanMean : ∀ (l : list R),
+  ~Forall (λ x, x = nth 0 l 0) l -> (length l > 0)%nat -> Sorted Rle l -> nth 0 l 0 < arithmetic_mean l.
 Proof.
   intros l H1 H2 H3. assert (nth 0 l 0 = MinRlist l) as H4. { rewrite nth_pos_Rl. rewrite Sorted_MinRlist; auto. rewrite nth_pos_Rl. reflexivity. }
-  pose proof (Sorted_tail_unique l H3 H2 H1) as H5. rewrite arith_mean_equiv. unfold arithmetic_mean_prime. apply Rmult_lt_reg_r with (r := INR (length l)).
+  pose proof (Sorted_tail_unique l H3 H2 H1) as H5. rewrite arith_mean_equiv. unfold arithmetic_mean_prime. apply Rmult_lt_reg_r with (r := ((length l)%nat : ℝ)).
   apply lt_0_INR; lia. field_simplify. 2 : { apply not_0_INR. lia. } assert (H6 : (length l > 1)%nat).
   { assert (length l = 1 \/ length l > 1)%nat as [H6 | H6] by lia. rewrite H6 in H5. simpl in H5. lra. lia. }
   replace (length l - 1)%nat with (S (length l - 2)) by lia. rewrite sum_f_i_Sn_f; try lia. replace (S (length l - 2)) with (length l - 1)%nat by lia.
-  assert (nth 0 l 0 * INR (length l - 2 - 0 + 1) <= sum_f 0 (length l - 2) (fun i => nth i l 0)) as H7.
+  assert (nth 0 l 0 * (length l - 2 - 0 + 1)%nat <= sum_f 0 (length l - 2) (λ i, nth i l 0)) as H7.
   { rewrite <- sum_f_const. apply sum_f_congruence_le; try lia. intros i H7. assert (In (nth i l 0) l) as H8. { apply nth_In. lia. } 
     pose proof (MinRlist_P1 l (nth i l 0) H8) as H9. lra. }
   replace (length l - 2 - 0 + 1)%nat with (length l - 1)%nat in H7 by lia. replace (length l) with (length l - 1 + 1)%nat at 1 by lia.
   rewrite plus_INR. rewrite Rmult_plus_distr_l. rewrite Rmult_1_r. apply Rplus_le_lt_compat; lra.
 Qed.
 
-Lemma MaxElementGreaterThanMean : forall (l : list R),
-  ~Forall (fun x => x = nth 0 l 0) l -> (length l > 0)%nat -> Sorted Rle l -> nth (length l - 1) l 0 > arithmetic_mean l.
+Lemma MaxElementGreaterThanMean : ∀ (l : list R),
+  ~Forall (λ x, x = nth 0 l 0) l -> (length l > 0)%nat -> Sorted Rle l -> nth (length l - 1) l 0 > arithmetic_mean l.
 Proof.
   intros l H1 H2 H3. assert (nth (length l - 1) l 0 = MaxRlist l) as H4. { rewrite nth_pos_Rl. rewrite Sorted_MaxRlist; auto. rewrite nth_pos_Rl. reflexivity. }
-  pose proof (Sorted_tail_unique l H3 H2 H1) as H5. rewrite arith_mean_equiv. unfold arithmetic_mean_prime. apply Rmult_lt_reg_r with (r := INR (length l)).
+  pose proof (Sorted_tail_unique l H3 H2 H1) as H5. rewrite arith_mean_equiv. unfold arithmetic_mean_prime. apply Rmult_lt_reg_r with (r := ((length l)%nat : ℝ)).
   apply lt_0_INR; lia. field_simplify. 2 : { apply not_0_INR. lia. } assert (H6 : (length l > 1)%nat).
   { assert (length l = 1 \/ length l > 1)%nat as [H6 | H6] by lia. rewrite H6 in H5. simpl in H5. lra. lia. }
   replace (length l - 1)%nat with (S (length l - 2)) by lia. rewrite sum_f_Si; try lia.
-  assert (nth (length l - 1) l 0 * INR (length l - 2 - 0 + 1) >= sum_f 1 (length l - 1) (fun i => nth i l 0)) as H7.
+  assert (nth (length l - 1) l 0 * (length l - 2 - 0 + 1)%nat >= sum_f 1 (length l - 1) (λ i, nth i l 0)) as H7.
   { rewrite <- sum_f_const. apply Rle_ge. rewrite sum_f_reindex with (s := 1%nat); try lia. replace (length l - 1 - 1)%nat with (length l - 2)%nat by lia.
   apply sum_f_congruence_le; try lia. intros i H7. assert (In (nth (i+1) l 0) l) as H8. { apply nth_In. lia. } 
     pose proof (MaxRlist_P1 l (nth (i+1) l 0) H8) as H9. lra. }
@@ -535,17 +535,17 @@ Proof.
   rewrite plus_INR. rewrite Rmult_plus_distr_r. rewrite Rmult_1_l. apply Rlt_gt. apply Rplus_le_lt_compat; try lra.
 Qed.
 
-Lemma MinRlist_eq_MaxRlist : forall l,
-  (length l > 0)%nat -> MinRlist l = MaxRlist l -> Forall (fun x => x = nth 0 l 0) l.
+Lemma MinRlist_eq_MaxRlist : ∀ l,
+  (length l > 0)%nat -> MinRlist l = MaxRlist l -> Forall (λ x, x = nth 0 l 0) l.
 Proof.
   intros l H1 H2. apply Forall_forall. intros x H3. specialize (MinRlist_P1 l x H3) as H4. specialize (MaxRlist_P1 l x H3) as H5.
   assert (H6 : In (nth 0 l 0) l). { apply nth_In. lia. } pose proof (MinRlist_P1 l (nth 0 l 0) H6) as H7. pose proof (MaxRlist_P1 l (nth 0 l 0) H6) as H8.
   lra.
 Qed.
 
-Lemma Forall_eq_imp_eq_nth : forall l i,
+Lemma Forall_eq_imp_eq_nth : ∀ l i,
   (i < length l)%nat ->
-  Forall (fun x => x = nth i l 0) l <-> (forall x, In x l -> Forall (eq x) l).
+  Forall (λ x, x = nth i l 0) l <-> (∀ x, In x l -> Forall (eq x) l).
 Proof.
   intros l i H1. split.
   - intros H2. intros x H3. rewrite Forall_forall. intros y H4. rewrite Forall_forall in H2. specialize (H2 y H4) as H5. specialize (H2 x H3) as H6. lra.
@@ -554,7 +554,7 @@ Proof.
     apply nth_In; auto.
 Qed.
 
-Lemma Max_Permutation : forall l1 l2,
+Lemma Max_Permutation : ∀ l1 l2,
   Permutation l1 l2 -> MaxRlist l1 = MaxRlist l2.
 Proof.
   intros l1 l2 H1. assert (length l1 = 0 \/ length l1 > 0)%nat as [H2 | H2] by lia.
@@ -571,7 +571,7 @@ Proof.
         { apply (count_occ_In Req_dec_T). rewrite H13. auto. } pose proof (MaxRlist_P1 l2 (MaxRlist l1) H14) as H16. lra.
 Qed.
 
-Lemma Min_Permutation : forall l1 l2,
+Lemma Min_Permutation : ∀ l1 l2,
   Permutation l1 l2 -> MinRlist l1 = MinRlist l2.
 Proof.
   intros l1 l2 H1. assert (length l1 = 0 \/ length l1 > 0)%nat as [H2 | H2] by lia.
@@ -587,14 +587,14 @@ Proof.
         { apply (count_occ_In Req_dec_T). rewrite H13. auto. } pose proof (MinRlist_P1 l1 (MinRlist l2) H15) as H16. lra.
 Qed.
 
-Lemma elementLessThanMean : forall (l : list R),
-  ~Forall (fun x => x = nth 0 l 0) l -> (length l > 0)%nat -> exists i, (0 <= i < length l)%nat -> nth i l 0 < arithmetic_mean l.
+Lemma elementLessThanMean : ∀ (l : list R),
+  ~Forall (λ x, x = nth 0 l 0) l -> (length l > 0)%nat -> ∃ i, (0 <= i < length l)%nat -> nth i l 0 < arithmetic_mean l.
 Proof.
   intros l H1 H2. rewrite arith_mean_equiv. unfold arithmetic_mean_prime. pose proof (exists_sorted_list_R l) as [l' [H3 H4]].
   rewrite sum_f_Permutation with (l2 := l'); auto. assert (H5 : In (nth 0 l' 0) l'). { apply nth_In. apply Permutation_length in H4. lia. }
   pose proof (Permutation_in _ (Permutation_sym H4) H5) as H6. apply In_nth with (d := 0) in H6 as [i [H7 H8]]. exists i. intro H9.
   assert (H10 : length l = length l'). { apply Permutation_length. auto. } rewrite H10 in H7. rewrite H8. rewrite H10.
-  replace (sum_f 0 (length l' - 1) (fun i0 : nat => nth i0 l' 0) / INR (length l')) with (arithmetic_mean l').
+  replace (sum_f 0 (length l' - 1) (λ i0 : nat, nth i0 l' 0) / (length l')%nat) with (arithmetic_mean l').
   2 : { rewrite arith_mean_equiv. unfold arithmetic_mean_prime. reflexivity. } apply MinElementLessThanMean; auto; try lia.
   intros H11. apply H1. apply MinRlist_eq_MaxRlist; try lia. rewrite Forall_forall in H11. specialize (H11 (MaxRlist l')).
   assert (length l' > 0)%nat as H12 by lia. specialize (H11 (MaxRlist_In l' H12)). pose proof (Sorted_MinRlist l' H3 H12) as H13.
@@ -621,31 +621,31 @@ Fixpoint MaxRlist_index (l : list R) : nat :=
               end
   end.
 
-Lemma MinRlist_index_cons : forall h t,
+Lemma MinRlist_index_cons : ∀ h t,
   (length t > 0)%nat -> MinRlist_index (h :: t) = if Req_dec_T h (MinRlist (h :: t)) then 0%nat else S (MinRlist_index t).
 Proof.
   intros h t H1. simpl. destruct (Req_dec_T h (MinRlist (h :: t))); reflexivity.
 Qed.
 
-Lemma MaxRlist_index_cons : forall h t,
+Lemma MaxRlist_index_cons : ∀ h t,
   (length t > 0)%nat -> MaxRlist_index (h :: t) = if Req_dec_T h (MaxRlist (h :: t)) then 0%nat else S (MaxRlist_index t).
 Proof.
   intros h t H1. simpl. destruct (Req_dec_T h (MinRlist (h :: t))); reflexivity.
 Qed.
 
-Lemma Rmin_neq_r : forall r1 r2,
+Lemma Rmin_neq_r : ∀ r1 r2,
   r1 <> Rmin r1 r2 -> r2 < r1.
 Proof.
   intros r1 r2 H1. unfold Rmin in H1. destruct (Rle_dec r1 r2); lra.
 Qed.
 
-Lemma Rmax_neq_r : forall r1 r2,
+Lemma Rmax_neq_r : ∀ r1 r2,
   r1 <> Rmax r1 r2 -> r2 > r1.
 Proof.
   intros r1 r2 H1. unfold Rmax in H1. destruct (Rle_dec r1 r2); lra.
 Qed.
 
-Lemma MinRlst_index_correct : forall l,
+Lemma MinRlst_index_correct : ∀ l,
   (length l > 0)%nat -> MinRlist l = nth (MinRlist_index l) l 0.
 Proof.
   intros l H1. induction l as [| h t IH].
@@ -658,7 +658,7 @@ Proof.
          destruct (Rle_dec h (MinRlist t)); lra.
 Qed.
 
-Lemma MaxRlist_index_correct : forall l, 
+Lemma MaxRlist_index_correct : ∀ l,
   (length l > 0)%nat -> MaxRlist l = nth (MaxRlist_index l) l 0.
 Proof.
   intros l H1. induction l as [| h t IH].
@@ -681,7 +681,7 @@ Definition build_list_for_lemma_2_22_a (l : list R) : list R :=
   | right _ => mean :: (max + min - mean) :: remove_one (Req_dec_T) min (remove_one (Req_dec_T) max l)
   end.
 
-Lemma list_eq {A : Type} : forall (h1 h2 : A) (t1 t2 : list A),
+Lemma list_eq {A : Type} : ∀ (h1 h2 : A) (t1 t2 : list A),
   h1 = h2 /\ t1 = t2 -> h1 :: t1 = h2 :: t2.
 Proof.
   intros h1 h2 t1 t2 [Hh Ht].
@@ -707,20 +707,20 @@ Ltac list_arith :=
   | _ => fail 
   end.
 
-Example ex_list_compare : forall a b, a = b -> [1;2;3;a] = [1;2;3;b].
+Example ex_list_compare : ∀ a b, a = b -> [1;2;3;a] = [1;2;3;b].
 Proof.
   intros a b H1.
   list_arith.
 Qed.
 
-Lemma sum_f_list_cons : forall h t, 
-  sum_f 0 (length (h :: t) - 1) (fun i => nth i (h :: t) 0) = h + sum_f 0 (length t - 1) (fun i => nth i t 0).
+Lemma sum_f_list_cons : ∀ h t,
+  sum_f 0 (length (h :: t) - 1) (λ i, nth i (h :: t) 0) = h + sum_f 0 (length t - 1) (λ i, nth i t 0).
 Proof.
   intros h t. repeat rewrite sum_f_fold_right_equiv. replace (h :: t) with ([h] ++ t) by reflexivity.
   rewrite fold_right_app. simpl. lra.
 Qed.
 
-Lemma In_length_gt_1 : forall (l : list R) x1 x2,
+Lemma In_length_gt_1 : ∀ (l : list R) x1 x2,
   In x1 l -> In x2 l -> x1 <> x2 -> (length l > 1)%nat.
 Proof.
   intros l x1 x2 H1 H2 H3. destruct l.
@@ -730,7 +730,7 @@ Proof.
     -- simpl. lia.
 Qed.
 
-Lemma build_list_for_lemma_2_22_a_length : forall l,
+Lemma build_list_for_lemma_2_22_a_length : ∀ l,
   length (build_list_for_lemma_2_22_a l) = length l.
 Proof.
   intros l. unfold build_list_for_lemma_2_22_a. assert (length l = 0 \/ length l > 0)%nat as [H1 | H1] by lia.
@@ -742,7 +742,7 @@ Proof.
        lia.
 Qed.
 
-Lemma Max_Min_length1 : forall l,
+Lemma Max_Min_length1 : ∀ l,
   (length l = 1)%nat -> MaxRlist l = MinRlist l.
 Proof.
   intros l H1. destruct l.
@@ -750,7 +750,7 @@ Proof.
   - simpl in H1. inversion H1 as [H2]. rewrite length_zero_iff_nil in H2. rewrite H2. simpl. reflexivity.
 Qed.
 
-Lemma Max_lengthl : forall l,
+Lemma Max_lengthl : ∀ l,
   (length l = 1)%nat -> l = [MaxRlist l].
 Proof.
   intros l H1. destruct l.
@@ -758,7 +758,7 @@ Proof.
   - simpl in H1. inversion H1 as [H2]. rewrite length_zero_iff_nil in H2. rewrite H2. simpl. reflexivity.
 Qed.
 
-Lemma Max_Min_remove_one_length2 : forall l : list R,
+Lemma Max_Min_remove_one_length2 : ∀ l : list R,
   (length l = 2)%nat -> remove_one Req_dec_T (MinRlist l) (remove_one Req_dec_T (MaxRlist l) l) = [].
 Proof.
   intros l H1. destruct l.
@@ -771,7 +771,7 @@ Proof.
        destruct (Req_dec_T r r); try lra. simpl. destruct (Req_dec_T r0 r0); try lra. reflexivity.
 Qed.
 
-Lemma Min_Max_arith_mean_length2 : forall l : list R,
+Lemma Min_Max_arith_mean_length2 : ∀ l : list R,
   (length l = 2)%nat -> arithmetic_mean l = (MaxRlist l + MinRlist l) / 2.
 Proof.
   intros l H1. destruct l.
@@ -782,7 +782,7 @@ Proof.
        destruct (Rle_dec r r0) as [H3 | H3]; destruct (Req_dec_T r r0) as [H4 | H4]; simpl; try lra.
 Qed.
 
-Lemma Min_Max_fold_right_Rmult_length_2 : forall l : list R,
+Lemma Min_Max_fold_right_Rmult_length_2 : ∀ l : list R,
   (length l = 2)%nat -> fold_right Rmult 1 l = (MaxRlist l) * (MinRlist l).
 Proof.
   intros l H1. destruct l.
@@ -792,7 +792,7 @@ Proof.
     -- simpl in H1. inversion H1 as [H2]. rewrite length_zero_iff_nil in H2. rewrite H2. simpl. unfold Rmax, Rmin. destruct (Rle_dec r r0) as [H3 | H3]; simpl; lra.
 Qed.
 
-Lemma HdRel_trans : forall l x y,
+Lemma HdRel_trans : ∀ l x y,
   HdRel Rle y l -> x <= y -> HdRel Rle x l.
 Proof.
   intros l x y H1 H2. induction l as [| h t IH].
@@ -800,13 +800,13 @@ Proof.
   - apply HdRel_cons. apply HdRel_inv in H1. lra.
 Qed.
 
-Lemma HdRel_app_one : forall l1 l2 x,
+Lemma HdRel_app_one : ∀ l1 l2 x,
   HdRel Rle x (l1 ++ l2) -> HdRel Rle x l1.
 Proof.
   intros l1 l2 x H1. destruct l1; auto. apply HdRel_cons. apply HdRel_inv in H1. lra.
 Qed.
 
-Lemma HdRel_app_two : forall l1 l2 x,
+Lemma HdRel_app_two : ∀ l1 l2 x,
   (length l1 > 0)%nat -> HdRel Rle x l1 -> HdRel Rle x (l1 ++ l2).
 Proof.
   intros l1 l2 x H1 H2. destruct l1.
@@ -814,7 +814,7 @@ Proof.
   - apply HdRel_cons. apply HdRel_inv in H2. lra.
 Qed.
 
-Lemma Sorted_cons_In : forall l x y,
+Lemma Sorted_cons_In : ∀ l x y,
   Sorted Rle (x :: l) -> In y l -> x <= y.
 Proof.
   intros l x y H1 H2. induction l as [| h t IH].
@@ -823,7 +823,7 @@ Proof.
     apply Sorted_cons; repeat apply Sorted_inv in H1 as [H5 H6]; auto. apply HdRel_trans with (y := h); auto.
 Qed.
 
-Lemma Sorted_Permutation_equal : forall l1 l2,
+Lemma Sorted_Permutation_equal : ∀ l1 l2,
   Permutation l1 l2 -> Sorted Rle l1 -> Sorted Rle l2 -> l1 = l2.
 Proof.
   intros l1 l2 H1 H2 H3. generalize dependent l2. induction l1 as [| h1 t1 IH].
@@ -844,7 +844,7 @@ Proof.
       rewrite <- H10 in H3. apply Permutation_cons_inv in H3; auto. apply Sorted_inv in H4 as [H4 H11]; auto.
 Qed.
 
-Lemma count_occ_app_remove_eq : forall l1 l2 x,
+Lemma count_occ_app_remove_eq : ∀ l1 l2 x,
   In x l1 -> count_occ Req_dec_T (remove_one Req_dec_T x l1) x = count_occ Req_dec_T l2 x -> count_occ Req_dec_T (l2 ++ [x]) x = count_occ Req_dec_T l1 x.
 Proof.
   intros l1 l2 x H1 H2. simpl. rewrite count_occ_app. rewrite <- H2.
@@ -852,7 +852,7 @@ Proof.
   simpl. destruct (Req_dec_T x x); try lra; try lia.
 Qed.
 
-Lemma In_remove_one_In : forall l x y,
+Lemma In_remove_one_In : ∀ l x y,
   In y (remove_one Req_dec_T x l) -> In y l.
 Proof.
   intros l x y H1. induction l as [| h t IH].
@@ -863,7 +863,7 @@ Proof.
        destruct (Req_dec_T h x); try lra. destruct H1 as [H1 | H1]; try lra. auto.
 Qed.
 
-Lemma In_remove_Max_le : forall l x,
+Lemma In_remove_Max_le : ∀ l x,
   (length l > 0)%nat -> In x (remove_one Req_dec_T (MaxRlist l) l) -> x <= MaxRlist l.
 Proof.
   intros l x H1 H2.
@@ -872,7 +872,7 @@ Proof.
   - apply In_remove_one_In in H2. apply MaxRlist_P1; auto.
 Qed.
 
-Lemma Sorted_app_one : forall l x,
+Lemma Sorted_app_one : ∀ l x,
   Sorted Rle l -> x >= MaxRlist l -> Sorted Rle (l ++ [x]).
 Proof.
   intros l x H1 H2. induction l as [| h t IH].
@@ -883,7 +883,7 @@ Proof.
        destruct (Rle_dec h (MaxRlist t)); lra. apply HdRel_app_two with (l2 := [x]); auto.
 Qed.
 
-Lemma count_occ_remove_one_neq : forall {A : Type} eq_dec (a b : A) l,
+Lemma count_occ_remove_one_neq : ∀ {A : Type} eq_dec (a b : A) l,
   a <> b -> count_occ eq_dec (remove_one eq_dec a l) b = count_occ eq_dec l b.
 Proof.
   intros A eq_dec a b l H1. induction l as [| h t IH].
@@ -897,8 +897,8 @@ Proof.
       * simpl. destruct (eq_dec h b) as [H4 | H4]; try contradiction. rewrite IH. reflexivity.
 Qed.
 
-Lemma sum_remove_one_MaxList : forall l,
-  (length l > 1)%nat -> sum_f 0 (length l - 1) (fun i => nth i l 0) = MaxRlist l + sum_f 0 (length l - 2) (fun i => nth i (remove_one Req_dec_T (MaxRlist l) l) 0).
+Lemma sum_remove_one_MaxList : ∀ l,
+  (length l > 1)%nat -> sum_f 0 (length l - 1) (λ i, nth i l 0) = MaxRlist l + sum_f 0 (length l - 2) (λ i, nth i (remove_one Req_dec_T (MaxRlist l) l) 0).
 Proof.
   intros l H1. assert (H2 : In (MaxRlist l) l) by (apply MaxRlist_In; lia). pose proof (exists_sorted_list_R l) as [l' [H3 H4]].
   rewrite sum_f_Permutation with (l1 := l) (l2 := l'); auto. assert (H5 : length l' = length l). { apply Permutation_length. apply Permutation_sym; auto. }
@@ -908,10 +908,10 @@ Proof.
   replace (length l - 2)%nat with (length (remove_one Req_dec_T (MaxRlist l) l) - 1)%nat at 2. 2 : { rewrite remove_one_In_length; try lia. apply MaxRlist_In; lia. }
   rewrite sum_f_Permutation with (l1 := remove_one Req_dec_T (MaxRlist l) l) (l2 := l''); auto. assert (length (remove_one Req_dec_T (MaxRlist l) l) = length l'')%nat as H8.
   { apply Permutation_length; auto. } replace (length l'' - 1)%nat with (length l - 2)%nat. 2 : { rewrite <- H8. rewrite remove_one_In_length; try lia. apply MaxRlist_In; lia. }
-  replace (sum_f 0 (length l - 2) (fun i : nat => nth i l'' 0)) with (sum_f 0 (length l - 2) (fun i : nat => nth i (l'' ++ [MaxRlist l]) 0)).
+  replace (sum_f 0 (length l - 2) (λ i : nat, nth i l'' 0)) with (sum_f 0 (length l - 2) (λ i : nat, nth i (l'' ++ [MaxRlist l]) 0)).
   2 : { apply sum_f_equiv; try lia. intros i H9. rewrite app_nth1. reflexivity. rewrite <- H8. rewrite remove_one_In_length; try lia. apply MaxRlist_In; lia. }
   apply sum_f_equiv; try lia. intros i H9. assert (H10 : l'' ++ [MaxRlist l] = l').
-  - assert (forall x, In x l'' -> In x (remove_one Req_dec_T (MaxRlist l) l)) as H10. { intros x H10. apply Permutation_in with (l := l''); auto. apply Permutation_sym; auto. }
+  - assert (∀ x, In x l'' -> In x (remove_one Req_dec_T (MaxRlist l) l)) as H10. { intros x H10. apply Permutation_in with (l := l''); auto. apply Permutation_sym; auto. }
     apply Sorted_Permutation_equal; auto. apply Permutation_trans with (l' := l); auto. rewrite (Permutation_count_occ Req_dec_T). intros x. specialize (H10 x).
     assert (x = MaxRlist l \/ x <> MaxRlist l) as [H11 | H11] by lra. rewrite H11. apply count_occ_app_remove_eq with (l1 := l); auto.
     rewrite (Permutation_count_occ Req_dec_T) in H7. specialize (H7 (MaxRlist l)). auto. rewrite (Permutation_count_occ Req_dec_T) in H7.
@@ -922,41 +922,41 @@ Proof.
   - rewrite H10. reflexivity.
 Qed.
 
-Lemma Permutation_MaxRlist : forall l1 l2,
+Lemma Permutation_MaxRlist : ∀ l1 l2,
   Permutation l1 l2 -> MaxRlist l1 = MaxRlist l2.
 Proof.
   intros l1 l2 H1. assert (length l1 = 0 \/ length l1 > 0)%nat as [H2 | H2] by lia.
   - apply length_zero_iff_nil in H2. rewrite H2 in *. apply Permutation_nil in H1. rewrite H1. reflexivity.
-  - pose proof (Permutation_length H1) as H3. assert (forall x, In x l1 -> In x l2) as H4. { intro x. apply Permutation_in; auto. }
-    assert (forall x, In x l2 -> In x l1) as H5. { intro x. apply Permutation_in. apply Permutation_sym; auto. }
+  - pose proof (Permutation_length H1) as H3. assert (∀ x, In x l1 -> In x l2) as H4. { intro x. apply Permutation_in; auto. }
+    assert (∀ x, In x l2 -> In x l1) as H5. { intro x. apply Permutation_in. apply Permutation_sym; auto. }
     pose proof (MaxRlist_In l1) as H6. pose proof (MaxRlist_In l2) as H7. pose proof (MaxRlist_P1 l1) as H8. pose proof (MaxRlist_P1 l2) as H9.
     assert (H10 : In (MaxRlist l1) l2). { apply H4. auto. } assert (H11 : In (MaxRlist l2) l1). { apply H5. apply H7. rewrite <- H3; auto. }
     specialize (H8 (MaxRlist l2) H11). specialize (H9 (MaxRlist l1) H10). lra.
 Qed.
 
-Lemma Permutation_MinRlist : forall l1 l2,
+Lemma Permutation_MinRlist : ∀ l1 l2,
   Permutation l1 l2 -> MinRlist l1 = MinRlist l2.
 Proof.
   intros l1 l2 H1. assert (length l1 = 0 \/ length l1 > 0)%nat as [H2 | H2] by lia.
   - apply length_zero_iff_nil in H2. rewrite H2 in *. apply Permutation_nil in H1. rewrite H1. reflexivity.
-  - pose proof (Permutation_length H1) as H3. assert (forall x, In x l1 -> In x l2) as H4. { intro x. apply Permutation_in; auto. }
-    assert (forall x, In x l2 -> In x l1) as H5. { intro x. apply Permutation_in. apply Permutation_sym; auto. }
+  - pose proof (Permutation_length H1) as H3. assert (∀ x, In x l1 -> In x l2) as H4. { intro x. apply Permutation_in; auto. }
+    assert (∀ x, In x l2 -> In x l1) as H5. { intro x. apply Permutation_in. apply Permutation_sym; auto. }
     pose proof (MinRlist_In l1) as H6. pose proof (MinRlist_In l2) as H7. pose proof (MinRlist_P1 l1) as H8. pose proof (MinRlist_P1 l2) as H9.
     assert (H10 : In (MinRlist l1) l2). { apply H4. auto. } assert (H11 : In (MinRlist l2) l1). { apply H5. apply H7. rewrite <- H3; auto. }
     specialize (H8 (MinRlist l2) H11). specialize (H9 (MinRlist l1) H10). lra.
 Qed.
 
-Lemma Sorted_Permutation_min_cons : forall l1 l2 r,
+Lemma Sorted_Permutation_min_cons : ∀ l1 l2 r,
   Sorted Rle (r :: l1) -> Permutation l2 (r :: l1) -> MinRlist l2 = r.
 Proof.
   intros l1 l2 r H1 H2. assert (length l2 = 0 \/ length l2 > 0)%nat as [H3 | H3] by lia.
   - apply length_zero_iff_nil in H3. rewrite H3 in *. apply Permutation_nil in H2. inversion H2.
-  - pose proof (Permutation_length H2) as H4. assert (forall x, In x l2 -> In x (r :: l1)) as H5. { intros x H6. apply Permutation_in with (l := l2); auto. }
+  - pose proof (Permutation_length H2) as H4. assert (∀ x, In x l2 -> In x (r :: l1)) as H5. { intros x H6. apply Permutation_in with (l := l2); auto. }
     pose proof (MinRlist_In l2) as H6. pose proof (MinRlist_P1 l2) as H7. assert (H8 : In (MinRlist l2) (r :: l1)). { apply H5. auto. }
     apply Sorted_MinRlist in H1; (simpl; try lia). apply Permutation_MinRlist in H2. rewrite H2. rewrite H1. reflexivity.
 Qed.
 
-Lemma Permutation_remove_one : forall l1 l2 l3 r,
+Lemma Permutation_remove_one : ∀ l1 l2 l3 r,
   Permutation l1 (r :: l2) -> Permutation (remove_one Req_dec_T r l1) l3 -> Permutation l2 l3.
 Proof.
   intros l1 l2 l3 r H1 H2. assert (length l1 = 0 \/ length l1 > 0)%nat as [H3 | H3] by lia.
@@ -969,8 +969,8 @@ Proof.
     -- simpl in H1. destruct (Req_dec_T r x) as [H5 | H5]; try lra; clear H5. rewrite <- H1. rewrite count_occ_remove_one_neq; auto.
 Qed.
 
-Lemma sum_remove_one_MinList : forall l,
-  (length l > 1)%nat -> sum_f 0 (length l - 1) (fun i => nth i l 0) = MinRlist l + sum_f 0 (length l - 2) (fun i => nth i (remove_one Req_dec_T (MinRlist l) l) 0).
+Lemma sum_remove_one_MinList : ∀ l,
+  (length l > 1)%nat -> sum_f 0 (length l - 1) (λ i, nth i l 0) = MinRlist l + sum_f 0 (length l - 2) (λ i, nth i (remove_one Req_dec_T (MinRlist l) l) 0).
 Proof.
   intros l H1. assert (H2 : In (MinRlist l) l) by (apply MinRlist_In; lia). pose proof (exists_sorted_list_R l) as [l' [H3 H4]].
   rewrite sum_f_Permutation with (l1 := l) (l2 := l'); auto. assert (H5 : length l' = length l). { apply Permutation_length. apply Permutation_sym; auto. }
@@ -990,7 +990,7 @@ Proof.
     apply Permutation_remove_one with (l1 := l) (r := r); auto. rewrite H10 in H9. auto. 
 Qed.
 
-Lemma MinRlist_eq_MaxRlist_repeat : forall l,
+Lemma MinRlist_eq_MaxRlist_repeat : ∀ l,
   (length l > 1)%nat -> MinRlist l = MaxRlist l -> l = repeat (MinRlist l) (length l).
 Proof.
   intros l H1 H2. apply MinRlist_eq_MaxRlist in H2; try lia. assert (H3 : Forall (eq (nth 0 l 0)) l).
@@ -999,7 +999,7 @@ Proof.
    rewrite Forall_forall in H3. apply H3. apply MinRlist_In; lia.
 Qed.
 
-Lemma remove_one_In_repeat : forall x n l,
+Lemma remove_one_In_repeat : ∀ x n l,
   l = repeat x n -> In x l -> remove_one Req_dec_T x (repeat x (length l)) = repeat x (length l - 1).
 Proof.
   intros x n l H1 H2. assert (H3 : count_occ Req_dec_T (repeat x (length l)) x = n).
@@ -1008,13 +1008,13 @@ Proof.
   rewrite Nat.sub_0_r. reflexivity.
 Qed.
 
-Lemma repeat_Succ : forall (x : R) n,
+Lemma repeat_Succ : ∀ (x : R) n,
   repeat x (S n) = x :: repeat x n.
 Proof.
   intros x n. simpl. reflexivity.
 Qed.
 
-Lemma MinRlist_repeat : forall x n,
+Lemma MinRlist_repeat : ∀ x n,
   (n > 0)%nat -> MinRlist (repeat x n) = x.
 Proof.
   intros x n H1. induction n as [| n' IH].
@@ -1024,7 +1024,7 @@ Proof.
     -- specialize (IH H2). rewrite repeat_Succ. rewrite MinRlist_cons. rewrite IH. unfold Rmin. destruct (Rle_dec x x); lra. rewrite repeat_length; lia.
 Qed.
 
-Lemma Min_l_eq_Min_remove_one_Max : forall l,
+Lemma Min_l_eq_Min_remove_one_Max : ∀ l,
   (length l > 1)%nat -> MinRlist l = MinRlist (remove_one Req_dec_T (MaxRlist l) l).
 Proof.
   intros l H1. assert (In (MaxRlist l) l) as H2 by (apply MaxRlist_In; lia). assert (In (MinRlist l) l) as H3 by (apply MinRlist_In; lia).
@@ -1039,32 +1039,32 @@ Proof.
        assert (H10 : MinRlist l <= MinRlist (remove_one Req_dec_T (MaxRlist l) l)). { apply MinRlist_P1; auto. } lra.
 Qed.
 
-Lemma geometric_mean_cons : forall h t,
-  pos_list (h :: t) -> geometric_mean (h :: t) = Rpower (h * (geometric_mean t) ^ (length t)) (1 / INR (S (length t))).
+Lemma geometric_mean_cons : ∀ h t,
+  pos_list (h :: t) -> geometric_mean (h :: t) = Rpower (h * (geometric_mean t) ^ (length t)) (1 / (S (length t))%nat).
 Proof.
   intros h t H1. apply pos_list_cons in H1 as [H1 H2]. unfold geometric_mean. destruct (Nat.eq_dec (length (h :: t))) as [H3 | H3]; simpl in H3; try lia.
-  replace (fold_right Rmult 1 (h :: t)) with (h * fold_right Rmult 1 t) by reflexivity. replace (INR (length (h :: t))) with (INR (S (length t))) by reflexivity.
+  replace (fold_right Rmult 1 (h :: t)) with (h * fold_right Rmult 1 t) by reflexivity. replace (((length (h :: t))%nat : ℝ)) with (((S (length t))%nat : ℝ)) by reflexivity.
   clear H3. assert (length t = 0 \/ length t > 0)%nat as [H3 | H3] by lia.
   - rewrite H3. apply length_zero_iff_nil in H3. rewrite H3. simpl. replace (1 / 1) with 1 by lra. reflexivity.
   - destruct (Nat.eq_dec (length t)) as [H4 | H4]; try lia. assert (H5 : 0 < fold_right Rmult 1 t). { apply fold_right_mult_pos_list_gt_0; auto. }
-    assert (H6 : Rpower (fold_right Rmult 1 t) (1 / INR (length t)) ^ length t > 0). { rewrite <- Rpower_pow; repeat apply Rpower_gt_0; auto. }
-    assert (H7 : 0 < Rpower (fold_right Rmult 1 t) (1 / INR (length t))). { apply Rpower_gt_0; auto. }
-    assert (H8 : 0 < Rpower (h * fold_right Rmult 1 t) (1 / INR (S (length t)))). { apply Rpower_gt_0; nra. }
-    assert (H9 : 0 < Rpower (h * Rpower (Rpower (fold_right Rmult 1 t) (1 / INR (length t))) (INR (length t))) (INR (S (length t)))). 
+    assert (H6 : Rpower (fold_right Rmult 1 t) (1 / (length t)%nat) ^ length t > 0). { rewrite <- Rpower_pow; repeat apply Rpower_gt_0; auto. }
+    assert (H7 : 0 < Rpower (fold_right Rmult 1 t) (1 / (length t)%nat)). { apply Rpower_gt_0; auto. }
+    assert (H8 : 0 < Rpower (h * fold_right Rmult 1 t) (1 / (S (length t))%nat)). { apply Rpower_gt_0; nra. }
+    assert (H9 : 0 < Rpower (h * Rpower (Rpower (fold_right Rmult 1 t) (1 / (length t)%nat)) (((length t)%nat : ℝ))) (((S (length t))%nat : ℝ))).
     { apply Rpower_gt_0; try nra. rewrite Rpower_pow; auto. nra. }
-    assert (H10 : 0 < Rpower (h * Rpower (fold_right Rmult 1 t) (1 / INR (length t)) ^ length t) (INR (S (length t)))).
+    assert (H10 : 0 < Rpower (h * Rpower (fold_right Rmult 1 t) (1 / (length t)%nat) ^ length t) (((S (length t))%nat : ℝ))).
     { apply Rpower_gt_0; try nra. }
     apply pow_eq_1 with (n := length t); auto; try apply Rpower_gt_0; try nra. 
-    assert (Rpower (h * fold_right Rmult 1 t) (1 / INR (S (length t))) ^ length t = (Rpower (h * fold_right Rmult 1 t) (INR (length t) / INR (S (length t))))) as H11.
-    { rewrite <- Rpower_pow; auto. rewrite Rpower_mult. replace (1 / INR (S (length t)) * INR (length t)) with (INR (length t) / INR (S (length t))) by nra. nra. }
+    assert (Rpower (h * fold_right Rmult 1 t) (1 / (S (length t))%nat) ^ length t = (Rpower (h * fold_right Rmult 1 t) ((length t)%nat / (S (length t))%nat))) as H11.
+    { rewrite <- Rpower_pow; auto. rewrite Rpower_mult. replace (1 / (S (length t))%nat * (length t)%nat) with ((length t)%nat / (S (length t))%nat) by nra. nra. }
     repeat rewrite <- Rpower_pow; repeat rewrite Rpower_mult; auto.
     2 : 
     { 
       repeat apply Rpower_gt_0. apply Rmult_gt_reg_r with (r := 1 / h). unfold Rdiv. rewrite Rmult_1_l. 
       apply Rinv_pos; auto. field_simplify; try nra. unfold Rdiv. rewrite Rmult_0_l. apply Rpower_gt_0. auto. 
     } 
-    replace ((1 / INR (S (length t)) * INR (length t))) with ((INR (length t) / INR (S (length t)))) by nra.
-    replace (1 / INR (length t) * INR (length t)) with 1. 2 : { field; apply not_0_INR; auto. }
+    replace ((1 / (S (length t))%nat * (length t)%nat)) with (((length t)%nat / (S (length t))%nat)) by nra.
+    replace (1 / (length t)%nat * (length t)%nat) with 1. 2 : { field; apply not_0_INR; auto. }
     rewrite Rpower_1; auto.
 Qed.
 
@@ -1078,26 +1078,26 @@ Proof.
   unfold geometric_mean. simpl. nra.
 Qed.
 
-Lemma arithmetic_mean_cons : forall h t,
-  arithmetic_mean (h :: t) = (h + arithmetic_mean t * INR (length t)) / INR (S (length t)).
+Lemma arithmetic_mean_cons : ∀ h t,
+  arithmetic_mean (h :: t) = (h + arithmetic_mean t * (length t)%nat) / (S (length t))%nat.
 Proof.
   intros h t. unfold arithmetic_mean. replace (fold_right Rplus 0 (h :: t)) with (h + fold_right Rplus 0 t) by reflexivity. 
-  replace (INR (length (h :: t))) with (INR (S (length t))) by reflexivity. assert (length t = 0 \/ length t > 0)%nat as [H1 | H1] by lia.
+  replace (((length (h :: t))%nat : ℝ)) with (((S (length t))%nat : ℝ)) by reflexivity. assert (length t = 0 \/ length t > 0)%nat as [H1 | H1] by lia.
   - rewrite H1. apply length_zero_iff_nil in H1. rewrite H1. simpl. lra.
   - field; split; apply not_0_INR; lia. 
 Qed.
 
-Lemma arithmetic_mean_cons_l : forall l,
+Lemma arithmetic_mean_cons_l : ∀ l,
   arithmetic_mean (arithmetic_mean l :: l) = arithmetic_mean l.
 Proof.
   intros l. assert (length l = 0 \/ length l > 0)%nat as [H1 | H1] by lia.
   - apply length_zero_iff_nil in H1 as H2. rewrite H2. compute. lra.
-  - rewrite arithmetic_mean_cons. apply Rmult_eq_reg_r with (r := INR (S (length l))).
+  - rewrite arithmetic_mean_cons. apply Rmult_eq_reg_r with (r := ((S (length l))%nat : ℝ)).
     2 : { apply not_0_INR. lia. } field_simplify. 2 : { apply not_0_INR; lia. }
     rewrite S_INR. nra.
 Qed.
 
-Lemma arithmetic_mean_pos_list : forall l,
+Lemma arithmetic_mean_pos_list : ∀ l,
   pos_list l -> (length l > 0)%nat -> arithmetic_mean l > 0.
 Proof.
   intros l H1. unfold pos_list in H1. rewrite Forall_forall in H1. induction l as [| h t IH].
@@ -1105,11 +1105,11 @@ Proof.
   - intro H2. rewrite arithmetic_mean_cons. assert (length t = 0 \/ length t > 0)%nat as [H3 | H3] by lia.
     -- rewrite H3. apply length_zero_iff_nil in H3. rewrite H3. rewrite arithmetic_mean_nil. simpl. field_simplify. apply H1. left; reflexivity.
     -- assert (H4 : arithmetic_mean t > 0). { apply IH; auto. intros x H4. apply H1. right; auto. }
-       assert (H5 : INR (length t) > 0). { apply lt_0_INR. lia. } assert (H6 : INR (S (length t)) > 0). { rewrite S_INR. lra. }
-       apply Rmult_gt_reg_r with (r := INR (S (length t))); auto. field_simplify; try lra. specialize (H1 h (or_introl eq_refl)). nra.
+       assert (H5 : (length t)%nat > 0). { apply lt_0_INR. lia. } assert (H6 : (S (length t))%nat > 0). { rewrite S_INR. lra. }
+       apply Rmult_gt_reg_r with (r := ((S (length t))%nat : ℝ)); auto. field_simplify; try lra. specialize (H1 h (or_introl eq_refl)). nra.
 Qed.
 
-Lemma arithmetic_mean_build_list_2_22_a_equiv : forall l,
+Lemma arithmetic_mean_build_list_2_22_a_equiv : ∀ l,
   arithmetic_mean (build_list_for_lemma_2_22_a l) = arithmetic_mean l.
 Proof.
   intros l. unfold build_list_for_lemma_2_22_a. assert (length l = 0 \/ length l = 1 \/ length l = 2 \/ length l > 2)%nat as [H1 | [H1 | [H1 | H1]]] by lia.
@@ -1117,12 +1117,12 @@ Proof.
   - rewrite H1. simpl. apply Max_lengthl in H1. destruct (Req_dec_T (MinRlist l) (MaxRlist l)) as [H2 | H2]; auto. 
     rewrite H1 in H2. simpl in H2. tauto.
   - rewrite H1. simpl. destruct (Req_dec_T (MinRlist l) (MaxRlist l)) as [H2 | H2]; auto. replace (remove_one Req_dec_T (MinRlist l) (remove_one Req_dec_T (MaxRlist l) l))
-    with ([] : list R). 2 : { rewrite Max_Min_remove_one_length2; auto. } rewrite arith_mean_equiv. unfold arithmetic_mean_prime. simpl. apply Rmult_eq_reg_r with (r := INR 2).
+    with ([] : list R). 2 : { rewrite Max_Min_remove_one_length2; auto. } rewrite arith_mean_equiv. unfold arithmetic_mean_prime. simpl. apply Rmult_eq_reg_r with (r := (2%nat : ℝ)).
     2 : { simpl. lra. } rewrite sum_f_i_Sn_f; try lia. rewrite sum_f_0_0. field_simplify. rewrite Min_Max_arith_mean_length2; auto. lra. 
   - assert (length l =? 0 = false)%nat as H2 by (apply Nat.eqb_neq; lia). rewrite H2.
     destruct (Req_dec_T (MinRlist l) (MaxRlist l)) as [H3 | H3]; auto.
     rewrite arith_mean_equiv. rewrite arith_mean_equiv at 3. unfold arithmetic_mean_prime. 
-    apply Rmult_eq_reg_r with (r := INR (length l)). 2 : { apply not_0_INR; lia. } field_simplify. 2 : { apply not_0_INR; lia. }
+    apply Rmult_eq_reg_r with (r := ((length l)%nat : ℝ)). 2 : { apply not_0_INR; lia. } field_simplify. 2 : { apply not_0_INR; lia. }
     replace (arithmetic_mean l :: MaxRlist l + MinRlist l - arithmetic_mean l :: remove_one Req_dec_T (MinRlist l) (remove_one Req_dec_T (MaxRlist l) l)) with (build_list_for_lemma_2_22_a l).
     2 : { unfold build_list_for_lemma_2_22_a. rewrite H2. destruct (Req_dec_T (MinRlist l) (MaxRlist l)); try lra. reflexivity. }
     2 : { apply not_0_INR. simpl. lia. } replace (length (build_list_for_lemma_2_22_a l)) with (length l). 2 : { rewrite build_list_for_lemma_2_22_a_length; auto. }
@@ -1137,15 +1137,15 @@ Proof.
     2 : { unfold build_list_for_lemma_2_22_a. rewrite H2. destruct (Req_dec_T (MinRlist l) (MaxRlist l)); try lra. reflexivity. }
     apply Rminus_eq_reg_r with (r := MinRlist l + MaxRlist l). field_simplify. rewrite sum_f_reindex with (s := 2%nat); try lia. unfold build_list_for_lemma_2_22_a. rewrite H2.
     destruct (Req_dec_T (MinRlist l) (MaxRlist l)); try lra. clear n.
-    replace (sum_f (2 - 2) (length l - 1 - 2) (fun x : nat => nth (x + 2) (arithmetic_mean l :: MaxRlist l + MinRlist l - arithmetic_mean l :: remove_one Req_dec_T (MinRlist l) (remove_one Req_dec_T (MaxRlist l) l)) 0)) with
-    (sum_f 0 (length l - 3) (fun x : nat => nth x (remove_one Req_dec_T (MinRlist l) (remove_one Req_dec_T (MaxRlist l) l)) 0)).
+    replace (sum_f (2 - 2) (length l - 1 - 2) (λ x : nat, nth (x + 2) (arithmetic_mean l :: MaxRlist l + MinRlist l - arithmetic_mean l :: remove_one Req_dec_T (MinRlist l) (remove_one Req_dec_T (MaxRlist l) l)) 0)) with
+    (sum_f 0 (length l - 3) (λ x : nat, nth x (remove_one Req_dec_T (MinRlist l) (remove_one Req_dec_T (MaxRlist l) l)) 0)).
     2 : { replace (2 - 2)%nat with 0%nat by lia. replace (length l - 1 - 2)%nat with (length l - 3)%nat by lia. apply sum_f_equiv; try lia. intros k H8. 
           replace (arithmetic_mean l :: MaxRlist l + MinRlist l - arithmetic_mean l :: remove_one Req_dec_T (MinRlist l)
    (remove_one Req_dec_T (MaxRlist l) l)) with ([arithmetic_mean l] ++ [MaxRlist l + MinRlist l - arithmetic_mean l] ++ remove_one Req_dec_T (MinRlist l)
    (remove_one Req_dec_T (MaxRlist l) l)) by reflexivity. repeat rewrite app_nth2; try (simpl; lia). simpl. replace (k + 2 - 1 - 1)%nat with k by lia. reflexivity. } reflexivity.
 Qed.
 
-Lemma MinRlist_neq_MaxRlist : forall l,
+Lemma MinRlist_neq_MaxRlist : ∀ l,
   (length l > 0)%nat -> MinRlist l <> MaxRlist l <-> ~Forall (eq (MinRlist l)) l.
 Proof.
   intros l H1. split.
@@ -1156,14 +1156,14 @@ Proof.
     specialize (H3 (MinRlist_In l H1)). tauto.
 Qed.
 
-Lemma MaxRlist_gt_arith_mean : forall l,
+Lemma MaxRlist_gt_arith_mean : ∀ l,
   (length l > 0)%nat -> MinRlist l <> MaxRlist l -> MaxRlist l > arithmetic_mean l.
 Proof.
   intros l H1 H2. pose proof MinElementLessThanMean as H3. pose proof MaxElementGreaterThanMean as H4.
   pose proof (exists_sorted_list_R l) as [l' [H5 H6]]. apply Permutation_length in H6 as H7. assert (length l' > 0)%nat as H8 by lia.
   pose proof (Sorted_MaxRlist l' H5 H8) as H9. assert (MaxRlist l' = MaxRlist l) as H10. { apply Permutation_MaxRlist; auto. apply Permutation_sym; auto. }
   rewrite <- H10. rewrite arith_mean_Permtation_eq with (l1 := l) (l2 := l'); auto. rewrite Sorted_MaxRlist; auto. apply H4; auto. 
-  intro H11. replace ((fun x : R => x = nth 0 l' 0)) with (eq (MinRlist l')) in H11.
+  intro H11. replace ((λ x : R, x = nth 0 l' 0)) with (eq (MinRlist l')) in H11.
   2 : { apply functional_extensionality. intros x. rewrite <- Sorted_MinRlist; auto. rewrite <- Permutation_MinRlist with (l1 := l) (l2 := l'); auto.
         apply propositional_extensionality. split; intros; auto. }
   apply MinRlist_neq_MaxRlist with (l := l'); auto. assert (MinRlist l' = MinRlist l) as H12. { apply Permutation_MinRlist; auto. apply Permutation_sym; auto. }
@@ -1171,14 +1171,14 @@ Proof.
   specialize (H11 (MaxRlist l') H14). nra.  pose proof (MaxRlist_In l' H8) as H15. rewrite Forall_forall in H11. specialize (H11 (MaxRlist l') H15). nra.
 Qed.
 
-Lemma MinRlist_eq_MaxRlist_eq_arith_mean : forall l,
+Lemma MinRlist_eq_MaxRlist_eq_arith_mean : ∀ l,
   (length l > 0)%nat -> MinRlist l = MaxRlist l -> MinRlist l = arithmetic_mean l.
 Proof.
   intros l H1 H2. apply MinRlist_eq_MaxRlist in H2; auto. apply arithmetic_mean_all_equal in H2 as H3; auto.
   rewrite H3. pose proof (MinRlist_In l H1) as H4. rewrite Forall_forall in H2. specialize (H2 (MinRlist l) H4). auto.
 Qed.
 
-Lemma Min_Max_plus_gt_arith_mean : forall l,
+Lemma Min_Max_plus_gt_arith_mean : ∀ l,
   pos_list l -> MinRlist l + MaxRlist l > arithmetic_mean l.
 Proof.
   intros l H1. assert (length l = 0 \/ length l > 0)%nat as [H2 | H2] by lia.
@@ -1190,14 +1190,14 @@ Proof.
        lra.
 Qed.
 
-Lemma MinRlist_lt_arith_mean : forall l,
+Lemma MinRlist_lt_arith_mean : ∀ l,
   (length l > 0)%nat -> MinRlist l <> MaxRlist l -> MinRlist l < arithmetic_mean l.
 Proof.
   intros l H1 H2. pose proof MinElementLessThanMean as H3. pose proof MaxElementGreaterThanMean as H4.
   pose proof (exists_sorted_list_R l) as [l' [H5 H6]]. apply Permutation_length in H6 as H7. assert (length l' > 0)%nat as H8 by lia.
   pose proof (Sorted_MinRlist l' H5 H8) as H9. assert (MinRlist l' = MinRlist l) as H10. { apply Permutation_MinRlist; auto. apply Permutation_sym; auto. }
   rewrite <- H10. rewrite arith_mean_Permtation_eq with (l1 := l) (l2 := l'); auto. rewrite Sorted_MinRlist; auto. apply H3; auto. 
-  intro H11. replace ((fun x : R => x = nth 0 l' 0)) with (eq (MinRlist l')) in H11.
+  intro H11. replace ((λ x : R, x = nth 0 l' 0)) with (eq (MinRlist l')) in H11.
   2 : { apply functional_extensionality. intros x. rewrite <- Sorted_MinRlist; auto. rewrite <- Permutation_MinRlist with (l1 := l) (l2 := l'); auto.
         apply propositional_extensionality. split; intros; auto. }
   apply MinRlist_neq_MaxRlist with (l := l'); auto. assert (MaxRlist l' = MaxRlist l) as H12. { apply Permutation_MaxRlist; auto. apply Permutation_sym; auto. }
@@ -1205,20 +1205,20 @@ Proof.
   nra. pose proof (MaxRlist_In l' H8) as H14. rewrite Forall_forall in H11. specialize (H11 (MaxRlist l') H14). nra.
 Qed.
 
-Lemma pos_list_remove_one : forall l x,
+Lemma pos_list_remove_one : ∀ l x,
   pos_list l -> pos_list (remove_one Req_dec_T x l).
 Proof.
   intros l x H1. unfold pos_list in H1. rewrite Forall_forall in H1. unfold pos_list. rewrite Forall_forall. intros y H2.
   apply In_remove_one_In in H2. apply H1; auto.
 Qed.
 
-Lemma list_len_cons : forall {A : Type} h (l : list A),
+Lemma list_len_cons : ∀ {A : Type} h (l : list A),
   length (h :: l) = S (length l).
 Proof.
   intros A h l. simpl. reflexivity.
 Qed.
 
-Lemma geometric_mean_build_list_2_22_a_lt : forall l,
+Lemma geometric_mean_build_list_2_22_a_lt : ∀ l,
   pos_list l -> geometric_mean (build_list_for_lemma_2_22_a l) >= geometric_mean l.
 Proof.
   intros l H1. unfold build_list_for_lemma_2_22_a. assert (length l = 0 \/ length l = 1 \/ length l = 2 \/ length l > 2)%nat as [H2 | [H2 | [H2 | H2]]] by lia.
@@ -1226,7 +1226,7 @@ Proof.
   - rewrite H2. simpl. destruct (Req_dec_T (MinRlist l) (MaxRlist l)) as [H3 | H3]; try lra. pose proof (Max_Min_length1 l H2) as H4; lra.
   - rewrite H2. simpl. destruct (Req_dec_T (MinRlist l) (MaxRlist l)) as [H3 | H3]; try lra. replace (remove_one Req_dec_T (MinRlist l) (remove_one Req_dec_T (MaxRlist l) l))
     with ([] : list R). 2 : { rewrite Max_Min_remove_one_length2; auto. } unfold geometric_mean. simpl. apply Rle_ge.
-    replace (INR 2) with (INR (length l)). 2 : { rewrite H2. reflexivity. } rewrite H2. simpl. rewrite Min_Max_arith_mean_length2; auto.
+    replace (2%nat : ℝ) with (((length l)%nat : ℝ)). 2 : { rewrite H2. reflexivity. } rewrite H2. simpl. rewrite Min_Max_arith_mean_length2; auto.
     rewrite Rmult_1_r. rewrite Rdiv_plus_distr. replace (MaxRlist l + MinRlist l - (MaxRlist l / 2 + MinRlist l / 2)) with (MaxRlist l / 2 + MinRlist l / 2) by lra.
     rewrite r_mult_r_is_Rsqr. replace (1 / (1 + 1)) with (/ 2) by lra. assert (H4: 0 < fold_right Rmult 1 l) by (apply fold_right_mult_pos_list_gt_0; auto).
     assert (H5 : 0 < (MaxRlist l / 2 + MinRlist l / 2)).
@@ -1244,7 +1244,7 @@ Proof.
     repeat rewrite remove_one_In_length; try lia. 2 : { apply MaxRlist_In; lia. } 2 : { rewrite Min_l_eq_Min_remove_one_Max; try lia. apply MinRlist_In. rewrite remove_one_In_length; try lia. apply MaxRlist_In; lia. }
     replace (S (S (Init.Nat.pred (Init.Nat.pred (length l))))) with (length l) by lia. simpl. apply Rle_ge.
     assert (H6 : fold_right Rmult 1 l > 0). { apply fold_right_mult_pos_list_gt_0; auto. }
-    assert (H7 : Rpower (fold_right Rmult 1 l) (1 / INR (length l)) > 0). { apply Rpower_gt_0; auto. } 
+    assert (H7 : Rpower (fold_right Rmult 1 l) (1 / (length l)%nat) > 0). { apply Rpower_gt_0; auto. }
     assert (H8 : (length l > 0)%nat) by lia.
     pose proof (MaxRlist_In l H8) as H9. pose proof (MinRlist_In l H8) as H10. pose proof H1 as Hpos. unfold pos_list in H1. rewrite Forall_forall in H1.
     assert (H11 : MaxRlist l > 0). { specialize (H1 (MaxRlist l) H9); lra. } assert (H12 : MinRlist l > 0). { specialize (H1 (MinRlist l) H10). lra. }
@@ -1257,13 +1257,13 @@ Proof.
     assert (H19 : (MaxRlist l + MinRlist l - arithmetic_mean l) > 0). { nra. }
     assert (H20 : arithmetic_mean l * ((MaxRlist l + MinRlist l - arithmetic_mean l) * fold_right Rmult 1 (remove_one Req_dec_T (MinRlist l) (remove_one Req_dec_T (MaxRlist l) l))) > 0).
     { rewrite <- Rmult_assoc. assert (arithmetic_mean l * (MaxRlist l + MinRlist l - arithmetic_mean l) > 0) by nra. nra. }
-    assert (H21 : 0 < Rpower (arithmetic_mean l * ((MaxRlist l + MinRlist l - arithmetic_mean l) * fold_right Rmult 1 (remove_one Req_dec_T (MinRlist l) (remove_one Req_dec_T (MaxRlist l) l)))) (1 / INR (length l))).
+    assert (H21 : 0 < Rpower (arithmetic_mean l * ((MaxRlist l + MinRlist l - arithmetic_mean l) * fold_right Rmult 1 (remove_one Req_dec_T (MinRlist l) (remove_one Req_dec_T (MaxRlist l) l)))) (1 / (length l)%nat)).
     { apply Rpower_gt_0; auto. }
     assert (H22 : (length (remove_one Req_dec_T (MaxRlist l) l) > 0)%nat). { rewrite remove_one_In_length; auto; lia. }
     assert (H23 : In (MinRlist l) (remove_one Req_dec_T (MaxRlist l) l)). { apply In_remove_one; auto. }
 
     apply pow_incrst_3 with (n := length l); try lia; auto.
-    repeat rewrite <- Rpower_pow; auto. repeat rewrite Rpower_mult. replace (1 / INR (length l) * INR (length l)) with 1. 2 : { field; apply not_0_INR; lia. }
+    repeat rewrite <- Rpower_pow; auto. repeat rewrite Rpower_mult. replace (1 / (length l)%nat * (length l)%nat) with 1. 2 : { field; apply not_0_INR; lia. }
     repeat rewrite Rpower_1; auto. repeat rewrite fold_right_Rmult_remove_one_In; auto; try lra; try lia. 
     assert (H24 : arithmetic_mean l * (MaxRlist l + MinRlist l - arithmetic_mean l) >= MaxRlist l * MinRlist l).
     {
@@ -1272,15 +1272,15 @@ Proof.
       replace (MaxRlist l * MinRlist l - MaxRlist l * arithmetic_mean l - MinRlist l * arithmetic_mean l + arithmetic_mean l ^ 2) with 
             ((arithmetic_mean l - MinRlist l) * (arithmetic_mean l - MaxRlist l)) by nra. nra.
     }
-    assert (H25 : forall a b c d, a > 0 -> b > 0 -> c > 0 -> d > 0 -> b >= d -> a <= d * c -> a <= b * c) by (intros; nra).
+    assert (H25 : ∀ a b c d, a > 0 -> b > 0 -> c > 0 -> d > 0 -> b >= d -> a <= d * c -> a <= b * c) by (intros; nra).
     rewrite <- Rmult_assoc.
     apply H25 with (d := MaxRlist l * MinRlist l); auto; try nra. 2 : { field_simplify; nra. } unfold Rdiv.
     assert (H26 : / MaxRlist l > 0). { apply Rinv_pos; nra. } assert (H27 : / MinRlist l > 0). { apply Rinv_pos; nra. } 
     assert (H28 : fold_right Rmult 1 l * / MaxRlist l > 0) by nra. nra.
 Qed.
 
-Lemma build_list_for_lemma_2_22_a_unchanged : forall l,
-  (Forall (fun x => x = nth 0 l 0) l -> build_list_for_lemma_2_22_a l = l).
+Lemma build_list_for_lemma_2_22_a_unchanged : ∀ l,
+  (Forall (λ x, x = nth 0 l 0) l -> build_list_for_lemma_2_22_a l = l).
 Proof.
   intros l H1. unfold build_list_for_lemma_2_22_a. assert (length l = 0 \/ length l > 0)%nat as [H2 | H2] by lia.
   - rewrite H2. simpl. apply length_zero_iff_nil in H2. rewrite H2. reflexivity.
@@ -1289,13 +1289,13 @@ Proof.
     lra.
 Qed.
 
-Lemma In_pos_list : forall l x,
+Lemma In_pos_list : ∀ l x,
   pos_list l -> In x l -> x > 0.
 Proof.
   intros l x H1 H2. unfold pos_list in H1. rewrite Forall_forall in H1. apply H1; auto.
 Qed.
 
-Lemma build_list_for_lemma_2_22_a_pos_list : forall l,
+Lemma build_list_for_lemma_2_22_a_pos_list : ∀ l,
   pos_list l -> pos_list (build_list_for_lemma_2_22_a l).
 Proof.
   intros l H1. unfold build_list_for_lemma_2_22_a. assert (length l = 0 \/ length l > 0)%nat as [H2 | H2] by lia.
@@ -1309,19 +1309,19 @@ Proof.
          apply In_pos_list with (l := remove_one Req_dec_T (MinRlist l) (remove_one Req_dec_T (MaxRlist l) l)) in H5 as H8; auto.
 Qed.
 
-Lemma count_occ_forall_eq_nth : forall l : list R,
-  Forall (fun x => x = nth 0 l 0) l -> count_occ Req_dec_T l (nth 0 l 0) = length l.
+Lemma count_occ_forall_eq_nth : ∀ l : list R,
+  Forall (λ x, x = nth 0 l 0) l -> count_occ Req_dec_T l (nth 0 l 0) = length l.
 Proof.
   intros l H1. rewrite Forall_forall in H1. induction l as [| h t IH].
   - simpl. reflexivity.
-  - simpl. destruct (Req_dec_T h h) as [H2 | H2]; try lra. assert (H3 : forall x, In x t -> x = h).
+  - simpl. destruct (Req_dec_T h h) as [H2 | H2]; try lra. assert (H3 : ∀ x, In x t -> x = h).
     { intros x H3. apply H1. right. auto. } assert (length t = 0 \/ length t > 0)%nat as [H4 | H4] by lia.
     -- apply length_zero_iff_nil in H4. rewrite H4. reflexivity.
     -- assert (H5 : In (nth 0 t 0) t). { apply nth_In; lia. } specialize (H3 (nth 0 t 0) H5) as H6. rewrite H6 in IH.
        rewrite IH; auto.
 Qed.
 
-Lemma In_repeat : forall (A : Type) (a b : A) (n : nat),
+Lemma In_repeat : ∀ (A : Type) (a b : A) (n : nat),
   (n >= 1)%nat -> In a (repeat b n) -> a = b.
 Proof.
   intros A a b n H1 H2. induction n as [| n' IH].
@@ -1331,7 +1331,7 @@ Proof.
     -- simpl in H2. destruct H2 as [H2 | H2]; try tauto. auto. apply IH; try lia; auto.
 Qed.
 
-Lemma repeat_Forall : forall (x : R) l,
+Lemma repeat_Forall : ∀ (x : R) l,
   (length l > 0)%nat -> (Forall (eq x) l <-> l = (repeat x (length l))).
 Proof.
   intros x l H1. split.
@@ -1346,7 +1346,7 @@ Proof.
   intros H2. rewrite H2. apply Forall_forall. intros y H3. apply In_repeat in H3; auto.
 Qed.
 
-Lemma count_occ_forall_eq : forall l x,
+Lemma count_occ_forall_eq : ∀ l x,
   Forall (eq x) l <-> count_occ Req_dec_T l x = length l.
 Proof.
   intros l x. split.
@@ -1362,7 +1362,7 @@ Proof.
        rewrite Forall_forall in H1. specialize (H1 y H3). rewrite H1. reflexivity.
 Qed.
 
-Lemma count_arithmetic_mean_build_list_2_22_a_eq : forall l,
+Lemma count_arithmetic_mean_build_list_2_22_a_eq : ∀ l,
   (length l > 0)%nat -> MinRlist l = MaxRlist l -> count_occ Req_dec_T (build_list_for_lemma_2_22_a l) (arithmetic_mean l) = length l.
 Proof.
   intros l H1 H2. apply MinRlist_eq_MaxRlist in H2; auto. pose proof (build_list_for_lemma_2_22_a_unchanged l H2) as H3. rewrite H3.
@@ -1370,7 +1370,7 @@ Proof.
   rewrite H4. apply count_occ_forall_eq_nth; auto.
 Qed.
 
-Lemma count_arithmetic_mean_build_list_2_22_a_neq : forall l,
+Lemma count_arithmetic_mean_build_list_2_22_a_neq : ∀ l,
   (length l > 0)%nat -> MinRlist l <> MaxRlist l -> (count_occ Req_dec_T (build_list_for_lemma_2_22_a l) (arithmetic_mean l) > count_occ Req_dec_T l (arithmetic_mean l))%nat.
 Proof.
   intros l H1 H2. unfold build_list_for_lemma_2_22_a. assert (length l =? 0 = false)%nat as H3 by (apply Nat.eqb_neq; lia). rewrite H3.
@@ -1393,7 +1393,7 @@ Fixpoint f_repeat {A : Type} (n : nat) (f : A -> A) (x : A) : A :=
   | S n' => f (f_repeat n' f x)
   end.
 
-Lemma f_repeat_involution : forall (A : Type) (f : A -> A) (n : nat) (x : A),
+Lemma f_repeat_involution : ∀ (A : Type) (f : A -> A) (n : nat) (x : A),
   f x = x -> f_repeat n f (x) = x.
 Proof.
   intros A f n x H1. induction n as [| n IH].
@@ -1401,7 +1401,7 @@ Proof.
   - simpl. rewrite  IH. apply H1.
 Qed.
 
-Lemma arithmetic_mean_f_repeat_build_list_for_lemma_2_22_a : forall l n,
+Lemma arithmetic_mean_f_repeat_build_list_for_lemma_2_22_a : ∀ l n,
   (length l > 0)%nat -> arithmetic_mean (f_repeat n build_list_for_lemma_2_22_a l) = arithmetic_mean l.
 Proof.
   intros l n H1. generalize dependent l. induction n as [| k IH].
@@ -1409,17 +1409,17 @@ Proof.
   - intros l H1. simpl. rewrite arithmetic_mean_build_list_2_22_a_equiv. apply IH; auto.
 Qed.
 
-Lemma f_repeat_all_count_occ_lemma_2_22_helper : forall (l : list R) (n : nat) (f : list R -> list R) (g : list R -> R),
+Lemma f_repeat_all_count_occ_lemma_2_22_helper : ∀ (l : list R) (n : nat) (f : list R -> list R) (g : list R -> R),
   (length l > 0)%nat ->
-  (forall l, length l = length (f l)) ->
-  (forall l, ~Forall (eq (g l)) l -> 
+  (∀ l, length l = length (f l)) ->
+  (∀ l, ~Forall (eq (g l)) l ->
      (count_occ Req_dec_T (f l) (g l) > count_occ Req_dec_T l (g l))%nat) ->
-  (forall l, Forall (eq (g l)) l -> f l = l) ->
+  (∀ l, Forall (eq (g l)) l -> f l = l) ->
   (length l > n)%nat ->
-  (forall l, g (f l) = g l) ->
-  (forall l x, (length l > 0)%nat -> Forall (eq x) l -> x = g l) ->
-  (forall l, g (f_repeat n f l) = g l) ->
-  (forall l, length (f_repeat n f l) = length l) ->
+  (∀ l, g (f l) = g l) ->
+  (∀ l x, (length l > 0)%nat -> Forall (eq x) l -> x = g l) ->
+  (∀ l, g (f_repeat n f l) = g l) ->
+  (∀ l, length (f_repeat n f l) = length l) ->
   (count_occ Req_dec_T (f_repeat n f l) (g l) >= n)%nat.
 Proof.
   intros l n f g H1 H2 H3 H4 H5 H6 H7 H8 H9. generalize dependent l. induction n as [| k IH].
@@ -1437,7 +1437,7 @@ Proof.
           assert (count_occ Req_dec_T (f l) (g l) > count_occ Req_dec_T l (g l))%nat as H17. { apply H3; auto. } lia.
 Qed.
 
-Lemma f_repeat_build_list_for_lemma_2_22_a_nil : forall n,
+Lemma f_repeat_build_list_for_lemma_2_22_a_nil : ∀ n,
   f_repeat n build_list_for_lemma_2_22_a [] = [].
 Proof.
   intros n. induction n as [| n IH].
@@ -1445,7 +1445,7 @@ Proof.
   - simpl. rewrite IH. reflexivity.
 Qed.
 
-Lemma length_f_repeat_length_build_list_for_lemma_2_22_a : forall l n,
+Lemma length_f_repeat_length_build_list_for_lemma_2_22_a : ∀ l n,
   length (f_repeat (n) build_list_for_lemma_2_22_a l) = length l.
 Proof.
   intros l n. generalize dependent l. induction n as [| n IH].
@@ -1453,7 +1453,7 @@ Proof.
   - intros l. simpl. rewrite build_list_for_lemma_2_22_a_length. apply IH.
 Qed.
 
-Lemma count_occ_f_repeat_build_list_for_lemma_2_22_a_n_minus_1 : forall l,
+Lemma count_occ_f_repeat_build_list_for_lemma_2_22_a_n_minus_1 : ∀ l,
   (count_occ Req_dec_T (f_repeat (length l - 1) build_list_for_lemma_2_22_a l) (arithmetic_mean l) >= length l - 1)%nat.
 Proof.
   intros l. assert (length l = 0 \/ length l > 0)%nat as [H1 | H1] by lia.
@@ -1477,7 +1477,7 @@ Proof.
     -- intros l2. rewrite length_f_repeat_length_build_list_for_lemma_2_22_a; auto.
 Qed.
 
-Lemma count_occ_f_repeat_build_list_for_lemma_2_22_a_n : forall l,
+Lemma count_occ_f_repeat_build_list_for_lemma_2_22_a_n : ∀ l,
   (count_occ Req_dec_T (f_repeat (length l) build_list_for_lemma_2_22_a l) (arithmetic_mean l) = length l)%nat.
 Proof.
   intros l. assert (length l = 0 \/ length l > 0)%nat as [H1 | H1] by lia.
@@ -1511,7 +1511,7 @@ Proof.
             apply count_occ_bound. } lia.
 Qed.
 
-Lemma f_repeat_build_list_for_lemma_2_22_a_all_equal : forall l,
+Lemma f_repeat_build_list_for_lemma_2_22_a_all_equal : ∀ l,
   Forall (eq (arithmetic_mean l)) (f_repeat (length l) build_list_for_lemma_2_22_a l).
 Proof.
   intros l. assert (length l = 0 \/ length l > 0)%nat as [H1 | H1] by lia. 
@@ -1519,13 +1519,13 @@ Proof.
   - apply count_occ_forall_eq. rewrite count_occ_f_repeat_build_list_for_lemma_2_22_a_n; auto. rewrite length_f_repeat_length_build_list_for_lemma_2_22_a; auto.
 Qed.
 
-Lemma all_eq_arithmetic_mean : forall l x,
+Lemma all_eq_arithmetic_mean : ∀ l x,
   (length l > 0)%nat -> Forall (eq x) l -> arithmetic_mean l = x.
 Proof.
   intros l x H1 H2. apply arithmetic_mean_all_equal; auto. apply Forall_forall. intros y H3. rewrite Forall_forall in H2. specialize (H2 y H3). auto.
 Qed.
 
-Lemma f_repeat_build_list_for_lemma_2_22_a_repeat_arithmetic_mean : forall l,
+Lemma f_repeat_build_list_for_lemma_2_22_a_repeat_arithmetic_mean : ∀ l,
   f_repeat (length l) build_list_for_lemma_2_22_a l = repeat (arithmetic_mean l) (length l).
 Proof.
   intros l. assert (length l = 0 \/ length l > 0)%nat as [H1 | H1] by lia.
@@ -1535,7 +1535,7 @@ Proof.
     -- rewrite length_f_repeat_length_build_list_for_lemma_2_22_a; auto.
 Qed.
 
-Lemma pos_list_f_repeat_build_list_for_lemma_2_22_a : forall l n,
+Lemma pos_list_f_repeat_build_list_for_lemma_2_22_a : ∀ l n,
   pos_list l -> pos_list (f_repeat n build_list_for_lemma_2_22_a l).
 Proof.
   intros l n H1. induction n as [| n IH].
@@ -1543,7 +1543,7 @@ Proof.
   - simpl. apply build_list_for_lemma_2_22_a_pos_list; auto.
 Qed.
 
-Lemma geometric_mean_f_repeat_build_list_for_lemma_2_22_a : forall l n,
+Lemma geometric_mean_f_repeat_build_list_for_lemma_2_22_a : ∀ l n,
   pos_list l ->
   geometric_mean (f_repeat (n) build_list_for_lemma_2_22_a l) >= geometric_mean l.
 Proof.
@@ -1553,26 +1553,26 @@ Proof.
     apply Rge_trans with (r2 := geometric_mean (f_repeat n build_list_for_lemma_2_22_a l)); auto. apply H2. apply pos_list_f_repeat_build_list_for_lemma_2_22_a; auto.
 Qed.
 
-Lemma lemma_2_22_a'' : forall l,
+Lemma lemma_2_22_a'' : ∀ l,
   pos_list l -> geometric_mean l <= arithmetic_mean l.
 Proof.
   intros l H1. assert (length l = 0 \/ length l > 0)%nat as [H2 | H2] by lia.
   - apply length_zero_iff_nil in H2. rewrite H2. rewrite arithmetic_mean_nil, geometric_mean_nil. lra.
-  - assert (Forall (fun x => x = nth 0 l 0) l \/ ~Forall (fun x => x = nth 0 l 0) l) as [H3 | H3] by apply classic.
+  - assert (Forall (λ x, x = nth 0 l 0) l \/ ~Forall (λ x, x = nth 0 l 0) l) as [H3 | H3] by apply classic.
     -- rewrite arithmetic_mean_all_equal with (r := nth 0 l 0); auto. rewrite geometric_mean_all_equal with (r := nth 0 l 0); auto. lra.
     -- pose proof (geometric_mean_f_repeat_build_list_for_lemma_2_22_a l (length l) H1) as H4.
        rewrite f_repeat_build_list_for_lemma_2_22_a_repeat_arithmetic_mean in H4. rewrite geometric_mean_repeat in H4; auto; try lia; try nra.
        apply arithmetic_mean_pos_list; auto.
 Qed.
 
-Lemma lemma_2_22_b : forall (l : list R) k,
+Lemma lemma_2_22_b : ∀ (l : list R) k,
   pos_list l ->
     (length l = 2 ^ k)%nat -> geometric_mean l <= arithmetic_mean l.
 Proof.
   intros l k H1 H2. generalize dependent l. induction k as [| k IH].
   - intros l H1 H2. simpl in H2. unfold geometric_mean, arithmetic_mean. rewrite H2.
     simpl. replace (1 / 1) with 1 by lra. rewrite Rpower_1. 2 : { apply fold_right_mult_pos_list_gt_0. apply H1. } 
-    replace (fold_right Rplus 0 l / 1) with (fold_right Rplus 0 l) by lra. assert (H3 : exists a, l = [a]). 
+    replace (fold_right Rplus 0 l / 1) with (fold_right Rplus 0 l) by lra. assert (H3 : ∃ a, l = [a]).
     { destruct l. inversion H2. exists r. inversion H2 as [H3]. apply length_zero_iff_nil in H3. rewrite H3. reflexivity. }
     destruct H3 as [a H3]. rewrite H3. simpl. nra.
   - intros l H1 H2. set (l1 := firstn (length l / 2) l). set (l2 := skipn (length l / 2) l).
@@ -1598,28 +1598,28 @@ Proof.
     { split; apply IH; auto. }
     assert (H13 : sqrt (geometric_mean l1 * geometric_mean l2) <= (arithmetic_mean l1 + arithmetic_mean l2) / 2) by nra.
     assert (H14 : (arithmetic_mean l1 + arithmetic_mean l2) / 2 = arithmetic_mean l).
-    { unfold arithmetic_mean. replace ((fold_right Rplus 0 l1 / INR (length l1) + fold_right Rplus 0 l2 / INR (length l2)) / 2) with
-      ((fold_right Rplus 0 l1 + fold_right Rplus 0 l2) / (2 * INR (length l1))). 2 : { assert (H14 : INR (length l1) <> 0). { apply not_0_INR. nia. } 
+    { unfold arithmetic_mean. replace ((fold_right Rplus 0 l1 / (length l1)%nat + fold_right Rplus 0 l2 / (length l2)%nat) / 2) with
+      ((fold_right Rplus 0 l1 + fold_right Rplus 0 l2) / (2 * (length l1)%nat)). 2 : { assert (H14 : ((length l1)%nat : ℝ) <> 0). { apply not_0_INR. nia. }
       assert (H15 : length l1 = length l2). { nia. } rewrite <- H15. field; nra. }
     rewrite <- fold_right_plus_app. rewrite H3. rewrite H2. rewrite H4. simpl. rewrite Nat.add_0_r. 
-    rewrite plus_INR. replace (2 * INR (2 ^ k)) with (INR (2 ^ k) + INR (2 ^ k)) by (simpl; lra). reflexivity. }
+    rewrite plus_INR. replace (2 * (2 ^ k)%nat) with ((2 ^ k)%nat + (2 ^ k)%nat) by (simpl; lra). reflexivity. }
     nra.
 Qed.
 
-Lemma pos_list_arith_mean_gt_0 : forall l,
+Lemma pos_list_arith_mean_gt_0 : ∀ l,
   pos_list l -> (length l > 0)%nat -> arithmetic_mean l > 0.
 Proof.
   intros l H1 H2. unfold arithmetic_mean. apply Rdiv_lt_0_compat. apply Rgt_lt.
   apply fold_right_plus_pos_list_gt_0; auto. apply lt_0_INR. auto.
 Qed.
 
-Lemma pos_list_repeat : forall a n,
+Lemma pos_list_repeat : ∀ a n,
   a > 0 -> pos_list (repeat a n).
 Proof.
   intros a n H1. unfold pos_list. apply Forall_forall. intros x H2. apply repeat_spec in H2. lra.
 Qed.
 
-Lemma lemma_2_22_c : forall (l : list R),
+Lemma lemma_2_22_c : ∀ (l : list R),
   pos_list l -> geometric_mean l <= arithmetic_mean l.
 Proof.
   intros l H1. pose proof exists_pow_2_gt_n (length l) as [m H2]. 
@@ -1634,19 +1634,19 @@ Proof.
     assert (H9 : geometric_mean l3 <= arithmetic_mean l3). { apply lemma_2_22_b with (k := m); auto. }
     unfold geometric_mean, arithmetic_mean in H9. destruct (Nat.eq_dec (length l3) 0) as [H10 | H10].
     -- lia.
-    -- rewrite H7 in H9. pose proof Rle_Rpower_l (Rpower (fold_right Rmult 1 l3) (1 / INR (2 ^ m))) (fold_right Rplus 0 l3 / INR (2 ^ m)) (INR 2^m) as H11.
-       assert (H12 : 0 <= INR 2 ^ m).
-       { replace (INR 2) with 2 by (simpl; lra). assert (0 <= 2^m)%nat by lia. apply le_INR in H. 
-         replace (INR 0) with 0 in H by (simpl; lra). replace (INR (2^m)) with (2^m) in H. 2 : { rewrite pow_INR. replace (INR 2) with 2 by (simpl; lra). reflexivity. } lra. }
+    -- rewrite H7 in H9. pose proof Rle_Rpower_l (Rpower (fold_right Rmult 1 l3) (1 / (2 ^ m)%nat)) (fold_right Rplus 0 l3 / (2 ^ m)%nat) (2%nat^m) as H11.
+       assert (H12 : 0 <= 2%nat ^ m).
+       { replace (2%nat : ℝ) with 2 by (simpl; lra). assert (0 <= 2^m)%nat by lia. apply le_INR in H.
+         replace (0%nat : ℝ) with 0 in H by (simpl; lra). replace (((2^m)%nat : ℝ)) with (2^m) in H. 2 : { rewrite pow_INR. replace (2%nat : ℝ) with 2 by (simpl; lra). reflexivity. } lra. }
        apply H11 in H12. 2 : { split. apply Rpower_gt_0. apply fold_right_mult_pos_list_gt_0. auto. auto. }
-       rewrite Rpower_mult in H12. replace (1 / INR (2 ^ m) * INR (2)^m) with 1 in H12. 2 : { rewrite <- pow_INR. field. apply not_0_INR. lia. }
+       rewrite Rpower_mult in H12. replace (1 / (2 ^ m)%nat * (2)%nat^m) with 1 in H12. 2 : { rewrite <- pow_INR. field. apply not_0_INR. lia. }
        rewrite Rpower_1 in H12. 2 : { apply Rgt_lt. apply fold_right_mult_pos_list_gt_0; auto. }
-       replace (INR 2 ^ m) with (INR (2^m)) in H12. 2 : { rewrite pow_INR. replace (INR 2) with 2 by (simpl; lra). reflexivity. }
+       replace (2%nat ^ m) with (((2^m)%nat : ℝ)) in H12. 2 : { rewrite pow_INR. replace (2%nat : ℝ) with 2 by (simpl; lra). reflexivity. }
        rewrite Rpower_pow in H12. 2 : { apply Rdiv_pos_pos. apply fold_right_plus_pos_list_gt_0; auto. apply lt_0_INR. lia. }
-       unfold l3 in H12 at 2. rewrite fold_right_plus_app in H12. replace (fold_right Rplus 0 l) with (arithmetic_mean l * INR (length l)) in H12.
-       2 : { unfold arithmetic_mean. field. apply not_0_INR. lia. } replace (fold_right Rplus 0 l2) with (arithmetic_mean l * (INR (2^m) - INR (length l))) in H12.
+       unfold l3 in H12 at 2. rewrite fold_right_plus_app in H12. replace (fold_right Rplus 0 l) with (arithmetic_mean l * (length l)%nat) in H12.
+       2 : { unfold arithmetic_mean. field. apply not_0_INR. lia. } replace (fold_right Rplus 0 l2) with (arithmetic_mean l * ((2^m)%nat - (length l)%nat)) in H12.
        2 : { unfold l2. rewrite fold_right_plus_repeat. rewrite minus_INR; try lia; nra. }
-       replace ((arithmetic_mean l * INR (length l) + arithmetic_mean l * (INR (2^m) - INR (length l))) / INR (2^m)) with (arithmetic_mean l) in H12.
+       replace ((arithmetic_mean l * (length l)%nat + arithmetic_mean l * ((2^m)%nat - (length l)%nat)) / (2^m)%nat) with (arithmetic_mean l) in H12.
        2 : { field. apply not_0_INR. lia. } unfold l3 in H12. rewrite fold_right_mult_app_R in H12. replace (fold_right Rmult 1 l2) with (arithmetic_mean l ^ (2^m - length l)) in H12.
        2 : { unfold l2. rewrite fold_right_mult_repeat. reflexivity. }
        assert (H13 : arithmetic_mean l ^ 2 ^ m / (arithmetic_mean l ^ (2 ^ m - length l)) = arithmetic_mean l ^ length l).
@@ -1659,6 +1659,6 @@ Proof.
        --- lia.
        --- apply Rle_pow_base with (n := length l); auto. apply Rpower_gt_0. apply fold_right_mult_pos_list_gt_0; auto.
            rewrite <- Rpower_pow. 2 : { apply Rpower_gt_0. apply fold_right_mult_pos_list_gt_0; auto. } rewrite Rpower_mult.
-           replace (1 / INR (length l) * INR (length l)) with 1. 2 : { field. apply not_0_INR. lia. } rewrite Rpower_1. 2 : { apply fold_right_mult_pos_list_gt_0; auto. }
+           replace (1 / (length l)%nat * (length l)%nat) with 1. 2 : { field. apply not_0_INR. lia. } rewrite Rpower_1. 2 : { apply fold_right_mult_pos_list_gt_0; auto. }
            unfold arithmetic_mean in H15. nra.
 Qed.

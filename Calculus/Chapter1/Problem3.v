@@ -1,7 +1,7 @@
 From Calculus.Chapter1 Require Import Prelude.
 
 (*we dont need b <> 0 in this proof because in coq r / 0 = 0 so it hold true anyway*)
-Lemma lemma_1_3_i : forall a b c : R,
+Lemma lemma_1_3_i : ∀ a b c : R,
   b <> 0 /\ c <> 0 -> a / b = (a * c) / (b * c).
 Proof.
   intros a b c [H1 H2].
@@ -11,7 +11,7 @@ Proof.
   rewrite Rmult_1_r. reflexivity.
 Qed.
 
-Lemma lemma_1_3_ii : forall a b c d : R,
+Lemma lemma_1_3_ii : ∀ a b c d : R,
   b <> 0 /\ d <> 0 -> a / b + c / d = (a * d + b * c) / (b * d).
 Proof.
   intros a b c d [H1 H2].
@@ -29,7 +29,7 @@ Qed.
 Definition Zpow (b : R) (e : Z) : R :=
   if Z.ltb e 0 then 1 / (b ^ Z.to_nat (Z.abs e)) else b ^ Z.to_nat e.
 
-Lemma lemma_1_3_iii : forall a b : R,
+Lemma lemma_1_3_iii : ∀ a b : R,
   a > 0 /\ b > 0 -> Rpower (a * b) (-1) = Rpower a (-1) * Rpower b (-1).
 Proof.
   intros a b [H1 H2].
@@ -38,14 +38,14 @@ Proof.
   apply Rinv_mult.
 Qed.
 
-Lemma lemma_1_3_iii' : forall a b : R, 
+Lemma lemma_1_3_iii' : ∀ a b : R,
   a <> 0 /\ b <> 0 -> Zpow (a * b) (-1)%Z = Zpow a (-1)%Z * Zpow b (-1)%Z.
 Proof.
   intros a b [H1 H2].
   - unfold Zpow. simpl. field; lra.
 Qed.
 
-Lemma lemma_1_3_iv : forall a b c d : R,
+Lemma lemma_1_3_iv : ∀ a b c d : R,
   b <> 0 /\ d <> 0 -> (a / b) * (c / d) = (a * c) / (d * b).
 Proof.
   intros a b c d [H1 H2].
@@ -55,14 +55,14 @@ Proof.
   rewrite Rmult_comm with (r1 := /d). reflexivity.
 Qed.
 
-Lemma lemma_1_3_v : forall a b c d : R,
+Lemma lemma_1_3_v : ∀ a b c d : R,
   b <> 0 /\ c <> 0 /\ d <> 0 -> (a / b) / (c / d) = (a * d) / (b * c).
 Proof.
   intros a b c d [H1 [H3 H4]].
   unfold Rdiv. repeat rewrite Rinv_mult. rewrite Rinv_inv. lra. (*more tedius assoc + commutativity who cares*) 
 Qed.
 
-Lemma lemma_1_3_vi : forall a b c d, 
+Lemma lemma_1_3_vi : ∀ a b c d,
   b <> 0 /\ d <> 0 -> a / b = c / d <-> a * d = b * c.
 Proof.
   intros a b c d [H1 H2].

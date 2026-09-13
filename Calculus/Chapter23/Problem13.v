@@ -1,11 +1,10 @@
 From Calculus.Chapter23 Require Import Prelude.
-Require Import Calculus.Chapter23.Problem12. (* For cesaro_summable *)
+Require Import Calculus.Chapter23.Problem12.
 
-(* Problem 13: Hardy's Tauberian Theorem *)
 
-Lemma problem_23_13 : forall a l,
-  (forall n, a n > 0) ->
+Lemma problem_23_13 : ∀ a l,
+  (∀ n, (n > 0)%nat -> a n > 0) ->
   cesaro_summable a l ->
-  bounded (fun n => INR n * a n) ->
-  exists S, ∑ 0 ∞ (fun n => if (n =? 0)%nat then 0 else a n) = S.
+  bounded (λ (n : ℕ), n * a n) ->
+  ∃ S, ∑ 0 ∞ (λ n, if (n =? 0)%nat then 0 else a n) = S.
 Abort.

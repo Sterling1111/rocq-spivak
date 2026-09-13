@@ -1,7 +1,7 @@
 From Calculus.Chapter15 Require Import Prelude.
 From Calculus.Chapter15 Require Import Problem11.
 
-Lemma lemma_15_12_a : forall (m n : nat),
+Lemma lemma_15_12_a : ∀ (m n : nat),
   m <> n ->
   ∫ (-π) π (λ x, sin (m * x) * sin (n * x)) = 0.
 Proof.
@@ -30,7 +30,7 @@ Proof.
   lra.
 Qed.
 
-Lemma lemma_15_12_a' : forall (n : nat),
+Lemma lemma_15_12_a' : ∀ (n : nat),
   (n > 0)%nat ->
   ∫ (-π) π (λ x, sin (n * x) * sin (n * x)) = π.
 Proof.
@@ -52,7 +52,7 @@ Proof.
   lra.
 Qed.
 
-Lemma lemma_15_12_b : forall (m n : nat),
+Lemma lemma_15_12_b : ∀ (m n : nat),
   m <> n ->
   ∫ (-π) π (λ x, cos (m * x) * cos (n * x)) = 0.
 Proof.
@@ -81,7 +81,7 @@ Proof.
   lra.
 Qed.
 
-Lemma lemma_15_12_b' : forall (n : nat),
+Lemma lemma_15_12_b' : ∀ (n : nat),
   (n > 0)%nat ->
   ∫ (-π) π (λ x, cos (n * x) * cos (n * x)) = π.
 Proof.
@@ -103,7 +103,7 @@ Proof.
   lra.
 Qed.
 
-Lemma lemma_15_12_c : forall (m n : nat),
+Lemma lemma_15_12_c : ∀ (m n : nat),
   ∫ (-π) π (λ x, sin (m * x) * cos (n * x)) = 0.
 Proof.
   intros m n.

@@ -1,3 +1,3 @@
-From Lib Require Export Imports Sets Limit Continuity Derivative Integral Notations Reals_util Inverse Functions Interval Tactics Trigonometry Sums Sequence Series Exponential Binomial Polynomial Taylor.
+From Lib Require Export Imports Sets Limit Continuity Derivative Integral Notations Reals_util Inverse Functions Interval Tactics Trigonometry Sums Sequence Series Exponential Binomial Polynomial Taylor Rational.
 Export LimitNotations IntervalNotations SetNotations DerivativeNotations FunctionNotations IntegralNotations SumNotations SeriesNotations SequenceNotations.
 Open Scope R_scope.

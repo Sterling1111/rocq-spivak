@@ -62,7 +62,7 @@ Section Problem24.
       assert (H7 : k = 0%nat).
       {
         apply INR_eq. pose proof (pos_INR k) as H7.
-        replace 0 with (INR 0) in H7 by reflexivity. lra.
+        replace 0 with (0%nat : ℝ) in H7 by reflexivity. lra.
       }
       subst. auto.
     - destruct IH as [δ1 [H2 H3]].

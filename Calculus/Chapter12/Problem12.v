@@ -1,6 +1,6 @@
 From Calculus.Chapter12 Require Import Prelude.
 
-Lemma lemma_12_12 : forall k f f_inv a f',
+Lemma lemma_12_12 : ∀ k f f_inv a f',
   inverse f f_inv ->
   ⟦ der (f_inv a) ⟧ f = f' ->
   f' (f_inv a) <> 0 ->

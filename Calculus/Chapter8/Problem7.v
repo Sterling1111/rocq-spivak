@@ -13,7 +13,7 @@ Proof.
     exists z. split; auto.
   }
   assert (H5 : continuous (λ x, c * x)) by auto_cont.
-  pose proof (lemma_8_6_b f (fun x => c * x) rational H1 H5 H4 H3) as H6.
+  pose proof (lemma_8_6_b f (λ x, c * x) rational H1 H5 H4 H3) as H6.
   intros x.
   specialize (H6 x).
   simpl in H6.

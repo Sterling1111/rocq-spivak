@@ -1,10 +1,23 @@
 From Calculus.Chapter23 Require Import Prelude.
 
-(* Problem 15: |\sum a_n| <= \sum |a_n| *)
+Lemma problem_23_15_a : ∀ a b,
+  series_converges_absolutely (λ n, a (S n)) ->
+  subsequence (λ n, b (S n)) (λ n, a (S n)) ->
+  series_converges_absolutely (λ n, b (S n)).
+Abort.
 
-Lemma problem_23_15 : forall a S_abs S_total,
-  series_converges_absolutely a ->
-  (∑ 0 ∞ (fun n => if (n =? 0)%nat then 0 else a n) = S_total) ->
-  (∑ 0 ∞ (fun n => if (n =? 0)%nat then 0 else |a n|) = S_abs) ->
-  |S_total| <= S_abs.
+Lemma problem_23_15_b :
+  ∃ a b,
+    series_converges (λ n, a (S n)) /\
+    ~ series_converges_absolutely (λ n, a (S n)) /\
+    subsequence (λ n, b (S n)) (λ n, a (S n)) /\
+    ~ series_converges (λ n, b (S n)).
+Abort.
+
+Lemma problem_23_15_c : ∀ a,
+  series_converges_absolutely (λ n, a (S n)) ->
+  ∃ total odd even,
+    (∑ 0 ∞ (λ n, a (S n)) = total) /\
+    (∑ 0 ∞ (λ n, a (2*n+1)%nat) = odd) /\
+    (∑ 0 ∞ (λ n, a (2*n+2)%nat) = even) /\ total = odd + even.
 Abort.

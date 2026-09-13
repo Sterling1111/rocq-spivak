@@ -1,6 +1,6 @@
 From Calculus.Chapter11 Require Import Prelude.
 
-Lemma lemma_11_38 : forall (n : ℕ) (a : ℕ -> ℝ),
+Lemma lemma_11_38 : ∀ (n : ℕ) (a : ℕ -> ℝ),
   ∑ 0 n (λ i, a i / (i + 1)) = 0 ->
   ∃ x, x ∈ (0, 1) /\ ∑ 0 n (λ i, a i * x^i) = 0.
 Proof.
@@ -28,10 +28,10 @@ Proof.
     unfold f, f'.
     apply derivative_sum; [lia|].
     intros k H4.
-    apply derivative_ext with (f1' := λ x : ℝ, a k / (k + 1) * (INR (k + 1) * x ^ (k + 1 - 1))).
+    apply derivative_ext with (f1' := λ x : ℝ, a k / (k + 1) * ((k + 1)%nat * x ^ (k + 1 - 1))).
   - intros x.
     replace (k + 1 - 1)%nat with k by lia.
-    replace (INR (k + 1)) with (k + 1) by (rewrite plus_INR; simpl; lra).
+    replace (((k + 1)%nat : ℝ)) with (k + 1) by (rewrite plus_INR; simpl; lra).
     assert (H5 : k + 1 <> 0) by (pose proof pos_INR k; lra).
     solve_R.
   - apply derivative_mult_const_l, derivative_pow.

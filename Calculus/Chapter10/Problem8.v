@@ -15,8 +15,8 @@ Hypothesis H5 : ⟦ der ⟧ r2 = r2'.
 
 Definition A1 (t : ℝ) := Area (r1 t).
 Definition A2 (t : ℝ) := Area (r2 t).
-Definition A1' := (fun t => 2 * π * r1 t * r1' t).
-Definition A2' := (fun t => 2 * π * r2 t * r2' t).
+Definition A1' := (λ t, 2 * π * r1 t * r1' t).
+Definition A2' := (λ t, 2 * π * r2 t * r2' t).
 
 Lemma A1_derivative : ⟦ der ⟧ A1 = A1'.
 Proof.
@@ -35,7 +35,7 @@ Lemma rate_relation : ∀ t, 10*π - 2*π * r1 t * r1' t = 0.
 Proof.
   intros t.
   
-  assert (H8 : A2 = (fun t => A1 t + 9 * π)).
+  assert (H8 : A2 = (λ t, A1 t + 9 * π)).
   { extensionality x. pose proof (H6 x). lra. }
   
   assert (H9 : ⟦ der ⟧ A2 = A1').
@@ -49,7 +49,7 @@ Proof.
 Qed.
 
 Definition C1 (t : ℝ) := Circumference (r1 t).
-Definition C1' := (fun t => 2 * π * r1' t).
+Definition C1' := (λ t, 2 * π * r1' t).
 
 Lemma C1_derivative : ⟦ der ⟧ C1 = C1'.
 Proof.

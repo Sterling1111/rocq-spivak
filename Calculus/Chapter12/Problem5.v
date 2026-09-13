@@ -1,6 +1,6 @@
 From Calculus.Chapter12 Require Import Prelude.
 
-Lemma lemma_12_5_a : forall f g,
+Lemma lemma_12_5_a : ∀ f g,
   one_to_one f ->
   one_to_one g ->
   one_to_one (f ∘ g).
@@ -11,7 +11,7 @@ Proof.
   exact H7.
 Qed.
 
-Lemma lemma_12_5_a' : forall f g f_inv g_inv,
+Lemma lemma_12_5_a' : ∀ f g f_inv g_inv,
   inverse f f_inv ->
   inverse g g_inv ->
   inverse (f ∘ g)%function (g_inv ∘ f_inv)%function.
@@ -24,7 +24,7 @@ Proof.
     rewrite H10, H4; [reflexivity | apply H9].
 Qed.
 
-Lemma lemma_12_5_a'' : forall f g f_inv g_inv,
+Lemma lemma_12_5_a'' : ∀ f g f_inv g_inv,
   inverse f f_inv ->
   inverse g g_inv ->
   inverse (f ∘ g)%function (g_inv ∘ f_inv)%function.
@@ -33,10 +33,10 @@ Proof.
   repeat split; intros x H9; unfold compose; [rewrite H3 | rewrite H8]; auto.
 Qed.
 
-Lemma lemma_12_5_c : forall f f_inv g,
+Lemma lemma_12_5_c : ∀ f f_inv g,
   inverse f f_inv ->
-  g = (fun x => 1 + f x) ->
-  inverse g (fun x => f_inv (x - 1)).
+  g = (λ x, 1 + f x) ->
+  inverse g (λ x, f_inv (x - 1)).
 Proof.
   intros f f_inv g H1 H2.
   pose proof inverse_spec f f_inv H1 as [H3 H4].
@@ -45,10 +45,10 @@ Proof.
   - rewrite H4. lra.
 Qed.
 
-Lemma lemma_12_5_c' : forall f f_inv g,
+Lemma lemma_12_5_c' : ∀ f f_inv g,
   inverse f f_inv ->
-  g = (fun x => 1 + f x) ->
-  inverse g (fun x => f_inv (x - 1)).
+  g = (λ x, 1 + f x) ->
+  inverse g (λ x, f_inv (x - 1)).
 Proof.
   intros f f_inv g H1 H2.
   set (g_inv := λ x, f_inv (x - 1)).

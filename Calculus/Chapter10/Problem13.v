@@ -3,7 +3,7 @@ From Calculus.Chapter10 Require Import Prelude.
 Lemma lemma_10_13_a : ∀ f x,
   -1 < x < 1 ->
   f = (λ x, √ (1 - x^2)) ->
-  ⟦ der x ⟧ f = (fun x => - x / √ (1 - x^2)).
+  ⟦ der x ⟧ f = (λ x, - x / √ (1 - x^2)).
 Proof.
   intros f x H1 H2.
   subst.

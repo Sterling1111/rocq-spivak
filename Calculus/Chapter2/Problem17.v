@@ -2,8 +2,8 @@ From Calculus.Chapter2 Require Import Prelude Problem8.
 
 Open Scope Z_scope.
 
-Lemma lemma_2_17_a : forall z : Z,
-  z > 1 -> exists l : list Z,
+Lemma lemma_2_17_a : ∀ z : Z,
+  z > 1 -> ∃ l : list Z,
     prime_list l /\ z = fold_right Z.mul 1 l.
 Proof.
   intros z. assert (z <= 1 \/ z > 1) as [H1 | H1]; try lia.
@@ -16,24 +16,24 @@ Proof.
       apply not_all_ex_not in H4 as [p H4]. apply imply_to_and in H4 as [H4 H5].
       apply NNPP in H5. destruct H5 as [k H5]. assert (p > 1 /\ 0 <= p < n) as [H7 H8] by lia.
       assert (k > 1 /\ 0 <= k < n) as [H9 H10] by nia.
-      assert (exists l1 : list Z, prime_list l1 /\ p = fold_right Z.mul 1 l1) as [l1 H11] by (apply IH; lia).
-      assert (exists l2 : list Z, prime_list l2 /\ k = fold_right Z.mul 1 l2) as [l2 H12] by (apply IH; lia).
+      assert (∃ l1 : list Z, prime_list l1 /\ p = fold_right Z.mul 1 l1) as [l1 H11] by (apply IH; lia).
+      assert (∃ l2 : list Z, prime_list l2 /\ k = fold_right Z.mul 1 l2) as [l2 H12] by (apply IH; lia).
       exists (l1 ++ l2). split.
       -- apply Forall_app. split; [apply H11 | apply H12].
       -- destruct H11 as [H11 H13]. destruct H12 as [H12 H14]. rewrite fold_right_app. rewrite <- H14.
         rewrite fold_right_mul_distributive. rewrite <- H13. lia.
 Qed.
 
-Lemma lemma_2_17_b : forall n : Z,
+Lemma lemma_2_17_b : ∀ n : Z,
   (n >= 0)%Z ->
-  (~(exists m, (n = m^2))%Z) -> irrational (sqrt (IZR n)).
+  (~(∃ m, (n = m^2))%Z) -> irrational (sqrt (n : ℝ)).
 Proof.
   intros n H1 H2 [a [b H3]]. unfold not in *. apply H2. assert (n = 0 \/ n > 0) as [H4 | H4] by lia.
   - exists 0. lia.
   - clear H1. rename H4 into H1.
-    assert (Rsqr (sqrt (IZR n)) = Rsqr (IZR a / IZR b)) as H4 by (rewrite H3; reflexivity).
+    assert (Rsqr (sqrt (n : ℝ)) = Rsqr (a / b)) as H4 by (rewrite H3; reflexivity).
     rewrite Rsqr_def in H4. rewrite sqrt_def in H4. 2 : { apply IZR_le; lia. }
-    assert (IZR n * IZR b ^ 2 = IZR a ^ 2)%R as H5.
+    assert (n * b ^ 2 = a ^ 2)%R as H5.
     { 
       rewrite H4. repeat rewrite Rsqr_def. field. apply not_0_IZR. assert (b = 0 \/ b <> 0) as [H5 | H5] by lia; auto.
       rewrite H5 in H4. unfold Rdiv in H4. rewrite Rinv_0 in H4. rewrite Rmult_0_r in H4. rewrite Rsqr_def in H4. rewrite Rmult_0_r in H4.
@@ -88,26 +88,26 @@ Proof.
          assert (Nat.Even (count_occ Z.eq_dec l1 p + count_occ Z.eq_dec l5 p)) as H23 by (rewrite H22; auto). apply Nat.Even_add_Even_inv_l with (m := count_occ Z.eq_dec l5 p) in H23; auto.
 Qed.
 
-Lemma lemma_2_17_c : forall n k,
+Lemma lemma_2_17_c : ∀ n k,
   (n > 0)%Z -> (k > 0)%nat -> 
-  ((~exists m, (n = m^Z.of_nat k)%Z) -> irrational (Rpower (IZR n) (1 / INR k))).
+  ((~∃ m, (n = m^Z.of_nat k)%Z) -> irrational (Rpower (n : ℝ) (1 / k))).
 Proof.
   intros n k H1 H2 H3. unfold not in *. intros [a [b H4]]. apply H3.
-  assert (Rpower (IZR n) (1 / INR k) ^ k = (IZR a / IZR b) ^ k)%R as H5 by (rewrite H4; reflexivity).
+  assert (Rpower (n : ℝ) (1 / k) ^ k = (a / b) ^ k)%R as H5 by (rewrite H4; reflexivity).
   assert (n = 1 \/ n > 1)%Z as [H0 | H0] by lia.
   exists 1. rewrite Z.pow_1_l; lia.
   assert (a <> 0 /\ b <> 0) as [H6 H7].
   {
     split.
     - intros H6. rewrite H6 in H4. unfold Rdiv in H4. rewrite Rmult_0_l in H4. 
-      assert (Rpower (IZR n) (1 * / INR k) > 0)%R by (apply Rpower_gt_0; apply IZR_lt; lia). lra.
+      assert (Rpower (n : ℝ) (1 * / k) > 0)%R by (apply Rpower_gt_0; apply IZR_lt; lia). lra.
     - intros H6. rewrite H6 in H4. unfold Rdiv in H4. rewrite Rinv_0 in H4. rewrite Rmult_0_r in H4.
-      assert (Rpower (IZR n) (1 * / INR k) > 0)%R by (apply Rpower_gt_0; apply IZR_lt; lia). lra.
+      assert (Rpower (n : ℝ) (1 * / k) > 0)%R by (apply Rpower_gt_0; apply IZR_lt; lia). lra.
   }
-  assert (IZR n * IZR b ^ k = IZR a ^ k)%R as H8.
+  assert (n * b ^ k = a ^ k)%R as H8.
   {
     rewrite <- Rpower_pow in H5. 2 : { apply Rpower_gt_0. apply IZR_lt. lia. }
-    rewrite Rpower_mult in H5. replace (1 / INR k * INR k)%R with 1%R in H5. 2 : { field. apply not_0_INR. lia. }
+    rewrite Rpower_mult in H5. replace (1 / k * k)%R with 1%R in H5. 2 : { field. apply not_0_INR. lia. }
     rewrite Rpower_1 in H5. 2 : { apply IZR_lt. lia. } rewrite Rpow_div_l in H5. 2 : { apply not_0_IZR. lia. }
     2 : { apply not_0_IZR. lia. } rewrite H5. field. apply Rpow_neq_0. apply not_0_IZR. lia.
   }
@@ -172,8 +172,8 @@ Proof.
         rewrite count_occ_app in H24.  rewrite H19 in H24. rewrite H22 in H24. exists (q1 - q2)%nat. nia.
 Qed.
 
-Lemma lemma_2_17_d : forall (l : list Z),
-  first_n_primes l -> exists p : Z, Z.prime p /\ p > max_list_Z l.
+Lemma lemma_2_17_d : ∀ (l : list Z),
+  first_n_primes l -> ∃ p : Z, Z.prime p /\ p > max_list_Z l.
 Proof.
   intros l [H1 [H2 H3]]. set (N := fold_right Z.mul 1 l + 1).
   assert (N > 1) as H4 by (destruct l; apply prime_list_product_gt_1 in H2; lia).

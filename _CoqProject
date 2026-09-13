@@ -106,8 +106,10 @@ Calculus/Chapter2/Problem12.v
 Calculus/Chapter2/Problem13.v
 
 Calculus/Chapter3/Prelude.v
+Calculus/Chapter3/Problem4.v
 Calculus/Chapter3/Problem7.v
 Calculus/Chapter3/Problem16.v
+Calculus/Chapter3/Problem22.v
 
 Calculus/Chapter5/Prelude.v
 Calculus/Chapter5/Problem10.v
@@ -143,14 +145,20 @@ Calculus/Chapter12/Prelude.v
 Calculus/Chapter13/Prelude.v
 Calculus/Chapter13/Problem8.v
 Calculus/Chapter13/Problem23.v
+Calculus/Chapter13/Problem26.v
+Calculus/Chapter13/Problem36.v
+Calculus/Chapter13/Problem38.v
 
 Calculus/Chapter14/Prelude.v
 Calculus/Chapter14/Problem9.v
+Calculus/Chapter14/Problem25.v
+Calculus/Chapter14/Problem28.v
 
 Calculus/Chapter15/Prelude.v
 Calculus/Chapter15/Problem11.v
 Calculus/Chapter15/Problem12.v
 Calculus/Chapter15/Problem16.v
+Calculus/Chapter15/Problem19.v
 
 Calculus/Chapter18/Prelude.v
 Calculus/Chapter18/Problem47.v
@@ -162,6 +170,11 @@ Calculus/Chapter20/Prelude.v
 Calculus/Chapter21/Prelude.v
 
 Calculus/Chapter22/Prelude.v
+Calculus/Chapter22/Problem16.v
+Calculus/Chapter22/Problem19.v
+Calculus/Chapter22/Problem20.v
+Calculus/Chapter22/Problem22.v
+Calculus/Chapter22/Problem23.v
 
 Calculus/Chapter23/Prelude.v
 

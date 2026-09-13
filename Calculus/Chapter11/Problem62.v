@@ -1,13 +1,13 @@
 From Calculus.Chapter11 Require Import Prelude.
 
-Lemma lemma_11_62 : forall f a,
+Lemma lemma_11_62 : ∀ f a,
   continuous_at f a ->
   differentiable_at (λ x, |f x|) a ->
   differentiable_at f a.
 Proof.
   intros f a H1 H2.
   destruct (Rtotal_order (f a ) 0) as [H3 | [H3 | H3]].
-  - apply differentiable_at_eq with (f1 := fun x => -1 * |f x|).
+  - apply differentiable_at_eq with (f1 := λ x, -1 * |f x|).
     { 
       pose proof continuous_at_locally_neg f a H1 H3 as [δ [H4 H5]].
       exists δ; split; auto.

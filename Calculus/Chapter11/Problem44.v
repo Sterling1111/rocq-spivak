@@ -1,12 +1,12 @@
 From Calculus.Chapter11 Require Import Prelude.
 
-Lemma lemma_11_44 : forall f f' f'' g a b,
+Lemma lemma_11_44 : ∀ f f' f'' g a b,
   a < b ->
   ⟦ der ⟧ f = f' ->
   ⟦ der ⟧ f' = f'' ->
-  (forall x, f'' x + f' x * g x - f x = 0) ->
+  (∀ x, f'' x + f' x * g x - f x = 0) ->
   f a = 0 -> f b = 0 ->
-  forall x, x ∈ [a, b] -> f x = 0.
+  ∀ x, x ∈ [a, b] -> f x = 0.
 Proof.
   intros f f' f'' g a b H1 H2 H3 H4 H5 H6 x H7.
 
@@ -49,7 +49,7 @@ Proof.
     { apply derivative_at_imp_differentiable_at with (f' := f'); auto. }
 
     pose proof derivative_at_local_maximum_point_zero f a b y H17 H18 as H19.
-    pose proof derivative_at_unique f f' (fun _ => 0) y (H2 y) H19 as H20. simpl in H20.
+    pose proof derivative_at_unique f f' (λ _, 0) y (H2 y) H19 as H20. simpl in H20.
 
     specialize (H4 y). rewrite H20, Rmult_0_l, Rplus_0_r in H4. lra.
   } 
@@ -86,7 +86,7 @@ Proof.
       { apply derivative_at_imp_differentiable_at with (f' := f'); auto. }
       
       pose proof derivative_at_local_minimum_point_zero f a b z H20 H21 as H22.
-      pose proof derivative_at_unique f f' (fun _ => 0) z (H2 z) H22 as H23. simpl in H23.
+      pose proof derivative_at_unique f f' (λ _, 0) z (H2 z) H22 as H23. simpl in H23.
       
       specialize (H4 z). rewrite H23, Rmult_0_l, Rplus_0_r in H4. lra.
   }

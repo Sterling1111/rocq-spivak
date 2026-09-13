@@ -26,7 +26,7 @@ Fixpoint clear (s : state) (k : nat) (p : peg) : Prop :=
   | S k1, x :: s1 => x <> p /\ clear s1 k1 p
   end.
 
-Lemma clear_0 : forall s p, clear s 0 p.
+Lemma clear_0 : ∀ s p, clear s 0 p.
 Proof.
   intros H1 H2.
   destruct H1 as [|H3 H4].
@@ -35,17 +35,17 @@ Proof.
 Qed.
 
 Definition step (s1 s2 : state) : Prop :=
-  exists k p1 p2,
+  ∃ k p1 p2,
     p1 <> p2 /\
     nth_error s1 k = Some p1 /\
     nth_error s2 k = Some p2 /\
-    (forall i, i <> k -> nth_error s1 i = nth_error s2 i) /\
+    (∀ i, i <> k -> nth_error s1 i = nth_error s2 i) /\
     clear s1 k p1 /\
     clear s1 k p2.
 
 Inductive moves : state -> state -> nat -> Prop :=
-  | moves_nil : forall s, moves s s 0
-  | moves_cons : forall s1 s2 s3 n,
+  | moves_nil : ∀ s, moves s s 0
+  | moves_cons : ∀ s1 s2 s3 n,
       step s1 s2 ->
       moves s2 s3 n ->
       moves s1 s3 (S n).
@@ -90,7 +90,7 @@ Fixpoint end_state (s : state) (ms : list (nat * peg)) : state :=
   | m :: ms' => end_state (apply_move s m) ms'
   end.
 
-Lemma seq_to_moves : forall ms s,
+Lemma seq_to_moves : ∀ ms s,
   valid_move_seq s ms ->
   moves s (end_state s ms) (length ms).
 Proof.
@@ -104,7 +104,7 @@ Proof.
     + apply H3. exact H7.
 Qed.
 
-Lemma end_state_app : forall ms1 ms2 s,
+Lemma end_state_app : ∀ ms1 ms2 s,
   end_state s (ms1 ++ ms2) = end_state (end_state s ms1) ms2.
 Proof.
   intros ms1 ms2 s.
@@ -114,7 +114,7 @@ Proof.
   - intros s. simpl. apply H1.
 Qed.
 
-Lemma replace_repeat : forall A n (x y p : A) t,
+Lemma replace_repeat : ∀ A n (x y p : A) t,
   replace n x (repeat p n ++ y :: t) = repeat p n ++ x :: t.
 Proof.
   intros A n x y p t.
@@ -123,7 +123,7 @@ Proof.
   - simpl. rewrite H1. reflexivity.
 Qed.
 
-Lemma hanoi_moves_end_gen : forall n p1 p2 p3 tail,
+Lemma hanoi_moves_end_gen : ∀ n p1 p2 p3 tail,
   end_state (repeat p1 n ++ tail) (hanoi_moves n p1 p2 p3) = repeat p2 n ++ tail.
 Proof.
   intros n.
@@ -141,7 +141,7 @@ Proof.
     rewrite Hq2. reflexivity.
 Qed.
 
-Lemma hanoi_moves_end : forall n p1 p2 p3,
+Lemma hanoi_moves_end : ∀ n p1 p2 p3,
   end_state (repeat p1 n) (hanoi_moves n p1 p2 p3) = repeat p2 n.
 Proof.
   intros n p1 p2 p3.
@@ -150,7 +150,7 @@ Proof.
   apply app_nil_r.
 Qed.
 
-Lemma valid_move_seq_app : forall ms1 ms2 s,
+Lemma valid_move_seq_app : ∀ ms1 ms2 s,
   valid_move_seq s (ms1 ++ ms2) <->
   (valid_move_seq s ms1 /\ valid_move_seq (end_state s ms1) ms2).
 Proof.
@@ -159,7 +159,7 @@ Proof.
   - rewrite IHms1. tauto.
 Qed.
 
-Lemma clear_repeat : forall m p tail p',
+Lemma clear_repeat : ∀ m p tail p',
   p <> p' -> clear (repeat p m ++ tail) m p'.
 Proof.
   induction m; intros; simpl.
@@ -169,7 +169,7 @@ Proof.
     + apply IHm. exact H.
 Qed.
 
-Lemma step_single_move : forall n p1 p2 p3 tail,
+Lemma step_single_move : ∀ n p1 p2 p3 tail,
   p1 <> p2 -> p1 <> p3 -> p2 <> p3 ->
   step (repeat p2 n ++ p1 :: tail) (repeat p2 n ++ p3 :: tail).
 Proof.
@@ -190,7 +190,7 @@ Proof.
     + apply clear_repeat. auto.
 Qed.
 
-Lemma hanoi_moves_valid_gen : forall n p1 p2 p3 tail,
+Lemma hanoi_moves_valid_gen : ∀ n p1 p2 p3 tail,
   p1 <> p2 -> p1 <> p3 -> p2 <> p3 ->
   valid_move_seq (repeat p1 n ++ tail) (hanoi_moves n p1 p2 p3).
 Proof.
@@ -206,7 +206,7 @@ Proof.
       * unfold apply_move. rewrite replace_repeat. apply IH; auto.
 Qed.
 
-Lemma hanoi_moves_valid : forall n p1 p2 p3,
+Lemma hanoi_moves_valid : ∀ n p1 p2 p3,
   p1 <> p2 -> p1 <> p3 -> p2 <> p3 ->
   valid_move_seq (repeat p1 n) (hanoi_moves n p1 p2 p3).
 Proof.
@@ -215,7 +215,7 @@ Proof.
   apply hanoi_moves_valid_gen; auto.
 Qed.
 
-Lemma hanoi_moves_length : forall n p1 p2 p3,
+Lemma hanoi_moves_length : ∀ n p1 p2 p3,
   length (hanoi_moves n p1 p2 p3) = (2 ^ n) - 1.
 Proof.
   intros n.
@@ -231,7 +231,7 @@ Proof.
 Qed.
 
 Theorem hanoi_upper_bound :
-  forall n, moves (repeat P1 n) (repeat P3 n) ((2 ^ n) - 1).
+  ∀ n, moves (repeat P1 n) (repeat P3 n) ((2 ^ n) - 1).
 Proof.
   intros n.
   rewrite <- hanoi_moves_length with (p1 := P1) (p2 := P3) (p3 := P2).
@@ -243,13 +243,13 @@ Proof.
   - discriminate.
 Qed.
 
-Lemma peg_eq_dec : forall x y : peg, {x = y} + {x <> y}.
+Lemma peg_eq_dec : ∀ x y : peg, {x = y} + {x <> y}.
 Proof. decide equality. Qed.
 
-Lemma pow2_ge_1 : forall n, 1 <= 2 ^ n.
+Lemma pow2_ge_1 : ∀ n, 1 <= 2 ^ n.
 Proof. induction n; simpl; lia. Qed.
 
-Lemma nth_error_repeat : forall A (p:A) n m,
+Lemma nth_error_repeat : ∀ A (p:A) n m,
   m < n -> nth_error (repeat p n) m = Some p.
 Proof.
   induction n; intros m Hm.
@@ -259,9 +259,9 @@ Proof.
     + apply IHn. lia.
 Qed.
 
-Lemma nth_error_Some_lt : forall A (l: list A) i j x,
+Lemma nth_error_Some_lt : ∀ A (l: list A) i j x,
   i < j -> nth_error l j = Some x ->
-  exists y, nth_error l i = Some y.
+  ∃ y, nth_error l i = Some y.
 Proof.
   induction l; intros i j x Hij Hx.
   - destruct j; simpl in Hx; discriminate.
@@ -270,7 +270,7 @@ Proof.
     + apply IHl with (j := j) (x := x); auto; lia.
 Qed.
 
-Lemma clear_prop : forall s k p i x,
+Lemma clear_prop : ∀ s k p i x,
   i < k -> clear s k p -> nth_error s i = Some x -> x <> p.
 Proof.
   induction s; intros k p i x Hi Hc Hx.
@@ -282,9 +282,9 @@ Proof.
     + apply IHs with (k := k) (i := i); auto. lia.
 Qed.
 
-Lemma clear_ext : forall k s1 s2 p,
+Lemma clear_ext : ∀ k s1 s2 p,
   clear s1 k p ->
-  (forall i, i < k -> nth_error s1 i = nth_error s2 i) ->
+  (∀ i, i < k -> nth_error s1 i = nth_error s2 i) ->
   clear s2 k p.
 Proof.
   intros k.
@@ -306,14 +306,14 @@ Proof.
               specialize (H3 (S i) H7). exact H3.
 Qed.
 
-Lemma step_clear_other_peg : forall s1 s2 k p1 p2,
+Lemma step_clear_other_peg : ∀ s1 s2 k p1 p2,
   p1 <> p2 ->
   nth_error s1 k = Some p1 ->
   nth_error s2 k = Some p2 ->
-  (forall i, i <> k -> nth_error s1 i = nth_error s2 i) ->
+  (∀ i, i <> k -> nth_error s1 i = nth_error s2 i) ->
   clear s1 k p1 ->
   clear s1 k p2 ->
-  forall i, i < k -> nth_error s1 i = Some (other_peg p1 p2) /\ nth_error s2 i = Some (other_peg p1 p2).
+  ∀ i, i < k -> nth_error s1 i = Some (other_peg p1 p2) /\ nth_error s2 i = Some (other_peg p1 p2).
 Proof.
   intros s1 s2 k p1 p2 H1 H2 H3 H4 H5 H6 i H7.
   destruct (nth_error_Some_lt _ _ i k p1 H7 H2) as [x1 H8].
@@ -347,8 +347,8 @@ Fixpoint dist (n : nat) (s : state) (target : peg) : nat :=
       end
   end.
 
-Lemma dist_repeat_eq : forall n s p,
-  (forall m, m < n -> nth_error s m = Some p) ->
+Lemma dist_repeat_eq : ∀ n s p,
+  (∀ m, m < n -> nth_error s m = Some p) ->
   dist n s p = 0.
 Proof.
   induction n; intros s p H.
@@ -359,9 +359,9 @@ Proof.
     apply IHn. intros m Hm. apply H. lia.
 Qed.
 
-Lemma dist_repeat_neq : forall n s p t,
+Lemma dist_repeat_neq : ∀ n s p t,
   p <> t ->
-  (forall m, m < n -> nth_error s m = Some p) ->
+  (∀ m, m < n -> nth_error s m = Some p) ->
   dist n s t = 2^n - 1.
 Proof.
   induction n; intros s p t Hneq H.
@@ -376,13 +376,13 @@ Proof.
     + intros m H1. apply H. lia.
 Qed.
 
-Lemma dist_step_k : forall n k p1 p2 s1 s2 t,
+Lemma dist_step_k : ∀ n k p1 p2 s1 s2 t,
   p1 <> p2 ->
   nth_error s1 k = Some p1 ->
   nth_error s2 k = Some p2 ->
-  (forall i, i <> k -> nth_error s1 i = nth_error s2 i) ->
-  (forall i, i < k -> nth_error s1 i = Some (other_peg p1 p2)) ->
-  (forall i, i < k -> nth_error s2 i = Some (other_peg p1 p2)) ->
+  (∀ i, i <> k -> nth_error s1 i = nth_error s2 i) ->
+  (∀ i, i < k -> nth_error s1 i = Some (other_peg p1 p2)) ->
+  (∀ i, i < k -> nth_error s2 i = Some (other_peg p1 p2)) ->
   dist n s1 t <= dist n s2 t + 1 /\ dist n s2 t <= dist n s1 t + 1.
 Proof.
   induction n; intros k p1 p2 s1 s2 t Hneq Hk1 Hk2 Hnot_k Hc1 Hc2.
@@ -435,19 +435,19 @@ Proof.
       * split; lia.
 Qed.
 
-Lemma step_dist : forall n s1 s2 t,
+Lemma step_dist : ∀ n s1 s2 t,
   step s1 s2 -> dist n s1 t <= dist n s2 t + 1 /\ dist n s2 t <= dist n s1 t + 1.
 Proof.
   intros n s1 s2 t H.
   destruct H as [k [p1 [p2 [Hneq [Hk1 [Hk2 [Hnot_k [Hc1 Hc2]]]]]]]].
-  assert (H_other : forall i, i < k -> nth_error s1 i = Some (other_peg p1 p2) /\ nth_error s2 i = Some (other_peg p1 p2)).
+  assert (H_other : ∀ i, i < k -> nth_error s1 i = Some (other_peg p1 p2) /\ nth_error s2 i = Some (other_peg p1 p2)).
   { intros i Hi. apply step_clear_other_peg with (k := k) (p1 := p1) (p2 := p2); auto. }
   apply dist_step_k with (k:=k) (p1:=p1) (p2:=p2); auto.
   - intros i Hi. apply (proj1 (H_other i Hi)).
   - intros i Hi. apply (proj2 (H_other i Hi)).
 Qed.
 
-Lemma moves_dist : forall m s1 s2 t n,
+Lemma moves_dist : ∀ m s1 s2 t n,
   moves s1 s2 m -> dist n s1 t <= dist n s2 t + m.
 Proof.
   intros m s1 s2 t n H.
@@ -458,7 +458,7 @@ Proof.
 Qed.
 
 Theorem hanoi_lower_bound :
-  forall n m, moves (repeat P1 n) (repeat P3 n) m -> m >= 2^n - 1.
+  ∀ n m, moves (repeat P1 n) (repeat P3 n) m -> m >= 2^n - 1.
 Proof.
   intros n m H.
   assert (H_dist : dist n (repeat P1 n) P3 <= dist n (repeat P3 n) P3 + m).

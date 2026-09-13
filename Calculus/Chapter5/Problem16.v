@@ -1,13 +1,13 @@
 From Calculus.Chapter5 Require Import Prelude.
 
-Lemma lemma_5_16_a : forall a f l,
+Lemma lemma_5_16_a : ∀ a f l,
   ⟦ lim a ⟧ f = l -> ⟦ lim a ⟧ (λ x, |f x|) = |l|.
 Proof.
   intros a f l H1 ε H2. specialize (H1 ε H2) as [δ [H1 H3]].
   exists δ. split; auto. intros x H4. specialize (H3 x H4). solve_R.
 Qed.
 
-Lemma lemma_5_16_b_1 : forall a f g l m,
+Lemma lemma_5_16_b_1 : ∀ a f g l m,
   ⟦ lim a ⟧ f = l -> ⟦ lim a ⟧ g = m -> ⟦ lim a ⟧ (λ x, Rmax (f x) (g x)) = Rmax l m.
 Proof.
   intros a f g l m H1 H2 ε H3.
@@ -17,7 +17,7 @@ Proof.
   solve_R.
 Qed.
 
-Lemma lemma_5_16_b_2 : forall a f g l m,
+Lemma lemma_5_16_b_2 : ∀ a f g l m,
   ⟦ lim a ⟧ f = l -> ⟦ lim a ⟧ g = m -> ⟦ lim a ⟧ (λ x, Rmin (f x) (g x)) = Rmin l m.
 Proof.
   intros a f g l m H1 H2 ε H3.

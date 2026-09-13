@@ -1,6 +1,6 @@
 From Calculus.Chapter11 Require Import Prelude.
 
-Lemma lemma_11_13 : forall x, x > 0 -> x + 1/x >= 2.
+Lemma lemma_11_13 : ∀ x, x > 0 -> x + 1/x >= 2.
 Proof.
   intros x H1. set (f := λ y, y + 1/y). set (f' := λ y, 1 - 1/y^2).
   destruct (total_order_T x 1) as [[H2 | H2] | H2].

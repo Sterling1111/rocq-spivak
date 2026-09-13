@@ -15,7 +15,7 @@ Qed.
 Lemma lemma_5_1_iii : ⟦ lim 3 ⟧ (λ x, (x^3 - 8) / (x - 2)) = 19.
 Proof. auto_limit. Qed.
 
-Lemma lemma_5_1_iv : forall y n, ⟦ lim y ⟧ (λ x, (x^n - y^n) / (x - y)) = n * y^(n - 1).
+Lemma lemma_5_1_iv : ∀ y n, ⟦ lim y ⟧ (λ x, (x^n - y^n) / (x - y)) = n * y^(n - 1).
 Proof.
   intros y n. induction n as [| k IH].
   - simpl. apply limit_eq with (f1 := λ x, 0); [ | auto_limit ].
@@ -23,7 +23,7 @@ Proof.
   - replace (S k - 1)%nat with k by lia.
     apply limit_eq with (f1 := λ x, x^k + y * ((x^k - y^k) / (x - y))).
     + exists 1. split; try lra. intros x H1. solve_R.
-    + replace (S k * y ^ k) with (y^k + y * (INR k * y ^ (k - 1))).
+    + replace (S k * y ^ k) with (y^k + y * (k * y ^ (k - 1))).
        2 : {
          destruct k.
          - simpl. lra.
@@ -34,14 +34,14 @@ Proof.
       * apply limit_mul; [apply limit_const | exact IH].
 Qed.
 
-Lemma lemma_5_1_v : forall x n, ⟦ lim x ⟧ (λ y, (x^n - y^n) / (x - y)) = (INR n) * x^(n - 1).
+Lemma lemma_5_1_v : ∀ x (n : ℕ), ⟦ lim x ⟧ (λ y, (x^n - y^n) / (x - y)) = (n) * x^(n - 1).
 Proof.
   intros x n. apply limit_eq with (f1 := λ y : R, (y ^ n - x ^ n) / (y - x)).
   - exists 1. split; try lra. intros y Hy. solve_R.
   - apply lemma_5_1_iv.
 Qed.
 
-Lemma lemma_5_vi : forall a, a > 0 -> ⟦ lim 0 ⟧ (λ h, (√(a + h) - √a) / h) = 1 / (2 * √a).
+Lemma lemma_5_vi : ∀ a, a > 0 -> ⟦ lim 0 ⟧ (λ h, (√(a + h) - √a) / h) = 1 / (2 * √a).
 Proof.
   intros a H1. apply limit_eq with (f1 := λ h, 1 / (√(a + h) + √a)).
   - exists (a/2). split; try lra. intros h [H2 H3]. assert (√a > 0 /\ √(a + h) > 0) as [H4 H5] by (split; apply sqrt_lt_R0; solve_R).

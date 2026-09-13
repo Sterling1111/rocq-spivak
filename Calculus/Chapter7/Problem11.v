@@ -1,12 +1,12 @@
 From Calculus.Chapter7 Require Import Prelude.
 
-Lemma lemma_7_11 : forall f,
+Lemma lemma_7_11 : ∀ f,
   continuous_on f [0, 1] ->
-  (forall x, x ∈ [0, 1] -> f x ∈ [0, 1]) ->
-  exists x, x ∈ [0, 1] /\ f x = x.
+  (∀ x, x ∈ [0, 1] -> f x ∈ [0, 1]) ->
+  ∃ x, x ∈ [0, 1] /\ f x = x.
 Proof.
   intros f H1 H2.
-  set (h := fun x => x - f x).
+  set (h := λ x, x - f x).
   assert (H3 : continuous_on h [0, 1]).
   { unfold h. intros x H4. apply limit_on_minus; auto. apply limit_on_id. }
   assert (h 0 <= 0 <= h 1) as H4.

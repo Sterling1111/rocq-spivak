@@ -1,35 +1,35 @@
 From Calculus.Chapter2 Require Import Prelude.
 Open Scope Z_scope.
 
-Lemma lemma_2_12_a : forall a b,
+Lemma lemma_2_12_a : ∀ a b,
   rational a -> rational b -> rational (a + b).
 Proof.
   intros a b [z1 [z2 H1]] [z3 [z4 H2]].
   assert ((a = 0 \/ b = 0 \/ a <> 0 /\ b <> 0)%R) as [H3 | [H3 | H3]] by lra.
   - exists z3. exists z4. nra.
   - exists z1. exists z2. nra.
-  - assert (H4 : forall x y z, (x <> 0 /\ x = IZR y / IZR z)%R -> z <> 0).
+  - assert (H4 : ∀ x (y : ℤ) (z : ℤ), (x <> 0 /\ x = y / z)%R -> z <> 0).
     { intros x y z [H4 H5]. assert (z <> 0 \/ z = 0) as [H6 | H6] by lia. auto. rewrite H6 in H5. rewrite Rdiv_0_r in H5. nra. }
     assert (H5 : z2 <> 0 /\ z4 <> 0). { split. apply H4 with (x := a) (y := z1). tauto. apply H4 with (x := b) (y := z3). tauto. }
     unfold rational. exists (z1 * z4 + z3 * z2). exists (z2 * z4). rewrite H1. rewrite H2. rewrite plus_IZR.
     repeat rewrite mult_IZR. field; split; apply not_0_IZR; lia.
 Qed.
 
-Lemma lemma_2_12_a' : forall a,
-  irrational a -> exists b, irrational b /\ rational (a + b).
+Lemma lemma_2_12_a' : ∀ a,
+  irrational a -> ∃ b, irrational b /\ rational (a + b).
 Proof.
   intros a H1. exists (-a)%R. split.
   - intros [z1 [z2 H2]]. apply H1. exists (-z1), z2. replace (-z1) with (-1 * z1) by lia. rewrite mult_IZR. lra.
   - exists 0, 1. nra.
 Qed.
 
-Lemma lemma_2_12_b : forall b,
-  irrational b -> exists a, rational a /\ rational (a * b).
+Lemma lemma_2_12_b : ∀ b,
+  irrational b -> ∃ a, rational a /\ rational (a * b).
 Proof.
   intros a H1. exists 0%R. split; exists 0, 1; nra.
 Qed.
 
-Lemma lemma_2_12_b' : forall a b,
+Lemma lemma_2_12_b' : ∀ a b,
   a <> 0%R -> rational a -> irrational b -> irrational (a * b).
 Proof.
   intros a b H1 H2 H3. assert (irrational (a * b) \/ rational (a * b)) as [H4 | H4].
@@ -44,7 +44,7 @@ Proof.
   unfold irrational in H3. tauto.
 Qed.
 
-Lemma lemma_2_12_a'' : exists a b, irrational (a + b).
+Lemma lemma_2_12_a'' : ∃ a b, irrational (a + b).
 Proof.
   exists (sqrt 2), (sqrt 2). replace (sqrt 2 + sqrt 2)%R with (2 * sqrt 2)%R by lra. apply lemma_2_12_b' with (a := 2%R) (b := (sqrt 2)%R).
   - lra.
@@ -52,7 +52,7 @@ Proof.
   - apply sqrt_2_irrational.
 Qed.
 
-Lemma lemma_2_12_c : exists a,
+Lemma lemma_2_12_c : ∃ a,
   irrational (a^2) /\ rational (a^4).
 Proof.
   exists (sqrt (sqrt 2)). split.
@@ -62,7 +62,7 @@ Proof.
     rewrite sqrt_sqrt; nra.
 Qed.
 
-Lemma lemma_2_12_d : exists a b,
+Lemma lemma_2_12_d : ∃ a b,
   irrational a -> irrational b -> rational (a * b) /\ rational (a + b).
 Proof.
   exists (sqrt 2), (-(sqrt 2))%R. intros H1 H2. split.

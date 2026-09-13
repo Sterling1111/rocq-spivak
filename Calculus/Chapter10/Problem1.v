@@ -14,7 +14,7 @@ Proof.
   assert (H2 : ⟦ der ⟧ g = g').
   {
     unfold g, g'.
-    apply derivative_plus. apply derivative_id. replace (Rmult 2) with (fun x => INR 2 * x^(2-1)).
+    apply derivative_plus. apply derivative_id. replace (Rmult 2) with (λ x, 2%nat * x^(2-1)).
     2 : { extensionality x. simpl. lra. } apply derivative_pow.
   }
   apply derivative_comp; auto.

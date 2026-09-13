@@ -6,7 +6,7 @@ Proof.
   auto_diff.
 Qed.
 
-Lemma lemma_9_30_ii : forall x,
+Lemma lemma_9_30_ii : ∀ x,
   x <> 0 ->
   ⟦ der x ⟧ (λ y, 1 / y) = (λ y, -1 / y^2).
 Proof.

@@ -4,8 +4,8 @@ Open Scope nat_scope.
 Lemma lemma_2_10 : well_ordering_nat -> induction_nat.
 Proof.
   unfold well_ordering_nat, induction_nat. intros well_ordering_nat P [Hbase H_inductive] n.
-  set (E := fun m => ~ P m).
-  specialize (well_ordering_nat E). assert (H1 : forall n : nat, E n -> False).
+  set (E := λ m, ~ P m).
+  specialize (well_ordering_nat E). assert (H1 : ∀ n : nat, E n -> False).
   - intros x H1. assert (H3 : E ≠ ∅) by (apply not_Empty_In; exists x; auto). apply well_ordering_nat in H3.
     destruct H3 as [least_elem_E H3]. destruct H3 as [H3 H4]. specialize (H_inductive (least_elem_E - 1)).
     destruct least_elem_E as [| least_elem_E'].

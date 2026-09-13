@@ -25,7 +25,7 @@ Qed.
 Lemma lemma_9_1_b : ∀ (a : R) (f : R -> R),
   let g := tangent_line f a in
   a ≠ 0 ->
-  f = (fun x => 1 / x) ->
+  f = (λ x, 1 / x) ->
   ∀ x, x <> 0 -> f x = g x -> x = a.
 Proof.
   intros a f g H1 H2 x H3 H4.

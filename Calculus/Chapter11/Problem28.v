@@ -1,9 +1,9 @@
 From Calculus.Chapter11 Require Import Prelude.
 
-Lemma lemma_11_28_a : forall a b M f f',
+Lemma lemma_11_28_a : ∀ a b M f f',
   a < b ->
   ⟦ der ⟧ f = f' ->
-  (forall x, x ∈ [a, b] -> f' x >= M) ->
+  (∀ x, x ∈ [a, b] -> f' x >= M) ->
   f b >= f a + M * (b - a).
 Proof.
   intros a b M f f' H1 H2 H3.
@@ -20,10 +20,10 @@ Proof.
   field_simplify in H7; nra.
 Qed.
 
-Lemma lemma_11_28_b : forall a b M f f',
+Lemma lemma_11_28_b : ∀ a b M f f',
   a < b ->
   ⟦ der ⟧ f = f' ->
-  (forall x, x ∈ [a, b] -> f' x <= M) ->
+  (∀ x, x ∈ [a, b] -> f' x <= M) ->
   f b <= f a + M * (b - a).
 Proof.
   intros a b M f f' H1 H2 H3.
@@ -40,16 +40,16 @@ Proof.
   field_simplify in H7; nra.
 Qed.
 
-Lemma lemma_11_28_c : forall a b M f f',
+Lemma lemma_11_28_c : ∀ a b M f f',
   a < b ->
   ⟦ der ⟧ f = f' ->
-  (forall x, x ∈ [a, b] -> |f' x| <= M) ->
+  (∀ x, x ∈ [a, b] -> |f' x| <= M) ->
   |f b - f a| <= M * (b - a).
 Proof.
   intros a b M f f' H1 H2 H3.
-  assert (H4 : forall x, x ∈ [a, b] -> f' x >= -M).
+  assert (H4 : ∀ x, x ∈ [a, b] -> f' x >= -M).
   { intros x H4. specialize (H3 x H4). solve_R. }
-  assert (H5 : forall x, x ∈ [a, b] -> f' x <= M).
+  assert (H5 : ∀ x, x ∈ [a, b] -> f' x <= M).
   { intros x H5. specialize (H3 x H5). solve_R. }
   pose proof lemma_11_28_a a b (-M) f f' H1 H2 H4 as H6.
   pose proof lemma_11_28_b a b M f f' H1 H2 H5 as H7.

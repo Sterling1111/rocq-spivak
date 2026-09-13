@@ -1,6 +1,6 @@
 From Calculus.Chapter1 Require Import Prelude.
 
-Lemma lemma_1_5_i : forall a b c d,
+Lemma lemma_1_5_i : ∀ a b c d,
   a < b -> c < d -> a + c < b + d.
 Proof.
   intros a b c d H1 H2. apply Rplus_lt_compat_l with (r := c) in H1.
@@ -8,7 +8,7 @@ Proof.
   rewrite Rplus_comm in H1. apply Rlt_trans with (r2 := b + c). apply H1. apply H2.
 Qed.
 
-Lemma lemma_1_5_ii : forall a b,
+Lemma lemma_1_5_ii : ∀ a b,
   a < b -> -b < -a.
 Proof.
   intros a b H1. apply Rplus_lt_compat_r with (r := -a) in H1.
@@ -17,7 +17,7 @@ Proof.
   rewrite Rplus_0_l in H1. apply H1.
 Qed.
 
-Lemma lemma_1_5_iii : forall a b c d, 
+Lemma lemma_1_5_iii : ∀ a b c d,
   a < b -> c > d -> a - c < b - d.
 Proof.
   intros a b c d H1 H2. apply Rplus_lt_compat_l with (r := -c) in H1.
@@ -34,14 +34,14 @@ Proof.
   - apply H3.
 Qed.
 
-Lemma lemma_1_5_iv : forall a b c,
+Lemma lemma_1_5_iv : ∀ a b c,
   a < b -> c > 0 -> a * c < b * c.
 Proof.
   intros a b c H1 H2. apply Rmult_lt_compat_r with (r := c) in H1.
   2 : { apply Rgt_lt in H2. apply H2. } apply H1.
 Qed.
 
-Lemma lemma_1_5_v : forall a b c,
+Lemma lemma_1_5_v : ∀ a b c,
   a < b -> c < 0 -> a * c > b * c.
 Proof.
   intros a b c H1 H2. pose proof Rtotal_order a 0 as [H3 | [H3 | H3]].
@@ -60,21 +60,21 @@ Proof.
        rewrite H5. rewrite H6. apply Rmult_gt_compat_r. 2 : { lra. } lra.
 Qed.
 
-Lemma lemma_1_5_vi : forall a,
+Lemma lemma_1_5_vi : ∀ a,
   a > 1 -> a ^ 2 > a.
 Proof.
   intros a H1. simpl. rewrite Rmult_1_r. rewrite <- Rmult_1_r.
   apply Rlt_gt. rewrite Rmult_comm. apply lemma_1_5_iv. lra. lra.
 Qed.
 
-Lemma lemma_1_5_vii : forall a,
+Lemma lemma_1_5_vii : ∀ a,
   0 < a < 1 -> a ^ 2 < a.
 Proof.
   intros a [H1 H2]. simpl. rewrite Rmult_1_r. rewrite <- Rmult_1_r.
   apply Rlt_gt. rewrite <- Rmult_comm with (r1 := 1). apply lemma_1_5_iv. lra. lra.
 Qed.
 
-Lemma lemma_1_5_viii : forall a b c d,
+Lemma lemma_1_5_viii : ∀ a b c d,
   0 <= a < b -> 0 <= c < d -> a * c < b * d.
 Proof.
   intros a b c d [H1 H2] [H3 H4]. pose proof Rtotal_order a 0 as [H5 | [H5 | H5]].
@@ -89,13 +89,13 @@ Proof.
        apply Rlt_trans with (r2 := b * c). apply H7. apply H8.
 Qed.
 
-Lemma lemma_1_5_ix : forall a b,
+Lemma lemma_1_5_ix : ∀ a b,
   0 <= a < b -> a^2 < b^2.
 Proof.
   intros a b [H1 H2]. simpl. repeat rewrite Rmult_1_r. apply lemma_1_5_viii. lra. lra.
 Qed.
 
-Lemma lemma_1_5_x : forall a b,
+Lemma lemma_1_5_x : ∀ a b,
   a >= 0 -> b >= 0 -> a^2 < b^2 -> a < b.
 Proof.
   intros a b H1 H2 H3. pose proof Rtotal_order a b as [H4 | [H4 | H4]].

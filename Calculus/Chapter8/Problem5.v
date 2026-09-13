@@ -12,7 +12,7 @@ Proof.
   assert (H3 : A ≠ ⦃⦄).
   {
     apply not_Empty_In. destruct (INR_unbounded (- x)) as [n H3].
-    exists (- INR n).
+    exists (- n).
     split.
     - unfold is_integer. exists (- Z.of_nat n)%Z.
       rewrite opp_IZR, <- INR_IZR_INZ.

@@ -1,6 +1,5 @@
 From Calculus.Chapter19 Require Import Prelude.
 
-(* Length is specified as the least upper bound of polygonal lengths. *)
 Definition partition_19 (a b : R) (n : nat) (t : nat -> R) : Prop :=
   (0 < n)%nat /\ t 0%nat = a /\ t n = b /\
   (∀ i, (i < n)%nat -> t i < t (S i)).
@@ -14,6 +13,7 @@ Lemma lemma_19_29_a : ∀ u v h a b α β L,
   h α = a -> h β = b ->
   (has_length_19 u v a b L <-> has_length_19 (λ t, u (h t)) (λ t, v (h t)) α β L).
 Abort.
+
 Lemma lemma_19_29_b : ∀ u v u' v' h h' a b α β,
   a < b -> α < β -> derivative_on u u' [a,b] -> derivative_on v v' [a,b] ->
   continuous_on u' [a,b] -> continuous_on v' [a,b] ->

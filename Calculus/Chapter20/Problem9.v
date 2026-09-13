@@ -2,18 +2,25 @@ From Calculus.Chapter20 Require Import Prelude.
 
 From Lib Require Import Polynomial.
 
-(* For polynomial p, P(n,a,p) is exactly truncation in powers of x-a. *)
 Lemma lemma_20_9_a : ∀ n a f g,
   nth_differentiable n f -> nth_differentiable n g ->
   P(n,a,λ x, f x + g x) = (λ x, P(n,a,f) x + P(n,a,g) x).
-Abort.
+Proof.
+  intros n a f g H1 H2. extensionality x.
+  unfold Taylor_polynomial, nth_derive_at. rewrite sum_f_plus; try lia.
+  apply sum_f_equiv; try lia. intros k H3.
+  rewrite (nth_derivative_imp_nth_derive k (f + g)
+    (⟦ Der ^ k ⟧ f + ⟦ Der ^ k ⟧ g)).
+  - unfold plus, Rdiv. ring.
+  - apply nth_derivative_plus; apply nth_derive_spec;
+      apply nth_differentiable_le with (m := n); auto; lia.
+Qed.
 
 Lemma lemma_20_9_b : ∀ n a f g,
   nth_differentiable n f -> nth_differentiable n g ->
   P(n,a,λ x, f x * g x) = P(n,a,λ x, P(n,a,f) x * P(n,a,g) x).
 Abort.
 
-(* The limit is at the Taylor center a; the scan prints x -> 0 in (c). *)
 Lemma lemma_20_9_c : ∀ n a lp lq r,
   (⟦ lim a ⟧ (λ x, r x / (x-a)^n) = 0) ->
   ⟦ lim a ⟧ (λ x, (polynomial lp (polynomial lq x + r x) -

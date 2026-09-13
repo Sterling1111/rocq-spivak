@@ -1,9 +1,9 @@
 From Calculus.Chapter6 Require Import Prelude.
 
-Lemma lemma_6_17_b : forall f g a l,
+Lemma lemma_6_17_b : ∀ f g a l,
   ⟦ lim a ⟧ f = l ->
   l <> f a ->
-  (forall x, x <> a -> g x = f x) ->
+  (∀ x, x <> a -> g x = f x) ->
   g a = l ->
   continuous_at g a.
 Proof.
@@ -14,8 +14,22 @@ Proof.
   - exact H1.
 Qed.
 
-Lemma lemma_6_17_d : forall f g,
-  (forall x, exists l, ⟦ lim x ⟧ f = l) ->
-  (forall x, ⟦ lim x ⟧ f = g x) ->
+Lemma lemma_6_17_d : ∀ f g,
+  (∀ x, ∃ l, ⟦ lim x ⟧ f = l) ->
+  (∀ x, ⟦ lim x ⟧ f = g x) ->
   continuous g.
-Proof. Abort.
+Proof.
+  intros f g H1 H2 a ε H3.
+  destruct (H2 a (ε/2) ltac:(lra)) as [δ [H4 H5]].
+  exists (δ/2). split; [lra | intros x H6].
+  assert (H7 : |g x - g a| <= ε/2).
+  {
+    apply Rnot_lt_le. intros H7.
+    destruct (H2 x (|g x - g a| - ε/2) ltac:(lra)) as [δ' [H8 H9]].
+    set (d := Rmin δ' (Rmin (δ/2) (|x - a|)) / 2).
+    specialize (H5 (x + d) ltac:(unfold d; solve_R)).
+    specialize (H9 (x + d) ltac:(unfold d; solve_R)).
+    solve_R.
+  }
+  lra.
+Qed.

@@ -9,7 +9,6 @@ Lemma lemma_18_32_a : ∀ a x, 0 < a -> a <> 1 -> 0 < x ->
   ⟦ lim 0 ⟧ (λ h, log_ a ((1 + h/x) ^^ (1/h))) = log_ a e / x.
 Abort.
 
-(* n=1 gives 2; the displayed sum starts at n=2 to avoid an empty sum. *)
 Lemma lemma_18_32_b :
   compound_sequence 1 = 2 /\
   (∀ n, (2 <= n)%nat -> compound_sequence n =

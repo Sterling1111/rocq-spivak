@@ -49,11 +49,11 @@ Proof.
   - exists f'; auto.
 Qed.
 
-Lemma lemma_9_19_b : ~ (forall f f' g h h' a,
-  (forall x, f x <= g x <= h x) ->
+Lemma lemma_9_19_b : ~ (∀ f f' g h h' a,
+  (∀ x, f x <= g x <= h x) ->
   ⟦ der a ⟧ f = f' -> ⟦ der a ⟧ h = h' ->
   f' a = h' a ->
-  exists g', ⟦ der a ⟧ g = g' /\ g' a = f' a).
+  ∃ g', ⟦ der a ⟧ g = g' /\ g' a = f' a).
 Proof.
   intros H1.
   specialize (H1 (λ _, -1) (λ _, 0) sin (λ _, 1) (λ _, 0) 0).

@@ -1,6 +1,6 @@
 From Calculus.Chapter1 Require Import Prelude.
 
-Lemma lemma_1_7 : forall a b : R,
+Lemma lemma_1_7 : ∀ a b : R,
   (0 < a < b) -> a < √(a * b) < (a + b) / 2 /\ (a + b) / 2 < b.
 Proof.
   intros a b [H1 H2]. repeat split; try nra.

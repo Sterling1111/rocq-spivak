@@ -1,6 +1,6 @@
 From Calculus.Chapter11 Require Import Prelude.
 
-Lemma left_endpoint_lt_interior : forall f a b z,
+Lemma left_endpoint_lt_interior : ∀ f a b z,
   a < b ->
   z ∈ (a, b) ->
   continuous_on f [a, b] ->
@@ -27,7 +27,7 @@ Proof.
   lra.
 Qed.
 
-Lemma interior_lt_right_endpoint : forall f a b z,
+Lemma interior_lt_right_endpoint : ∀ f a b z,
   a < b ->
   z ∈ (a, b) ->
   continuous_on f [a, b] ->
@@ -54,7 +54,7 @@ Proof.
   lra.
 Qed.
 
-Lemma lemma_11_6 : forall f a b,
+Lemma lemma_11_6 : ∀ f a b,
   a < b ->
   continuous_on f [a, b] ->
   increasing_on f (a, b) ->

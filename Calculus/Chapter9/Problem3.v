@@ -4,10 +4,10 @@ Lemma lemma_9_3 : ∀ a f f',
   a > 0 -> f = (λ x, √x) -> ⟦ der a ⟧ f = f' -> f' a = 1 / (2 * √a).
 Proof.
   intros a f f' H1 H2 H3.
-  assert (H4 : ⟦ der a ⟧ f = (fun x => 1 / (2 * √x))).
+  assert (H4 : ⟦ der a ⟧ f = (λ x, 1 / (2 * √x))).
   {
     rewrite H2. unfold derivative_at.
-    apply limit_eq with (f1 := (fun h => 1 / (√(a + h) + √a))).
+    apply limit_eq with (f1 := (λ h, 1 / (√(a + h) + √a))).
     - exists a; split; [ exact H1 | intros h H5 ].
       assert (√(a + h) + √a <> 0) as H6.
       {
@@ -23,10 +23,10 @@ Proof.
       + pose proof sqrt_lt_R0 a; solve_R.
       + pose proof sqrt_lt_R0 a; solve_R.
   }
-  rewrite (derivative_at_unique f f' (fun x => 1 / (2 * √x)) a H3 H4); auto.
+  rewrite (derivative_at_unique f f' (λ x, 1 / (2 * √x)) a H3 H4); auto.
 Qed.
 
-Lemma lemma_9_3' : forall a f f',
+Lemma lemma_9_3' : ∀ a f f',
   a > 0 -> f = (λ x, √x) -> ⟦ der a ⟧ f = f' -> f' a = 1 / (2 * √a).
 Proof.
   intros a f f' H1 H2 H3.
@@ -34,9 +34,9 @@ Proof.
   apply (derivative_at_unique f f' (λ x, 1 / (2 * √x)) a H3 H4).
 Qed.
 
-Lemma lemma_9_3'' : forall a,
+Lemma lemma_9_3'' : ∀ a,
   a > 0 ->
-  ⟦ der a ⟧ (fun x => √x) = (fun x => 1 / (2 * sqrt x)).
+  ⟦ der a ⟧ (λ x, √x) = (λ x, 1 / (2 * sqrt x)).
 Proof.
   auto_diff.
 Qed.

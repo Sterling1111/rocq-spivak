@@ -1,14 +1,14 @@
 From Calculus.Chapter9 Require Import Prelude.
 
-Lemma lemma_9_11_a : forall s s' k,
-  ⟦ der ⟧ s = s' -> (forall t, s' t = k * s t) -> ~ (exists c, c <> 0 /\ forall t, s t = c * t^2).
+Lemma lemma_9_11_a : ∀ s s' k,
+  ⟦ der ⟧ s = s' -> (∀ t, s' t = k * s t) -> ~ (∃ c, c <> 0 /\ ∀ t, s t = c * t^2).
 Proof.
   intros s s' k H1 H2 [c [H3 H4]].
 
   assert (H5 : ⟦ der ⟧ s = (λ t, 2 * c * t)).
   { replace s with (λ t, c * t^2); [auto_diff|]. extensionality t. rewrite H4. lra. } 
 
-  assert (H6 : forall t, s' t = 2 * c * t).
+  assert (H6 : ∀ t, s' t = 2 * c * t).
   { intros t. rewrite (derivative_unique s s' (λ t : ℝ, 2 * c * t) H1 H5); auto. }
 
   pose proof (H6 1) as H7.
@@ -41,15 +41,15 @@ Proof.
   lra.
 Qed.
 
-Lemma lemma_9_11_b_i : forall s s' s'' a,
-  s = (fun t => (a / 2) * t^2) -> ⟦ der ⟧ s = s' -> ⟦ der ⟧ s' = s'' -> forall t, s'' t = a.
+Lemma lemma_9_11_b_i : ∀ s s' s'' a,
+  s = (λ t, (a / 2) * t^2) -> ⟦ der ⟧ s = s' -> ⟦ der ⟧ s' = s'' -> ∀ t, s'' t = a.
 Proof.
   intros s s' s'' a H1 H2 H3 t.
   
   assert (H4 : ⟦ der ⟧ s = (λ t, a * t)).
   { rewrite H1. auto_diff. }
   
-  assert (H5 : forall x, s' x = a * x).
+  assert (H5 : ∀ x, s' x = a * x).
   { intros x. rewrite (derivative_unique s s' (λ t, a * t) H2 H4); reflexivity. }
   
   assert (H6 : ⟦ der ⟧ s' = (λ t, a)).
@@ -59,15 +59,15 @@ Proof.
   reflexivity.
 Qed.
 
-Lemma lemma_9_11_b_ii : forall s s' a,
-  s = (fun t => (a / 2) * t^2) -> ⟦ der ⟧ s = s' -> forall t, (s' t)^2 = 2 * a * s t.
+Lemma lemma_9_11_b_ii : ∀ s s' a,
+  s = (λ t, (a / 2) * t^2) -> ⟦ der ⟧ s = s' -> ∀ t, (s' t)^2 = 2 * a * s t.
 Proof.
   intros s s' a H1 H2 t.
   
   assert (H3 : ⟦ der ⟧ s = (λ t, a * t)).
   { rewrite H1; auto_diff. }
   
-  assert (H4 : forall x, s' x = a * x).
+  assert (H4 : ∀ x, s' x = a * x).
   { intros x. rewrite (derivative_unique s s' (λ t, a * t) H2 H3); reflexivity. }
   
   rewrite H4.
@@ -75,8 +75,8 @@ Proof.
   lra.
 Qed.
 
-Lemma lemma_9_11_c : forall s s' t1 t2,
-  s = (fun t => (32 / 2) * t^2) ->
+Lemma lemma_9_11_c : ∀ s s' t1 t2,
+  s = (λ t, (32 / 2) * t^2) ->
   ⟦ der ⟧ s = s' ->
   t1 > 0 ->
   s t1 = 400 ->
@@ -86,7 +86,7 @@ Lemma lemma_9_11_c : forall s s' t1 t2,
 Proof.
   intros s s' t1 t2 H1 H2 H3 H4 H5 H6.
 
-  assert (H7 : forall t, s' t = 32 * t).
+  assert (H7 : ∀ t, s' t = 32 * t).
   {
     intros t.
     assert (H7 : ⟦ der ⟧ s = (λ x, 32 * x)).

@@ -151,7 +151,7 @@ Proof search and the automation for side conditions are heuristic, so some goals
 
 - [`Lib/StdlibCompat.v`](Lib/StdlibCompat.v) connects the project’s definitions to standard-library limits, continuity, derivatives, sequences, series, and transcendental functions.
 - [`Lib/CoquelicotCompat.v`](Lib/CoquelicotCompat.v) provides bridges to Coquelicot’s limits, derivatives, continuity, sequences, and series.
-- [`Lib/MathCompCompat.v`](Lib/MathCompCompat.v) contains a commented-out MathComp compatibility development. Its bridge lemmas are currently inactive. The [`opam/`](opam/) directory retains package metadata for that development.
+- [`Lib/MathCompCompat.v`](Lib/MathCompCompat.v) contains a commented-out MathComp compatibility development. Its bridge lemmas are currently inactive.
 
 ## Repository layout
 
@@ -160,7 +160,6 @@ Lib/          Shared definitions, theorems, notation, and tactics
 Calculus/     Spivak exercises organized by chapter and problem
 ATTAM/        Companion exercise developments
 src/          OCaml plugins, SymPy worker, and C++ simplex helper
-opam/         Local package metadata for compatibility work
 _CoqProject   Logical paths, compiler options, and default build inputs
 Makefile.local  Additional build rules for plots and development targets
 ```

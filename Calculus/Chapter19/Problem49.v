@@ -10,16 +10,19 @@ Definition four_derivatives_19 (f f1 f2 f3 f4 : R -> R) (a b : R) :=
 Lemma lemma_19_49_a : ∀ f a b, a < b -> differentiable_at f ((a+b)/2) ->
   ∃ Q, hermite_data_19 f Q a b.
 Abort.
+
 Lemma lemma_19_49_b : ∀ f f1 f2 f3 f4 Q a b x, a < b ->
   four_derivatives_19 f f1 f2 f3 f4 a b -> hermite_data_19 f Q a b ->
   a <= x <= b -> ∃ ξ, a < ξ < b /\
   f x-Q x = (x-a)*(x-(a+b)/2)^2*(x-b)*f4 ξ/24.
 Abort.
+
 Lemma lemma_19_49_c : ∀ f f1 f2 f3 f4 a b, a < b ->
   four_derivatives_19 f f1 f2 f3 f4 a b -> continuous_on f4 [a,b] ->
   ∃ c, a < c < b /\
   ∫ a b f = (b-a)/6*(f a+4*f ((a+b)/2)+f b) - (b-a)^5/2880*f4 c.
 Abort.
+
 Lemma lemma_19_49_d : ∀ f f1 f2 f3 f4 a b n, a < b -> (0 < n)%nat ->
   four_derivatives_19 f f1 f2 f3 f4 a b -> continuous_on f4 [a,b] ->
   let h := (b-a)/(2*n) in ∃ c, a < c < b /\

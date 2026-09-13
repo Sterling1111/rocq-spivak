@@ -1,6 +1,5 @@
 From Calculus.Chapter18 Require Import Prelude.
 
-(* Coefficients are indexed in ascending order: a_0,...,a_n. *)
 Definition characteristic (n : nat) (a : nat -> R) (x : R) :=
   sum_f_R0 (λ i, a i * x^i) n.
 Definition solves_linear_ode (n : nat) (a : nat -> R) (y : R -> R) : Prop :=
@@ -18,8 +17,6 @@ Lemma lemma_18_42_b : ∀ n a alpha,
   solves_linear_ode n a (λ x, x * exp (alpha*x)).
 Abort.
 
-(* Vanishing derivatives of orders 0,...,r-1 express a root of
-   multiplicity at least r, which is sufficient for this conclusion. *)
 Lemma lemma_18_42_c : ∀ n a alpha r k,
   (1 <= r)%nat -> (k < r)%nat ->
   (∀ j, (j < r)%nat -> ⟦ der ^ j alpha ⟧ (characteristic n a) = (λ _, 0)) ->

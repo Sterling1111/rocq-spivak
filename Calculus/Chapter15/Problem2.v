@@ -1,7 +1,7 @@
 From Calculus.Chapter15 Require Import Prelude.
 
 Lemma lemma_15_2_i :
-  ⟦ lim 0 ⟧ (fun x => (sin x - x + x^3 / 6) / x^3) = 0.
+  ⟦ lim 0 ⟧ (λ x, (sin x - x + x^3 / 6) / x^3) = 0.
 Proof.
   step_lhopital (λ x, cos x - 1 + x^2 / 2) (λ x, 3 * x^2).
   step_lhopital (λ x, - sin x + x) (λ x, 6 * x).
@@ -9,7 +9,7 @@ Proof.
 Qed.
 
 Lemma lemma_15_2_ii :
-  ⟦ lim 0 ⟧ (fun x => (sin x - x + x^3 / 6) / x^4) = 0.
+  ⟦ lim 0 ⟧ (λ x, (sin x - x + x^3 / 6) / x^4) = 0.
 Proof.
   step_lhopital (λ x, cos x - 1 + x^2 / 2) (λ x, 4 * x^3).
   exists 1. split; [lra |]. intros x H1 H2.
@@ -20,14 +20,14 @@ Proof.
 Qed.
 
 Lemma lemma_15_2_iii :
-  ⟦ lim 0 ⟧ (fun x => (cos x - 1 + x^2 / 2) / x^2) = 0.
+  ⟦ lim 0 ⟧ (λ x, (cos x - 1 + x^2 / 2) / x^2) = 0.
 Proof.
   step_lhopital (λ x, - sin x + x) (λ x, 2 * x).
   step_lhopital (λ x, - cos x + 1) (λ x : R, 2).
 Qed.
 
 Lemma lemma_15_2_iv :
-  ⟦ lim 0 ⟧ (fun x => (cos x - 1 + x^2 / 2) / x^4) = 1/24.
+  ⟦ lim 0 ⟧ (λ x, (cos x - 1 + x^2 / 2) / x^4) = 1/24.
 Proof.
   step_lhopital (λ x, - sin x + x) (λ x, 4 * x^3).
   exists 1. split; [lra |]. intros x H1 H2.
@@ -38,7 +38,7 @@ Proof.
 Qed.
 
 Lemma lemma_15_2_v :
-  ⟦ lim 0 ⟧ (fun x => (arctan x - x + x^3 / 3) / x^3) = 0.
+  ⟦ lim 0 ⟧ (λ x, (arctan x - x + x^3 / 3) / x^3) = 0.
 Proof.
   step_lhopital (λ x, 1 / (1 + x^2) - 1 + x^2) (λ x, 3 * x^2).
   step_lhopital (λ x, - (2 * x) / (1 + x^2)^2 + 2 * x) (λ x, 6 * x).
@@ -46,7 +46,7 @@ Proof.
 Qed.
 
 Lemma lemma_15_2_vi :
-  ⟦ lim 0 ⟧ (fun x => 1 / x - 1 / sin x) = 0.
+  ⟦ lim 0 ⟧ (λ x, 1 / x - 1 / sin x) = 0.
 Proof.
   apply limit_eq with (f1 := λ x : ℝ, (sin x - x) / (x * sin x)).
   {

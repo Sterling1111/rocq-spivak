@@ -25,7 +25,8 @@ Abort.
 Lemma lemma_20_10_d : ∀ x,
   P(4,0,λ y, exp (2*y) * cos y) x = 1 + 2*x + 3*x^2/2 + x^3/3 - 7*x^4/24.
 Proof.
-Abort.
+  compute_tp.
+Qed.
 
 Lemma lemma_20_10_e : ∀ x,
   P(5,0,λ y, sin y / cos (2*y)) x = x + 11*x^3/6 + 361*x^5/120.

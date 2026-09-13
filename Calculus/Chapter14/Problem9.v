@@ -1,6 +1,6 @@
 From Calculus.Chapter14 Require Import Prelude.
 
-Lemma lemma_14_9 : forall f x,
+Lemma lemma_14_9 : ∀ f x,
   continuous f ->
   ∫ 0 x (λ u, f u * (x - u)) = ∫ 0 x (λ u, ∫ 0 u f).
 Proof.

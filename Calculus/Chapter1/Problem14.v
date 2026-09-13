@@ -1,24 +1,24 @@
 From Calculus.Chapter1 Require Import Prelude.
 
-Lemma lemma_1_14_a : forall a,
+Lemma lemma_1_14_a : ∀ a,
   |a| = |(-a)|.
 Proof.
   solve_R.
 Qed.
 
-Lemma lemma_1_14_b : forall a b,
+Lemma lemma_1_14_b : ∀ a b,
   -b <= a <= b <-> |a| <= b.
 Proof.
   solve_R.
 Qed.
 
-Lemma lemma_1_14_b' : forall a,
+Lemma lemma_1_14_b' : ∀ a,
   -|a| <= a <= |a|.
 Proof.
   solve_R.
 Qed.
 
-Lemma lemma_1_14_c : forall a b,
+Lemma lemma_1_14_c : ∀ a b,
   |a + b| <= |a| + |b|.
 Proof.
   intros a b. pose proof lemma_1_14_b' a as H1. pose proof lemma_1_14_b' b as H2.

@@ -1,6 +1,6 @@
 From Calculus.Chapter14 Require Import Prelude.
 
-Lemma lemma_14_3_a : forall x,
+Lemma lemma_14_3_a : ∀ x,
   x > 0 ->
   ⟦ der x ⟧ (λ x, ∫ 0 x (λ t, 1 / (1 + t^2)) + ∫ 0 (1/x) (λ t, 1 / (1 + t^2))) = (λ _, 0).
 Proof.
@@ -25,9 +25,8 @@ Proof.
   - unfold g, H, H', compose. solve_R.
 Qed.
 
-(* (b) ∫ (-cos x) (sin x) (1/√(1-t^2)) dt, x in (0, π/2) *)
-Lemma lemma_14_3_b : forall x,
+Lemma lemma_14_3_b : ∀ x,
   0 < x < PI/2 ->
-  ⟦ der x ⟧ (fun x => ∫ (-(cos x)) (sin x) (fun t => 1 / √(1 - t^2))) =
-    (fun _ => 0).
+  ⟦ der x ⟧ (λ x, ∫ (-(cos x)) (sin x) (λ t, 1 / √(1 - t^2))) =
+    (λ _, 0).
 Abort.

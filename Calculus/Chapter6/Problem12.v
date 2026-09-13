@@ -1,9 +1,9 @@
 From Calculus.Chapter6 Require Import Prelude.
 From Lib Require Import Tactics.
 
-Lemma lemma_6_12_a : forall f g a l,
+Lemma lemma_6_12_a : ∀ f g a l,
   continuous_at f l -> ⟦ lim a ⟧ g = l ->
-  ⟦ lim a ⟧ (fun x => f (g x)) = f l.
+  ⟦ lim a ⟧ (λ x, f (g x)) = f l.
 Proof.
   intros f g a l H1 H2. apply limit_continuous_comp with (L := l).
   - exact H2.
@@ -11,10 +11,10 @@ Proof.
 Qed.
 
 Lemma lemma_6_12_b :
-  exists f g a l, ⟦ lim a ⟧ g = l /\ 
-                  ~ (⟦ lim a ⟧ (fun x => f (g x)) = f l).
+  ∃ f g a l, ⟦ lim a ⟧ g = l /\
+                  ~ (⟦ lim a ⟧ (λ x, f (g x)) = f l).
 Proof.
-  exists (fun x => if Req_EM_T x 0 then 1 else 0), (fun x => x), 0, 0.
+  exists (λ x, if Req_EM_T x 0 then 1 else 0), (λ x, x), 0, 0.
   split.
   - apply limit_id.
   - intros H1. assert (H2 : (if Req_EM_T 0 0 then 1 else 0) = 1) by (destruct (Req_EM_T 0 0); lra).

@@ -1,9 +1,9 @@
 From Calculus.Chapter2 Require Import Prelude.
 Open Scope nat_scope.
 
-Lemma lemma_2_9 : forall (A : nat -> Prop) (n0 : nat),
-  (A n0 /\ (forall k : nat, A k -> A (S k))) ->
-  forall n : nat, n >= n0 -> A n.
+Lemma lemma_2_9 : ∀ (A : nat -> Prop) (n0 : nat),
+  (A n0 /\ (∀ k : nat, A k -> A (S k))) ->
+  ∀ n : nat, n >= n0 -> A n.
 Proof.
   intros A n0 [H1 H2] n H3.
   induction n as [| k IH].

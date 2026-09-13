@@ -2,7 +2,7 @@ From Calculus.Chapter2 Require Export Prelude.
 
 Local Notation F := fibonacci_R'.
 
-Lemma lemma_2_20 : forall n,
+Lemma lemma_2_20 : ∀ n,
   F n = (((1 + √5)/2)^n - ((1 - √5)/2)^n) / √5.
 Proof.
   intros n. strong_induction n. destruct n as [| n'].

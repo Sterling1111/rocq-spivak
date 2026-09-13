@@ -1,8 +1,8 @@
 From Calculus.Chapter11 Require Import Prelude.
 
-Lemma lemma_11_9 : forall f f' x,
+Lemma lemma_11_9 : ∀ f f' x,
   ⟦ der x ⟧ f = f' ->
-  (⟦ der x ⟧ (fun y => (f y)^2) = (fun _ => 0) <-> f' x = 0 \/ f x = 0).
+  (⟦ der x ⟧ (λ y, (f y)^2) = (λ _, 0) <-> f' x = 0 \/ f x = 0).
 Proof.
   intros f f' x H1.
   replace (f ^ 2)%function with (f ⋅ f)%function by (extensionality y; simpl; nra).

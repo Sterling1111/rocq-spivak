@@ -1,7 +1,7 @@
 From Calculus.Chapter1 Require Import Prelude.
 From Calculus.Chapter1 Require Import Problem18.
 
-Lemma lemma_1_19_a : forall x1 y1 x2 y2 α,
+Lemma lemma_1_19_a : ∀ x1 y1 x2 y2 α,
   x1 = α * y1 -> x2 = α * y2 -> α >= 0 ->
   x1 * y1 + x2 * y2 = √(x1^2 + x2^2) * √(y1^2 + y2^2).
 Proof.
@@ -12,7 +12,7 @@ Proof.
   repeat rewrite Rsqr_def. nra.
 Qed.
 
-Lemma lemma_1_19_a' : forall x1 y1 x2 y2,
+Lemma lemma_1_19_a' : ∀ x1 y1 x2 y2,
   (y1 = 0 /\ y2 = 0) ->
   x1 * y1 + x2 * y2 = √(x1^2 + x2^2) * √(y1^2 + y2^2).
 Proof.
@@ -21,7 +21,7 @@ Proof.
   rewrite sqrt_0. nra.
 Qed.
 
-Lemma lemma_1_19_a'' : forall x1 y1 x2 y2 α,
+Lemma lemma_1_19_a'' : ∀ x1 y1 x2 y2 α,
   (y1 <> 0 \/ y2 <> 0) -> α >= 0 -> ((x1 = α * y1 /\ x2 = α * y2) -> False) ->
   0 < (α * y1 - x1)^2 + (α * y2 - x2)^2.
 Proof.
@@ -42,13 +42,13 @@ Proof.
        nra.
 Qed.
 
-Lemma lemma_1_19_a''' : forall x1 y1 x2 y2,
+Lemma lemma_1_19_a''' : ∀ x1 y1 x2 y2,
   y1 <> 0 \/ y2 <> 0 ->
-  (forall α, (x1 <> α * y1 \/ x2 <> α * y2)) ->
+  (∀ α, (x1 <> α * y1 \/ x2 <> α * y2)) ->
   x1 * y1 + x2 * y2 < √(x1^2 + x2^2) * √(y1^2 + y2^2).
 Proof.
   intros x1 y1 x2 y2 H1 H2.
-  assert (H3 : forall α, α ^ 2 + -2 * (x1 * y1 + x2 * y2) / (y1 ^ 2 + y2 ^ 2) * α + (x1 ^ 2 + x2 ^ 2) / (y1 ^ 2 + y2 ^ 2) <> 0).
+  assert (H3 : ∀ α, α ^ 2 + -2 * (x1 * y1 + x2 * y2) / (y1 ^ 2 + y2 ^ 2) * α + (x1 ^ 2 + x2 ^ 2) / (y1 ^ 2 + y2 ^ 2) <> 0).
   {
     intros α. specialize (H2 α).
     assert (H3 : 0 < (α * y1 - x1)^2 + (α * y2 - x2)^2).
@@ -112,7 +112,7 @@ Proof.
     assert (H9 : 0 <= √((x1 ^ 2 + x2 ^ 2) * (y1 ^ 2 + y2 ^ 2))) by (apply sqrt_pos). nra.
 Qed.
 
-Lemma lemma_1_19_b : forall x y x1 y1 x2 y2,
+Lemma lemma_1_19_b : ∀ x y x1 y1 x2 y2,
   x = x1 / (√(x1^2 + x2^2)) -> y = y1 / (√(y1^2 + y2^2)) ->
   x = x2 / (√(x1^2 + x2^2)) -> y = y2 / (√(y1^2 + y2^2)) ->
   x1 * y1 + x2 * y2 <= √(x1^2 + x2^2) * √(y1^2 + y2^2).
@@ -201,7 +201,7 @@ Proof.
                    (2 * x1 * y1 + 2 * x2 * y2) in H8 by (field; nra). nra.
 Qed.
 
-Lemma lemma_1_19_c : forall x1 y1 x2 y2,
+Lemma lemma_1_19_c : ∀ x1 y1 x2 y2,
   x1 * y1 + x2 * y2 <= √(x1^2 + x2^2) * √(y1^2 + y2^2).
 Proof.
   intros x1 y1 x2 y2.
@@ -221,18 +221,18 @@ Proof.
   nra.
 Qed.
 
-Lemma contra_3 : forall P Q R,
+Lemma contra_3 : ∀ P Q R,
   (P -> Q -> R) -> (~R -> ~P \/ ~Q).
 Proof.
   intros P Q R H1. tauto.
 Qed.
 
-Lemma lemma_1_19_d_a : forall x1 y1 x2 y2,
+Lemma lemma_1_19_d_a : ∀ x1 y1 x2 y2,
   x1 * y1 + x2 * y2 = √(x1^2 + x2^2) * √(y1^2 + y2^2) ->
-  ((y1 = 0 /\ y2 = 0) \/ exists α, x1 = α * y1 /\ x2 = α * y2).
+  ((y1 = 0 /\ y2 = 0) \/ ∃ α, x1 = α * y1 /\ x2 = α * y2).
 Proof.
   intros x1 y1 x2 y2 H1.
-  pose proof contra_3 (y1 <> 0 \/ y2 <> 0) (forall α, (x1 <> α * y1 \/ x2 <> α * y2))
+  pose proof contra_3 (y1 <> 0 \/ y2 <> 0) (∀ α, (x1 <> α * y1 \/ x2 <> α * y2))
                       (x1 * y1 + x2 * y2 < √(x1^2 + x2^2) * √(y1^2 + y2^2)) as H2.
   pose proof lemma_1_19_a''' x1 y1 x2 y2 as H3. apply H2 in H3.
   - destruct H3 as [H3 | H3].
@@ -242,11 +242,11 @@ Proof.
   - apply Rle_not_lt. apply Req_le. apply sym_eq. apply H1.
 Qed.
 
-Lemma lemma_1_19_d_b : forall x y x1 y1 x2 y2,
+Lemma lemma_1_19_d_b : ∀ x y x1 y1 x2 y2,
   x = x1 / (√(x1^2 + x2^2)) -> y = y1 / (√(y1^2 + y2^2)) ->
   x = x2 / (√(x1^2 + x2^2)) -> y = y2 / (√(y1^2 + y2^2)) ->
   x1 * y1 + x2 * y2 = √(x1^2 + x2^2) * √(y1^2 + y2^2) ->
-  ((y1 = 0 /\ y2 = 0) \/ exists α, x1 = α * y1 /\ x2 = α * y2).
+  ((y1 = 0 /\ y2 = 0) \/ ∃ α, x1 = α * y1 /\ x2 = α * y2).
 Proof.
   intros x y x1 y1 x2 y2 H1 H2 H3 H4 H5.
   assert (H6 : x1^2 + x2^2 = 0 \/ x1^2 + x2^2 <> 0) by lra. destruct H6 as [H6 | H6].
@@ -360,9 +360,9 @@ Proof.
            }
 Qed.
 
-Lemma lemma_1_19_d_c : forall x1 y1 x2 y2,
+Lemma lemma_1_19_d_c : ∀ x1 y1 x2 y2,
   x1 * y1 + x2 * y2 = √(x1^2 + x2^2) * √(y1^2 + y2^2) ->
-  ((y1 = 0 /\ y2 = 0) \/ exists α, x1 = α * y1 /\ x2 = α * y2).
+  ((y1 = 0 /\ y2 = 0) \/ ∃ α, x1 = α * y1 /\ x2 = α * y2).
 Proof.
   intros x1 y1 x2 y2 H1.
   assert (H2 : (x1^2 + x2^2) * (y1^2 + y2^2) = (x1*y1 + x2*y2)^2 + (x1*y2 - x2*y1)^2) by nra.

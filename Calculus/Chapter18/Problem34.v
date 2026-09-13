@@ -2,7 +2,6 @@ From Calculus.Chapter18 Require Import Prelude.
 
 Definition log_over_x x := log x / x.
 
-(* These limits, slope, and turning point specify the requested sketch. *)
 Lemma lemma_18_34_a :
   (⟦ lim 0⁺ ⟧ log_over_x = -∞) /\
   (⟦ lim ∞ ⟧ log_over_x = 0) /\
@@ -28,7 +27,6 @@ Lemma lemma_18_34_d : ∀ x y : nat,
   x = y \/ (x = 2 /\ y = 4)%nat \/ (x = 4 /\ y = 2)%nat.
 Abort.
 
-(* Parametrize the other branch by t=y/x, extending through t=1. *)
 Definition power_curve_x t := if Req_EM_T t 1 then e else t ^^ (1/(t-1)).
 Definition power_curve_y t := t * power_curve_x t.
 

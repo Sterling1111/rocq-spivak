@@ -3,35 +3,35 @@ From Calculus.Chapter1 Require Import Prelude.
 Definition one_and_only_one_3 (P1 P2 P3 : Prop) : Prop :=
   (P1 /\ ~ P2 /\ ~ P3) \/ (~ P1 /\ P2 /\ ~ P3) \/ (~ P1 /\ ~ P2 /\ P3).
 
-Definition P10' := forall a b : R, one_and_only_one_3 (a = b) (a < b) (b < a). 
-Definition P11' := forall a b c : R, (a < b /\ b < c) -> a < c.
-Definition P12' := forall a b c : R, a < b -> a + c < b + c.
-Definition P13' := forall a b c : R, a < b /\ 0 < c -> a * c < b * c.
+Definition P10' := ∀ a b : R, one_and_only_one_3 (a = b) (a < b) (b < a).
+Definition P11' := ∀ a b c : R, (a < b /\ b < c) -> a < c.
+Definition P12' := ∀ a b c : R, a < b -> a + c < b + c.
+Definition P13' := ∀ a b c : R, a < b /\ 0 < c -> a * c < b * c.
 
-Definition P10 := forall (P : R -> Prop) (a : R),
-  (forall r : R, P r <-> 0 < r) -> one_and_only_one_3 (a = 0) (P a) (P (-a)).
+Definition P10 := ∀ (P : R -> Prop) (a : R),
+  (∀ r : R, P r <-> 0 < r) -> one_and_only_one_3 (a = 0) (P a) (P (-a)).
 
-Definition P11 := forall (P : R -> Prop) (a b : R),
-  (forall r : R, P r <-> 0 < r) -> (P a /\ P b) -> P (a + b).
+Definition P11 := ∀ (P : R -> Prop) (a b : R),
+  (∀ r : R, P r <-> 0 < r) -> (P a /\ P b) -> P (a + b).
 
-Definition P12 := forall (P : R -> Prop) (a b : R),
-  (forall r : R, P r <-> 0 < r) -> (P a /\ P b) -> P (a * b).
+Definition P12 := ∀ (P : R -> Prop) (a b : R),
+  (∀ r : R, P r <-> 0 < r) -> (P a /\ P b) -> P (a * b).
 
-Theorem Rplus_neg_neg : P11' -> P12' -> forall a b : R, a < 0 -> b < 0 -> a + b < 0.
+Theorem Rplus_neg_neg : P11' -> P12' -> ∀ a b : R, a < 0 -> b < 0 -> a + b < 0.
 Proof.
   intros H1 H2 a b H3 H4. unfold P11', P12' in H1, H2. specialize H2 with (a := a) (b := 0) (c := b).
   rewrite Rplus_0_l in H2. apply H2 in H3. apply H1 with (a := a + b) (b := b) (c := 0).
   split. apply H3. apply H4.
 Qed.
 
-Theorem Rplus_pos_pos : P11' -> P12' -> forall a b : R, a > 0 -> b > 0 -> a + b > 0.
+Theorem Rplus_pos_pos : P11' -> P12' -> ∀ a b : R, a > 0 -> b > 0 -> a + b > 0.
 Proof.
   intros H1 H2 a b H3 H4. unfold P11', P12' in H1, H2. specialize H2 with (a := 0) (b := a) (c := b).
   rewrite Rplus_0_l in H2. apply H2 in H3. apply Rlt_gt. apply H1 with (a := 0) (b := b) (c := a + b).
   split. apply Rgt_lt. apply H4. apply H3.
 Qed.
 
-Lemma Ropp_gt_lt_0_contravar' : P10' -> P11' -> P12' -> forall a, a < 0 <-> -a > 0.
+Lemma Ropp_gt_lt_0_contravar' : P10' -> P11' -> P12' -> ∀ a, a < 0 <-> -a > 0.
 Proof.
   intros H1 H11 H12 a. split.
   {
@@ -95,7 +95,7 @@ Lemma lemma_1_8_P11 : (P11' /\ P12') -> P11.
 Proof.
   intros [H1 H2]. unfold P11. intros P a b H3 [H4 H5].
   unfold P11', P12' in H1, H2. apply H3 in H4. apply H3 in H5.
-  assert (H6 : forall r1 r2 r3 r4, r1 < r2 /\ r3 < r4 -> r1 + r3 < r2 + r3 < r2 + r4).
+  assert (H6 : ∀ r1 r2 r3 r4, r1 < r2 /\ r3 < r4 -> r1 + r3 < r2 + r3 < r2 + r4).
   - intros r1 r2 r3 r4 [H6 H7]. split.
     -- apply H2. apply H6.
     -- rewrite Rplus_comm. rewrite Rplus_comm with (r1 := r2). apply H2. apply H7.

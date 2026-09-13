@@ -1,7 +1,5 @@
 From Calculus.Chapter19 Require Import Prelude.
 
-(* Problem 16: (a) Find ∫ arcsin x dx. (b) Find ∫ f^{-1}(x) dx in terms of ∫ f(x) dx. *)
-
 Lemma lemma_19_16_a : ∀ c,
   ∫ (λ x, arcsin x) (-1, 1) = (λ x, x * arcsin x + √(1 - x^2) + c).
 Proof.

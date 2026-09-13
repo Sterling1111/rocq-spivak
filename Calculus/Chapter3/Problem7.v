@@ -25,3 +25,26 @@ Proof.
   rewrite H2, H3.
   lra.
 Qed.
+
+(* The zero polynomial has no degree in the book. Lib.degree [] = 0,
+   so explicitly exclude identically zero polynomials here. *)
+Lemma lemma_3_7_c : ∀ (l roots : list R),
+  (∃ x, polynomial l x <> 0) -> NoDup roots ->
+  (∀ a, List.In a roots -> polynomial l a = 0) ->
+  (List.length roots <= degree l)%nat.
+Abort.
+
+Lemma lemma_3_7_d : ∀ n : nat, ∃ l roots : list R,
+  degree l = n /\ (∃ x, polynomial l x <> 0) /\
+  NoDup roots /\ List.length roots = n /\
+  (∀ x, polynomial l x = 0 <-> List.In x roots).
+Abort.
+
+Lemma lemma_3_7_d_even : ∀ n : nat, Nat.Even n ->
+  ∃ l : list R, degree l = n /\ ∀ x, polynomial l x <> 0.
+Abort.
+
+Lemma lemma_3_7_d_odd : ∀ n : nat, Nat.Odd n ->
+  ∃ (l : list R) (a : R), degree l = n /\
+    (∃ x, polynomial l x <> 0) /\ (∀ x, polynomial l x = 0 <-> x = a).
+Abort.

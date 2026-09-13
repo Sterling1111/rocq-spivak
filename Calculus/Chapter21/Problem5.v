@@ -1,49 +1,39 @@
 From Calculus.Chapter21 Require Import Prelude.
 
-(* Problem 5: Countable sets *)
-
-(* (a) Show that if A and B are countable, then so is A ∪ B. *)
-Lemma lemma_21_5_a : forall U (A B : Ensemble U),
+Lemma lemma_21_5_a : ∀ U (A B : Ensemble U),
   countable A -> countable B -> countable (A ⋃ B).
 Abort.
 
-(* (b) Show that the set of positive rational numbers is countable. *)
 Lemma lemma_21_5_b :
-  countable (fun x : R => exists q : Q, x = Q2R q /\ x > 0).
+  countable (λ x : R, ∃ q : Q, x = q /\ x > 0).
 Abort.
 
-(* (c) Show that the set of all pairs (m, n) of integers is countable. *)
 Lemma lemma_21_5_c :
   countable (Full_set (Z * Z)).
 Abort.
 
-(* (d) If A1, A2, A3... are each countable, A1 ∪ A2 ∪ A3... is countable. *)
-Lemma lemma_21_5_d : forall U (F : nat -> Ensemble U),
-  (forall n, countable (F n)) ->
-  countable (fun x => exists n, x ∈ F n).
+Lemma lemma_21_5_d : ∀ U (F : nat -> Ensemble U),
+  (∀ n, countable (F n)) ->
+  countable (λ x, ∃ n, x ∈ F n).
 Abort.
 
-(* (e) Prove that the set of all triples (l, m, n) of integers is countable. *)
 Lemma lemma_21_5_e :
   countable (Full_set (Z * Z * Z)).
 Abort.
 
-(* (f) Prove that the set of all n-tuples is countable. *)
-Lemma lemma_21_5_f : forall n : nat,
-  countable (fun l : list Z => length l = n).
+Lemma lemma_21_5_f : ∀ n : nat,
+  countable (λ l : list Z, length l = n).
 Abort.
 
-(* (g) Prove that the set of all roots of polynomial functions of degree n with integer coefficients is countable. *)
 Definition roots_of_degree (n : nat) : Ensemble R :=
-  fun x => exists l : list R, 
-    degree l = n /\ 
-    Forall (fun c => exists z : Z, c = IZR z) l /\
+  λ x, ∃ l : list R,
+    degree l = n /\
+    Forall (λ c, ∃ z : Z, c = (z : ℝ)) l /\
     leading_coefficient l <> 0 /\
     polynomial l x = 0.
 
-Lemma lemma_21_5_g : forall n, countable (roots_of_degree n).
+Lemma lemma_21_5_g : ∀ n, countable (roots_of_degree n).
 Abort.
 
-(* (h) Now use parts (d) and (g) to prove that the set of all algebraic numbers is countable. *)
-Lemma lemma_21_5_h : countable (fun x => algebraic x).
+Lemma lemma_21_5_h : countable (λ x, algebraic x).
 Abort.

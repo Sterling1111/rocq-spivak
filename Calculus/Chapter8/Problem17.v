@@ -1,7 +1,7 @@
 From Calculus.Chapter8 Require Import Prelude.
 
 Lemma lemma_8_17_a : ∀ a,
-  let A := (fun x => x < a) in
+  let A := (λ x, x < a) in
   (∀ x y, x ∈ A -> y < x -> y ∈ A) /\
   (A ≠ ∅) /\
   (A ≠ (Full_set R)) /\
@@ -18,7 +18,7 @@ Qed.
 Lemma lemma_8_17_b : ∀ A,
   (∀ x y, x ∈ A -> y < x -> y ∈ A) ->
   A ≠ ∅ ->
-  A ≠ (fun x => True) ->
+  A ≠ (λ x, True) ->
   (∀ x, x ∈ A -> ∃ x', x' ∈ A /\ x < x') ->
   has_upper_bound A ->
   ∀ sup_A, is_lub A sup_A ->

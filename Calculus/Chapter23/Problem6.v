@@ -1,53 +1,46 @@
 From Calculus.Chapter23 Require Import Prelude.
 
-(* Problem 6 *)
 
-(* Let f be a continuous function on an interval around 0, and let a_n = f(1/n) *)
 
-(* (a) Prove that if \sum_{n=1}^{\infty} a_n converges, then f(0)=0. *)
-Lemma problem_23_6_a : forall f a,
-  continuous_at f 0 ->
-  (forall n, (n > 0)%nat -> a n = f (1 / INR n)) ->
-  (exists S, ∑ 0 ∞ a = S) ->
+Lemma problem_23_6_a : ∀ f a,
+  (∃ δ, δ > 0 /\ continuous_on f (-δ, δ)) ->
+  (∃ N, ∀ (n : ℕ), (n >= N)%nat -> (n > 0)%nat -> a n = f (1 / n)) ->
+  (∃ total, ∑ 0 ∞ (λ n, a (S n)) = total) ->
   f 0 = 0.
 Abort.
 
-(* (b) Prove that if f'(0) exists and \sum_{n=1}^{\infty} a_n converges, then f'(0)=0. *)
-Lemma problem_23_6_b : forall f f' a,
-  continuous_at f 0 ->
+Lemma problem_23_6_b : ∀ f f' a,
+  (∃ δ, δ > 0 /\ continuous_on f (-δ, δ)) ->
   ⟦ der 0 ⟧ f = f' ->
-  (forall n, (n > 0)%nat -> a n = f (1 / INR n)) ->
-  (exists S, ∑ 0 ∞ a = S) ->
+  (∃ N, ∀ (n : ℕ), (n >= N)%nat -> (n > 0)%nat -> a n = f (1 / n)) ->
+  (∃ total, ∑ 0 ∞ (λ n, a (S n)) = total) ->
   f' 0 = 0.
 Abort.
 
-(* (c) Prove that if f''(0) exists and f(0)=f'(0)=0, then \sum_{n=1}^{\infty} a_n converges. *)
-Lemma problem_23_6_c : forall f f' f'' a,
-  continuous_at f 0 ->
+Lemma problem_23_6_c : ∀ f f' f'' a,
+  (∃ δ, δ > 0 /\ continuous_on f (-δ, δ)) ->
   ⟦ der 0 ⟧ f = f' ->
   ⟦ der^2 0 ⟧ f = f'' ->
   f 0 = 0 ->
   f' 0 = 0 ->
-  (forall n, (n > 0)%nat -> a n = f (1 / INR n)) ->
-  exists S, ∑ 0 ∞ a = S.
+  (∃ N, ∀ (n : ℕ), (n >= N)%nat -> (n > 0)%nat -> a n = f (1 / n)) ->
+  ∃ total, ∑ 0 ∞ (λ n, a (S n)) = total.
 Abort.
 
-(* (d) Suppose \sum_{n=1}^{\infty} a_n converges. Must f'(0) exist? (No) *)
 Lemma problem_23_6_d :
-  ~ (forall f a,
-      continuous_at f 0 ->
-      (forall n, (n > 0)%nat -> a n = f (1 / INR n)) ->
-      (exists S, ∑ 0 ∞ a = S) ->
-      exists f', ⟦ der 0 ⟧ f = f').
+  ~ (∀ f a,
+      (∃ δ, δ > 0 /\ continuous_on f (-δ, δ)) ->
+      (∃ N, ∀ (n : ℕ), (n >= N)%nat -> (n > 0)%nat -> a n = f (1 / n)) ->
+      (∃ total, ∑ 0 ∞ (λ n, a (S n)) = total) ->
+      ∃ f', ⟦ der 0 ⟧ f = f').
 Abort.
 
-(* (e) Suppose f(0)=f'(0)=0. Must \sum_{n=1}^{\infty} a_n converge? (No) *)
 Lemma problem_23_6_e :
-  ~ (forall f f' a,
-      continuous_at f 0 ->
+  ~ (∀ f f' a,
+      (∃ δ, δ > 0 /\ continuous_on f (-δ, δ)) ->
       ⟦ der 0 ⟧ f = f' ->
       f 0 = 0 ->
       f' 0 = 0 ->
-      (forall n, (n > 0)%nat -> a n = f (1 / INR n)) ->
-      exists S, ∑ 0 ∞ a = S).
+      (∃ N, ∀ (n : ℕ), (n >= N)%nat -> (n > 0)%nat -> a n = f (1 / n)) ->
+      ∃ total, ∑ 0 ∞ (λ n, a (S n)) = total).
 Abort.

@@ -1,6 +1,6 @@
 From Calculus.Chapter14 Require Import Prelude.
 
-Lemma lemma_14_1_i' : forall a,
+Lemma lemma_14_1_i' : ∀ a,
   let F := λ x, ∫ a (x^3) (λ t, (sin t)^3) in
   ⟦ der ⟧ F = (λ x, 3 * x^2 * (sin (x^3))^3).
 Proof.
@@ -20,7 +20,7 @@ Proof.
   - exact H1.
 Qed.
 
-Lemma lemma_14_1_ii : forall x,
+Lemma lemma_14_1_ii : ∀ x,
   ⟦ der x ⟧ (λ x, ∫ 3 (∫ 1 x (λ t, (sin t)^3)) (λ t, 1 / (1 + (sin t)^6 + t^2))) =
     (λ x, (sin x)^3 / (1 + (sin (∫ 1 x (λ t, (sin t)^3)))^6 + (∫ 1 x (λ t, (sin t)^3))^2)).
 Proof.
@@ -45,7 +45,7 @@ Proof.
   - apply H2.
 Qed.
 
-Lemma lemma_14_1_iii : forall x,
+Lemma lemma_14_1_iii : ∀ x,
   ⟦ der x ⟧ (λ x, ∫ 15 x (λ y, ∫ 8 y (λ t, 1 / (1 + t^2 + (sin t)^2)))) =
     (λ x, ∫ 8 x (λ t, 1 / (1 + t^2 + (sin t)^2))).
 Proof.
@@ -67,7 +67,7 @@ Proof.
   exact ((FTC1_global G 15 H2) x).
 Qed.
 
-Lemma lemma_14_1_iv : forall b x,
+Lemma lemma_14_1_iv : ∀ b x,
   ⟦ der x ⟧ (λ x, ∫ x b (λ t, 1 / (1 + t^2 + (sin t)^2))) =
     (λ x, - (1 / (1 + x^2 + (sin x)^2))).
 Proof.
@@ -82,7 +82,7 @@ Proof.
   exact (H1 x).
 Qed.
 
-Lemma lemma_14_1_v : forall a b,
+Lemma lemma_14_1_v : ∀ a b,
   a < b ->
   ⟦ der ⟧ (λ x, ∫ a b (λ t, x / (1 + t^2 + (sin t)^2))) =
     (λ x, ∫ a b (λ t, 1 / (1 + t^2 + (sin t)^2))).
@@ -108,7 +108,7 @@ Proof.
   auto_diff.
 Qed.
 
-Lemma lemma_14_1_vi : forall x,
+Lemma lemma_14_1_vi : ∀ x,
   ⟦ der x ⟧ (λ x, sin (∫ 0 x (λ y, sin (∫ 0 y (λ t, (sin t)^3))))) =
     (λ x, cos (∫ 0 x (λ y, sin (∫ 0 y (λ t, (sin t)^3)))) *
               sin (∫ 0 x (λ t, (sin t)^3))).
@@ -149,16 +149,16 @@ Proof.
   - auto_diff.
 Qed.
 
-Lemma lemma_14_1_vii : forall F F_inv,
-  (forall x, x > 0 ->
+Lemma lemma_14_1_vii : ∀ F F_inv,
+  (∀ x, x > 0 ->
     F x = ∫ 1 x (λ t, 1 / t)) ->
   inverse_on F F_inv (0, ∞) ℝ ->
   ⟦ der ⟧ F_inv = (λ y, F_inv y).
 Proof.
 Abort.
 
-Lemma lemma_14_1_viii : forall F F_inv,
-  (forall x, -1 < x < 1 ->
+Lemma lemma_14_1_viii : ∀ F F_inv,
+  (∀ x, -1 < x < 1 ->
     F x = ∫ 0 x (λ t, 1 / √(1 - t^2))) ->
   inverse_on F F_inv (-1, 1) (-π/2, π/2) ->
   ⟦ der ⟧ F_inv (-π/2, π/2) =

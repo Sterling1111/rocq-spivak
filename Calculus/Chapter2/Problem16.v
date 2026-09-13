@@ -44,8 +44,8 @@ Proof.
   set (m1 := (m + 2 * n)%nat). set (n1 := (m + n)%nat).
   assert (1 <= m1 /\ 1 <= n1) as [H4 H5].
   {
-    unfold m1, n1. replace 1 with (INR 1) by auto.
-    replace 0 with (INR 0) in * by auto. split.
+    unfold m1, n1. replace 1 with (1%nat : ℝ) by auto.
+    replace 0 with (0%nat : ℝ) in * by auto. split.
     - apply le_INR. apply INR_lt in H1. lia.
     - apply le_INR. apply INR_lt in H2. lia.
   }
@@ -58,8 +58,8 @@ Proof.
   }
   subst.
   pose proof lemma_2_16_a m n H1 H2 H6 as [H7 H8]. pose proof H7 as H9.
-  replace (INR m + 2 * INR n) with (INR m1) in H9. 2 : { unfold m1. rewrite plus_INR, mult_INR. auto. }
-  replace (INR m + INR n) with (INR n1) in H9. 2 : { unfold n1. rewrite plus_INR. auto. }
+  replace (m + 2 * n) with (m1 : ℝ) in H9. 2 : { unfold m1. rewrite plus_INR, mult_INR. auto. }
+  replace (m + n) with (n1 : ℝ) in H9. 2 : { unfold n1. rewrite plus_INR. auto. }
   pose proof lemma_2_16_b m1 n1 ltac:(lra) ltac:(lra) H9 as [H10 H11].
 
   exists ((m1 + 2 * n1)%nat), ((m1 + n1)%nat). split.

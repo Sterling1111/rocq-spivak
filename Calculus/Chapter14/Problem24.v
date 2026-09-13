@@ -1,23 +1,38 @@
 From Calculus.Chapter14 Require Import Prelude.
 
-(* Problem 24: Schwarzian derivative *)
-
-(* (a) If Schwarzian derivative of f is 0, show (f'')^2 / (f')^3 is constant. *)
-Lemma lemma_14_24_a : forall f f' f'' f''',
+Lemma lemma_14_24_a : ∀ f f' f'' f''',
   ⟦ der ⟧ f = f' ->
   ⟦ der ⟧ f' = f'' ->
   ⟦ der ⟧ f'' = f''' ->
-  (forall x, f' x <> 0) ->
-  (forall x, f''' x / f' x - 3/2 * (f'' x / f' x)^2 = 0) ->
-  exists c, forall x, (f'' x)^2 / (f' x)^3 = c.
-Abort.
+  (∀ x, f' x <> 0) ->
+  (∀ x, f''' x / f' x - 3/2 * (f'' x / f' x)^2 = 0) ->
+  ∃ c, ∀ x, (f'' x)^2 / (f' x)^3 = c.
+Proof.
+  intros f f' f'' f''' H1 H2 H3 H4 H5.
+  apply derivative_zero_imp_const'.
+  assert (H6 : ∀ x, 2 * f' x * f''' x - 3 * (f'' x)^2 = 0).
+  {
+    intros x. specialize (H4 x). specialize (H5 x).
+    field_simplify in H5; [| exact H4].
+    apply Rmult_eq_compat_r with (r := 2 * (f' x)^2) in H5.
+    field_simplify in H5; nra.
+  }
+  apply derivative_ext with
+    (f1' := λ x, (2 * f'' x * f''' x * (f' x)^3 -
+      (f'' x)^2 * (3 * (f' x)^2 * f'' x)) / ((f' x)^3)^2).
+  - intros x. specialize (H4 x). specialize (H6 x).
+    replace (2 * f'' x * f''' x * (f' x)^3 -
+      (f'' x)^2 * (3 * (f' x)^2 * f'' x)) with
+      ((f' x)^2 * f'' x * (2 * f' x * f''' x - 3 * (f'' x)^2)) by ring.
+    rewrite H6. field. auto.
+  - auto_diff.
+Qed.
 
-(* (b) Show f is of the form (ax + b) / (cx + d). *)
-Lemma lemma_14_24_b : forall f f' f'' f''',
+Lemma lemma_14_24_b : ∀ f f' f'' f''',
   ⟦ der ⟧ f = f' ->
   ⟦ der ⟧ f' = f'' ->
   ⟦ der ⟧ f'' = f''' ->
-  (forall x, f' x <> 0) ->
-  (forall x, f''' x / f' x - 3/2 * (f'' x / f' x)^2 = 0) ->
-  exists a b c d, forall x, c * x + d <> 0 -> f x = (a * x + b) / (c * x + d).
+  (∀ x, f' x <> 0) ->
+  (∀ x, f''' x / f' x - 3/2 * (f'' x / f' x)^2 = 0) ->
+  ∃ a b c d, ∀ x, c * x + d <> 0 -> f x = (a * x + b) / (c * x + d).
 Abort.

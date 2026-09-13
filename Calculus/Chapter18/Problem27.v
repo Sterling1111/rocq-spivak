@@ -1,7 +1,5 @@
 From Calculus.Chapter18 Require Import Prelude.
 
-(* Each half-line may remain zero forever (None), or leave zero at
-   a threshold A >= 1 for 1+x^2 (Some A). *)
 Definition admissible_threshold (a : option R) : Prop :=
   match a with None => True | Some A => 1 <= A end.
 Definition delayed_log (a : option R) (x : R) : R :=

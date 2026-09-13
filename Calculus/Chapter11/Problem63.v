@@ -1,11 +1,11 @@
 From Calculus.Chapter11 Require Import Prelude.
 
-Lemma lemma_11_63_a : forall x y n,
+Lemma lemma_11_63_a : ∀ x y n,
   y <> 0 -> Nat.Even n -> x^n + y^n = (x + y)^n -> x = 0.
 Proof.
   intros x y n H1 H2 H3.
-  set (f := fun x => x^n + y^n - (x + y)^n).
-  set (f' := fun x => n * x^(n - 1) - n * (x + y)^(n - 1)).
+  set (f := λ x, x^n + y^n - (x + y)^n).
+  set (f' := λ x, n * x^(n - 1) - n * (x + y)^(n - 1)).
 
   assert (H4 : ⟦ der ⟧ f = f').
   { unfold f, f'; destruct n; [ | replace (S n - 1)%nat with n by lia]; auto_diff. }
@@ -31,7 +31,7 @@ Proof.
     destruct n as [ | n].
     + simpl in H3. lra.
     + unfold f' in H14. replace (S n - 1)%nat with n in H14 by lia.
-      assert (H15 : INR (S n) ≠ 0) by (apply not_0_INR; lia).
+      assert (H15 : ((S n)%nat : ℝ) ≠ 0) by (apply not_0_INR; lia).
       assert (H16 : c ^ n = (c + y) ^ n) by nra.
       assert (c = c + y) as H17.
       { apply pow_eq_odd in H16; auto. destruct H2 as [k H2]. exists (k - 1)%nat. lia. }
@@ -48,19 +48,19 @@ Proof.
     destruct n as [ | n].
     + simpl in H3. lra.
     + unfold f' in H14. replace (S n - 1)%nat with n in H14 by lia.
-      assert (H15 : INR (S n) ≠ 0) by (apply not_0_INR; lia).
+      assert (H15 : ((S n)%nat : ℝ) ≠ 0) by (apply not_0_INR; lia).
       assert (H16 : c ^ n = (c + y) ^ n) by nra.
       assert (c = c + y) as H17.
       { apply pow_eq_odd in H16; auto. destruct H2 as [k H2]. exists (k - 1)%nat. lia. }
       nra.
 Qed.
 
-Lemma lemma_11_63_b : forall x y n,
+Lemma lemma_11_63_b : ∀ x y n,
   (n > 1)%nat -> y <> 0 -> Nat.Odd n -> x^n + y^n = (x + y)^n -> (x = 0 \/ x = -y).
 Proof.
   intros x y n H0 H1 H2 H3.
-  set (f := fun t => t^n + y^n - (t + y)^n).
-  set (f' := fun t => INR n * t^(n - 1) - INR n * (t + y)^(n - 1)).
+  set (f := λ t, t^n + y^n - (t + y)^n).
+  set (f' := λ t, n * t^(n - 1) - n * (t + y)^(n - 1)).
 
   assert (H4 : ⟦ der ⟧ f = f').
   { unfold f, f'. destruct n; [inversion H2 | replace (S n - 1)%nat with n by lia]; auto_diff. }
@@ -77,7 +77,7 @@ Proof.
   assert (H9 : f (-y) = 0).
   { unfold f. replace (-y + y) with 0 by lra. destruct n; [inversion H2; lia |]. rewrite pow_i; try lia. rewrite pow_neg_odd; auto. lra. }
 
-  assert (H10 : forall a b, a < b -> f a = 0 -> f b = 0 -> exists c, a < c < b /\ f' c = 0).
+  assert (H10 : ∀ a b, a < b -> f a = 0 -> f b = 0 -> ∃ c, a < c < b /\ f' c = 0).
   { intros a b H10 H11 H12.
     assert (H13 : continuous_on f [a, b]) by (unfold f; auto_cont).
     assert (H14 : differentiable_on f (a, b)).
@@ -88,7 +88,7 @@ Proof.
     exists c. split; auto.
     exact (derivative_at_unique f f' (λ _ : ℝ, 0) c (H4 c) H17). }
 
-  assert (H11 : exists c1 c2, c1 <> c2 /\ f' c1 = 0 /\ f' c2 = 0).
+  assert (H11 : ∃ c1 c2, c1 <> c2 /\ f' c1 = 0 /\ f' c2 = 0).
   {
     destruct (Rtotal_order 0 x) as [H12 | [H12 | H12]]; try lra;
     destruct (Rtotal_order 0 (-y)) as [H13 | [H13 | H13]]; try lra;
@@ -115,11 +115,11 @@ Proof.
 
   destruct H11 as [c1 [c2 [H11 [H12 H13]]]].
 
-  assert (H14 : forall c, f' c = 0 -> c = -y / 2).
+  assert (H14 : ∀ c, f' c = 0 -> c = -y / 2).
   { intros c H14. destruct n; [inversion H2; lia |].
     unfold f' in H14. replace (S n - 1)%nat with n in H14 by lia.
     assert (H15 : c ^ n = (c + y) ^ n).
-    { apply Rmult_eq_reg_l with (r := INR (S n)); [lra | apply not_0_INR; lia]. }
+    { apply Rmult_eq_reg_l with (r := ((S n)%nat : ℝ)); [lra | apply not_0_INR; lia]. }
     assert (H16 : c = c + y \/ c = -(c + y)).
     { apply pow_eq_even in H15; auto; try lia. destruct H2 as [k H16]. exists k. lia. }
     nra.

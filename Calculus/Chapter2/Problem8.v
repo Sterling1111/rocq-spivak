@@ -1,7 +1,7 @@
 From Calculus.Chapter2 Require Import Prelude.
 Open Scope nat_scope.
 
-Lemma lemma_2_8 : forall n : nat,
+Lemma lemma_2_8 : ∀ n : nat,
   Nat.Even n \/ Nat.Odd n.
 Proof.
   intros n. induction n as [| k IH].
@@ -11,7 +11,7 @@ Proof.
     -- left. unfold Nat.Even in *. destruct IH as [k0 H]. exists (S k0). lia.
 Qed.
 
-Lemma lemma_2_8' : forall z : Z,
+Lemma lemma_2_8' : ∀ z : Z,
   Z.Even z \/ Z.Odd z.
 Proof.
   intros z. rewrite <- Zeven_equiv. rewrite <- Zodd_equiv.

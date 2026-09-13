@@ -1,7 +1,7 @@
 From Calculus.Chapter15 Require Import Prelude.
 From Calculus.Chapter15 Require Import Problem16.
 
-Lemma lemma_15_17 : forall u,
+Lemma lemma_15_17 : ∀ u,
   -π < u < π ->
   cos (u/2) <> 0 ->
   let x := tan (u/2) in

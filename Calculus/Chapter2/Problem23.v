@@ -1,6 +1,6 @@
 From Calculus.Chapter2 Require Import Prelude.
 
-Lemma lemma_2_23_a : forall (a : R) (n m : nat),
+Lemma lemma_2_23_a : ∀ (a : R) (n m : nat),
   a ^ (n + m) = a^n * a^m.    
 Proof.
   intros a n m. induction n as [| k IH].
@@ -9,7 +9,7 @@ Proof.
     rewrite IH. replace (a ^ S k) with (a * a ^ k) by (simpl; lra). lra.
 Qed.
 
-Lemma lemma_2_23_b : forall (a : R) (n m : nat),
+Lemma lemma_2_23_b : ∀ (a : R) (n m : nat),
   (a ^ n) ^ m = a ^ (n * m).
 Proof.
   intros a n m. induction m as [| k IH].

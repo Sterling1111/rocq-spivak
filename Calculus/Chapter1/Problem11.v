@@ -1,46 +1,46 @@
 From Calculus.Chapter1 Require Import Prelude.
 
-Lemma lemma_1_11_i : forall x, 
+Lemma lemma_1_11_i : ∀ x,
   (x = 11 \/ x = -5) <-> |x - 3| = 8.
 Proof.
   solve_R.
 Qed.
 
-Lemma lemma_1_11_ii : forall x,
+Lemma lemma_1_11_ii : ∀ x,
   (-5 < x < 11) <-> |x - 3| < 8.
 Proof.
   solve_R.
 Qed.
 
-Lemma lemma_1_11_iii : forall x,
+Lemma lemma_1_11_iii : ∀ x,
   (-6 < x < -2) <-> |x + 4| < 2.
 Proof.
   solve_R.
 Qed.
 
-Lemma lemma_1_11_iv : forall x,
+Lemma lemma_1_11_iv : ∀ x,
   (x < 1 \/ x > 2) <-> |x - 1| + |x - 2| > 1.
 Proof.
   solve_R.
 Qed.
 
-Lemma lemma_1_11_v : forall x, |x - 1| + |x + 1| < 2 -> False.
+Lemma lemma_1_11_v : ∀ x, |x - 1| + |x + 1| < 2 -> False.
 Proof.
   solve_R.
 Qed.
 
-Lemma lemma_1_11_vi : forall x, |x - 1| + |x + 1| < 1 -> False.
+Lemma lemma_1_11_vi : ∀ x, |x - 1| + |x + 1| < 1 -> False.
 Proof.
   solve_R.
 Qed.
 
-Lemma lemma_1_11_vii : forall x, 
+Lemma lemma_1_11_vii : ∀ x,
   (x = 1 \/ x = -1) <-> |x - 1| * |x + 1| = 0.
 Proof.
   solve_R.
 Qed.
 
-Lemma lemma_1_11_viii : forall x,
+Lemma lemma_1_11_viii : ∀ x,
  (x = (-1 + √ 21) / 2 \/ x = (-1 - √ 21) / 2) <-> |x - 1| * |x + 2| = 3.
 Proof.
   intros x. assert (H1 : x^2 + x - 5 = 0 <-> x = (-1 + √ 21) / 2 \/ x = (-1 - √ 21) / 2).

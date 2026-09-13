@@ -14,7 +14,7 @@ Proof.
 
   set (b := Rmax (|N1|) (|N2|) + 1).
 
-  assert (H5 : forall x, |x| > b -> f x < f 0).
+  assert (H5 : ∀ x, |x| > b -> f x < f 0).
   {
     intros x H5.
     apply Raux.Rabs_gt_inv in H5 as [H5 | H5].

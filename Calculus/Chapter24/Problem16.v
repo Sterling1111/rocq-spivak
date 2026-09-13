@@ -9,18 +9,18 @@ Fixpoint fibonacci (n : nat) : R :=
             end
   end.
 
-Lemma lemma_24_16_a : forall n, (n >= 1)%nat ->
+Lemma lemma_24_16_a : ∀ n, (n >= 1)%nat ->
   fibonacci (n + 1) / fibonacci n <= 2.
 Abort.
 
-Lemma lemma_24_16_b : forall x,
-  Rabs x < 1/2 -> series_converges (fun n => if Nat.eq_dec n 0 then 0 else fibonacci n * x^(n-1)).
+Lemma lemma_24_16_b : ∀ x,
+  Rabs x < 1/2 -> series_converges (λ n, if Nat.eq_dec n 0 then 0 else fibonacci n * x^(n-1)).
 Abort.
 
-Lemma lemma_24_16_c : forall x,
-  Rabs x < 1/2 -> ∑ 0 ∞ (fun n => fibonacci (n+1) * x^n) = -1 / (x^2 + x - 1).
+Lemma lemma_24_16_c : ∀ x,
+  Rabs x < 1/2 -> ∑ 0 ∞ (λ n, fibonacci (n+1) * x^n) = -1 / (x^2 + x - 1).
 Abort.
 
-Lemma lemma_24_16_e : forall n, (n >= 1)%nat ->
+Lemma lemma_24_16_e : ∀ n, (n >= 1)%nat ->
   fibonacci n = (((1 + √5)/2)^n - ((1 - √5)/2)^n) / √5.
 Abort.

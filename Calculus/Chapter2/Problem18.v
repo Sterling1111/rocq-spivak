@@ -1,7 +1,7 @@
 From Calculus.Chapter2 Require Import Prelude.
 
-Lemma lemma_2_18_a : forall (x : R) (l : list Z),
-  (sum_f 0 (length l) (fun i => IZR (nth i l 1%Z) * x ^ i) = 0) -> (irrational x \/ is_integer x).
+Lemma lemma_2_18_a : ∀ (x : R) (l : list Z),
+  (sum_f 0 (length l) (λ i, (nth i l 1%Z)%Z * x ^ i) = 0) -> (irrational x \/ is_integer x).
 Proof.
   intros x l H1. assert (rational x \/ irrational x) as [H2 | H2] by apply classic; auto; right.
   destruct H2 as [p [q H2]]. assert ((p = 0 \/ q = 0) \/ (p <> 0 /\ q <> 0))%Z as [[H3 | H3] | [H3 H4]] by lia.
@@ -9,10 +9,10 @@ Proof.
   - assert (x = 0) as H4. { rewrite H2. rewrite H3. unfold Rdiv. rewrite Rinv_0. lra. } rewrite H4. exists 0%Z. reflexivity.
   - pose proof (rational_representation x p q H3 H4 H2) as [p' [q' [H6 H7]]]. assert (H8 : x <> 0). { rewrite H2. apply div_nonzero. apply not_0_IZR. apply H3. apply not_0_IZR. apply H4. }
     assert (H9 : (p' <> 0)%Z). { apply x_neq_0_IZR_num_neq_0 with (x := x) (z := q'); tauto. } assert (H10 : (q' <> 0)%Z). { apply x_neq_0_IZR_den_neq_0 with (x := x) (y := p'); tauto. }
-    rewrite H6 in H1. apply Rmult_eq_compat_l with (r := IZR q' ^ (length l)) in H1.
-    rewrite Rmult_0_r in H1. rewrite r_mult_sum_f_i_n_f in H1. replace (sum_f 0 (length l) (fun i : nat => IZR (nth i l 1%Z) * (IZR p' / IZR q') ^ i * IZR q' ^ length l)) with 
-    (sum_f 0 (length l) (fun i : nat => IZR (nth i l 1%Z) * IZR p' ^ i * IZR q' ^ (length l - i))) in H1.
-     2 : { apply sum_f_equiv; try lia. intros i H11. rewrite Rmult_assoc with (r2 := (IZR p' / IZR q') ^ i). rewrite Rpow_div_l; try (apply not_0_IZR; tauto). field_simplify.
+    rewrite H6 in H1. apply Rmult_eq_compat_l with (r := q' ^ (length l)) in H1.
+    rewrite Rmult_0_r in H1. rewrite r_mult_sum_f_i_n_f in H1. replace (sum_f 0 (length l) (λ i : nat, (nth i l 1%Z)%Z * (p' / q') ^ i * q' ^ length l)) with
+    (sum_f 0 (length l) (λ i : nat, (nth i l 1%Z)%Z * p' ^ i * q' ^ (length l - i))) in H1.
+     2 : { apply sum_f_equiv; try lia. intros i H11. rewrite Rmult_assoc with (r2 := (p' / q') ^ i). rewrite Rpow_div_l; try (apply not_0_IZR; tauto). field_simplify.
            2 : { rewrite pow_IZR. apply not_0_IZR. apply Z.pow_nonzero; lia. }
           rewrite pow_sub; try lia. lra. apply not_0_IZR; auto.
          }
@@ -20,10 +20,10 @@ Proof.
     -- exists p'. rewrite H6. rewrite H11. lra.
     -- exists (-p')%Z. rewrite H6. rewrite H11. replace (-p')%Z with (-1 * p')%Z by lia. rewrite mult_IZR. nra.
     -- pose proof (prime_divides_2 (q')) as [a [H12 [b H13]]]; try lia.
-       replace ((fun i : nat => IZR (nth i l 1%Z) * IZR p' ^ i * IZR q' ^ (length l - i))) with ((fun i : nat => IZR ((nth i l 1%Z) * p' ^ Z.of_nat i * q' ^ Z.of_nat(length l - i)))) in H1.
+       replace ((λ i : nat, (nth i l 1%Z)%Z * p' ^ i * q' ^ (length l - i))) with ((λ i : nat, (((nth i l 1%Z) * p' ^ Z.of_nat i * q' ^ Z.of_nat(length l - i))%Z : ℝ))) in H1.
        2 : { apply functional_extensionality. intros i. repeat rewrite pow_IZR. repeat rewrite <- mult_IZR. reflexivity. }
        destruct l as [| h t]. { rewrite sum_f_0_0 in H1. simpl in H1; lra. } replace (length (h :: t)) with (S (length t)) in H1 by reflexivity.
-       rewrite sum_f_i_Sn_f in H1; try lia. assert (H14 : (IZR a | sum_f 0 (length t) (fun i : nat => IZR (nth i (h :: t) 1%Z * p' ^ Z.of_nat i * q' ^ Z.of_nat (S (length t) - i))))).
+       rewrite sum_f_i_Sn_f in H1; try lia. assert (H14 : ((a : ℝ) | sum_f 0 (length t) (λ i : nat, ((nth i (h :: t) 1%Z * p' ^ Z.of_nat i * q' ^ Z.of_nat (S (length t) - i))%Z : ℝ)))).
        { 
           apply R_divides_sum; try lia. intros j H14. apply IZR_divides. exists (nth j (h :: t) 1 * p' ^ Z.of_nat j * q' ^ Z.of_nat (length t - j) * b)%Z.
           assert (nth j (h :: t) 1 * p' ^ Z.of_nat j = 0 \/ nth j (h :: t) 1 * p' ^ Z.of_nat j <> 0)%Z as [H15 | H15] by lia.
@@ -32,10 +32,10 @@ Proof.
             replace ((nth j (h :: t) 1 * p' ^ Z.of_nat j * q' ^ Z.of_nat (length t - j) * b * a)%Z) with ((nth j (h :: t) 1 * p' ^ Z.of_nat j * (q' ^ Z.of_nat (length t - j) * b * a))%Z) by lia. apply H16. clear H15 H16.
             replace (S (length t) - j)%nat with (S (length t - j))%nat by lia. replace (Z.of_nat (S (length t - j))) with (Z.succ (Z.of_nat (length t - j))) by lia. rewrite Z.pow_succ_r; lia.
        }
-       assert (H15 : (IZR a | IZR (nth (S (length t)) (h :: t) 1%Z * p' ^ Z.of_nat (S (length t)) * q' ^ Z.of_nat (S (length t) - S (length t))))).
+       assert (H15 : ((a : ℝ) | ((nth (S (length t)) (h :: t) 1%Z * p' ^ Z.of_nat (S (length t)) * q' ^ Z.of_nat (S (length t) - S (length t)))%Z : ℝ))).
        {
-          replace (IZR (nth (S (length t)) (h :: t) 1%Z * p' ^ Z.of_nat (S (length t)) * q' ^ Z.of_nat (S (length t) - S (length t)))) with 
-          (- sum_f 0 (length t) (fun i : nat => IZR (nth i (h :: t) 1%Z * p' ^ Z.of_nat i * q' ^ Z.of_nat (S (length t) - i)))) by lra.
+          replace (((nth (S (length t)) (h :: t) 1%Z * p' ^ Z.of_nat (S (length t)) * q' ^ Z.of_nat (S (length t) - S (length t)))%Z : ℝ)) with
+          (- sum_f 0 (length t) (λ i : nat, ((nth i (h :: t) 1%Z * p' ^ Z.of_nat i * q' ^ Z.of_nat (S (length t) - i))%Z : ℝ))) by lra.
           apply divides_neg_R. apply H14.
        }
        apply IZR_divides in H15. replace (nth (S (length t)) (h :: t) 1)%Z with 1%Z in H15. 2 : { simpl. rewrite nth_overflow; lia. } rewrite Z.mul_1_l in H15.
@@ -96,7 +96,7 @@ Proof.
   }
   assert (H3 : (x^2 - 11)^2 = x^4 - 22 * x^2 + 121) by nra.
   assert (H4 : x^4 - 22 * x^2 - 48 * x - 23 = 0) by nra.
-  assert (H5 : sum_f 0 4 (fun i => IZR (nth i [-23; -48; -22; 0]%Z 1%Z) * x ^ i) = 0).
+  assert (H5 : sum_f 0 4 (λ i, (nth i [-23; -48; -22; 0]%Z 1%Z)%Z * x ^ i) = 0).
   { repeat rewrite sum_f_i_Sn_f; try rewrite sum_f_0_0; try lia. simpl. field_simplify. nra. }
   apply lemma_2_18_a in H5 as [H5 | H5]; auto. assert (H6 : sqrt 6 - sqrt 2 - sqrt 3 > -1).
   { pose proof sqrt_2_plus_sqrt_3_lt_1_plus_sqrt_6; lra. } assert (H7 : sqrt 6 - sqrt 2 - sqrt 3 < 0).
@@ -110,14 +110,14 @@ Proof.
   set (x := Rpower 2 (1/2) + Rpower 2 (1/3)). assert (((x - (Rpower 2 (1/2)))^3 - 2) * ((x + (Rpower 2 (1/2)))^3 - 2) = 0) as H1.
   {
     unfold x. field_simplify. repeat rewrite <- Rpower_pow; try (apply Rpower_gt_0; lra).
-    repeat rewrite Rpower_mult. replace (1/2 * INR 3) with (3/2) by (simpl; lra). replace (1/3 * INR 3) with (INR 1) by (simpl; lra).
-    replace (1/2 * INR 2) with (INR 1) by (simpl; lra). 
-    replace (1/3 * INR 5) with (5/3) by (simpl; lra). replace (1/3 * INR 2) with (2/3) by (simpl; lra).
-    replace (1/3 * INR 6) with (INR 2) by (simpl; lra). repeat rewrite Rpower_pow; try lra. field_simplify.
-    replace (6 * Rpower 2 (1 / 2) * Rpower 2 (5 / 3)) with (6 * Rpower 2 (INR 2 + 1 / 6)). 2 : { rewrite Rmult_assoc. rewrite <- Rpower_plus. replace (1/2 + 5/3) with (INR 2 + 1/6) by (simpl; lra). reflexivity. }
-    replace (12 * Rpower 2 (1 / 2) * Rpower 2 (2 / 3)) with (12 * Rpower 2 (INR 1 + 1/6)). 2 : { rewrite Rmult_assoc. rewrite <- Rpower_plus. replace (1/2 + 2/3) with (INR 1 + 1/6) by (simpl; lra). reflexivity. }
+    repeat rewrite Rpower_mult. replace (1/2 * 3%nat) with (3/2) by (simpl; lra). replace (1/3 * 3%nat) with (1%nat : ℝ) by (simpl; lra).
+    replace (1/2 * 2%nat) with (1%nat : ℝ) by (simpl; lra).
+    replace (1/3 * 5%nat) with (5/3) by (simpl; lra). replace (1/3 * 2%nat) with (2/3) by (simpl; lra).
+    replace (1/3 * 6%nat) with (2%nat : ℝ) by (simpl; lra). repeat rewrite Rpower_pow; try lra. field_simplify.
+    replace (6 * Rpower 2 (1 / 2) * Rpower 2 (5 / 3)) with (6 * Rpower 2 (2%nat + 1 / 6)). 2 : { rewrite Rmult_assoc. rewrite <- Rpower_plus. replace (1/2 + 5/3) with (2%nat + 1/6) by (simpl; lra). reflexivity. }
+    replace (12 * Rpower 2 (1 / 2) * Rpower 2 (2 / 3)) with (12 * Rpower 2 (1%nat + 1/6)). 2 : { rewrite Rmult_assoc. rewrite <- Rpower_plus. replace (1/2 + 2/3) with (1%nat + 1/6) by (simpl; lra). reflexivity. }
     rewrite <- Rpower_mult. repeat rewrite Rpower_plus. repeat rewrite Rpower_pow; try apply Rpower_gt_0; try lra. field_simplify.
-    replace (Rpower 2 (1/3) ^ 4) with (Rpower 2 (1/3) * Rpower 2 (1/3)^3) by reflexivity. rewrite <- Rpower_pow; try apply Rpower_gt_0; try lra. rewrite Rpower_mult. replace (1/3 * INR 3) with 1 by (simpl; lra).
+    replace (Rpower 2 (1/3) ^ 4) with (Rpower 2 (1/3) * Rpower 2 (1/3)^3) by reflexivity. rewrite <- Rpower_pow; try apply Rpower_gt_0; try lra. rewrite Rpower_mult. replace (1/3 * 3%nat) with 1 by (simpl; lra).
     rewrite Rpower_1; lra.
   }
   assert (H2 : ((x - (Rpower 2 (1/2)))^3 - 2) * ((x + (Rpower 2 (1/2)))^3 - 2) = x^6 - 6 * x^4 - 4 * x^3 + 12 * x^2 - 24 * x - 4).
@@ -126,9 +126,9 @@ Proof.
     field_simplify. replace (sqrt 2 ^ 6) with (sqrt 2 ^2 * sqrt 2^4). 2 : { simpl. lra. } replace (sqrt 2 ^ 4) with (sqrt 2 ^2 * sqrt 2 ^ 2) by (simpl; lra). replace (sqrt 2 ^ 2) with 2. 2 : { rewrite pow2_sqrt; lra. }
     nra.
   }
-  assert (H3 : sum_f 0 6 (fun i => IZR (nth i [-4; -24; 12; -4; -6; 0]%Z 1%Z) * x ^ i) = 0).
+  assert (H3 : sum_f 0 6 (λ i, (nth i [-4; -24; 12; -4; -6; 0]%Z 1%Z)%Z * x ^ i) = 0).
   { repeat rewrite sum_f_i_Sn_f; try rewrite sum_f_0_0; try lia. simpl. field_simplify. nra. }
   apply lemma_2_18_a in H3 as [H3 | H3]; auto.
   pose proof (sqrt_2_weak_bound) as H4. pose proof (cbrt_2_weak_bound) as H5. replace (sqrt 2) with (Rpower 2 (1/2)) in H4. 2 : { rewrite <- Rpower_sqrt; try lra. unfold Rdiv. rewrite Rmult_1_l. reflexivity. }
-  assert (H6 : 2.6 < x < 2.8). { unfold x. nra. } assert (H7 : IZR 2 < x < IZR (2 + 1)) by (simpl; lra). apply (not_integer x 2%Z) in H7; tauto.
+  assert (H6 : 2.6 < x < 2.8). { unfold x. nra. } assert (H7 : 2%Z < x < (2 + 1)%Z) by (simpl; lra). apply (not_integer x 2%Z) in H7; tauto.
 Qed.

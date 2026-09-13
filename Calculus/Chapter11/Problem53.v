@@ -1,14 +1,14 @@
 From Calculus.Chapter11 Require Import Prelude.
 
-Lemma lemma_11_53 : forall g g' g'' f,
+Lemma lemma_11_53 : ∀ g g' g'' f,
   g 0 = 0 ->
   g' 0 = 0 ->
   g'' 0 = 17 ->
   ⟦ der ⟧ g = g' ->
   ⟦ der ⟧ g' = g'' ->
   f 0 = 0 ->
-  (forall x, x <> 0 -> f x = g x / x) ->
-  ⟦ der 0 ⟧ f = (fun _ => 17 / 2).
+  (∀ x, x <> 0 -> f x = g x / x) ->
+  ⟦ der 0 ⟧ f = (λ _, 17 / 2).
 Proof.
   intros g g' g'' f H1 H2 H3 H4 H5 H6 H7.
   apply limit_eq with (f1 := λ x, g x / x^2).

@@ -1,8 +1,8 @@
 From Calculus.Chapter6 Require Import Prelude.
 
-Lemma lemma_6_9_a : forall f a,
+Lemma lemma_6_9_a : ∀ f a,
   ~ continuous_at f a ->
-  exists ε, ε > 0 /\ forall δ, δ > 0 -> exists x, |x - a| < δ /\ |f x - f a| > ε.
+  ∃ ε, ε > 0 /\ ∀ δ, δ > 0 -> ∃ x, |x - a| < δ /\ |f x - f a| > ε.
 Proof.
   intros f a H1. unfold continuous_at in H1. apply not_all_ex_not in H1. destruct H1 as [ε H1].
   apply imply_to_and in H1. destruct H1 as [H2 H3]. exists (ε / 2). split; [lra|]. intros δ H4.
@@ -11,10 +11,10 @@ Proof.
   exists x. apply Rnot_lt_ge in H7. split; [solve_R | lra].
 Qed.
 
-Lemma lemma_6_9_b : forall f a,
+Lemma lemma_6_9_b : ∀ f a,
   ~ continuous_at f a ->
-  exists ε, ε > 0 /\ ((forall δ, δ > 0 -> exists x, |x - a| < δ /\ f x < f a - ε) \/
-                      (forall δ, δ > 0 -> exists x, |x - a| < δ /\ f x > f a + ε)).
+  ∃ ε, ε > 0 /\ ((∀ δ, δ > 0 -> ∃ x, |x - a| < δ /\ f x < f a - ε) \/
+                      (∀ δ, δ > 0 -> ∃ x, |x - a| < δ /\ f x > f a + ε)).
 Proof.
   intros f a H1. 
   pose proof classic (∃ ε : ℝ, ε > 0 ∧ ((∀ δ : ℝ, δ > 0 → ∃ x : ℝ, |(x - a)| < δ ∧ f x < f a - ε) ∨ (∀ δ : ℝ, δ > 0 → ∃ x : ℝ, |(x - a)| < δ ∧ f x > f a + ε))) as [H2 | H2].

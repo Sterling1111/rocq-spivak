@@ -1,12 +1,12 @@
 From Calculus.Chapter15 Require Import Prelude.
 
-Lemma lemma_15_25 : forall x y,
+Lemma lemma_15_25 : ∀ x y,
   x <> y ->
   |sin x - sin y| < |x - y|.
 Proof.
-  assert (H1 : forall a b, a < b -> |sin a - sin b| < b - a).
+  assert (H1 : ∀ a b, a < b -> |sin a - sin b| < b - a).
   { intros a b H2.
-    assert (H3 : exists z, a < z /\ z < b /\ forall w, a < w -> w < z -> |cos w| < 1).
+    assert (H3 : ∃ z, a < z /\ z < b /\ ∀ w, a < w -> w < z -> |cos w| < 1).
     { apply lemma_cos_lt_1_exists_z; auto. }
     destruct H3 as [z [H4 [H5 H6]]].
     assert (H7 : differentiable_on sin (a, z)). { apply derivative_on_imp_differentiable_on with (f' := cos); auto_diff. }

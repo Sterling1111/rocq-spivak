@@ -1,6 +1,6 @@
 From Calculus.Chapter1 Require Import Prelude.
 
-Lemma Rpow_0 : forall k, 
+Lemma Rpow_0 : ∀ k,
   (k >= 1)%nat -> 0 ^ k = 0.
 Proof.
   intros k H1. destruct k.
@@ -8,7 +8,7 @@ Proof.
   - simpl. lra.
 Qed.
 
-Lemma Rpow_gt_0 : forall k r,
+Lemma Rpow_gt_0 : ∀ k r,
   r > 0 -> r ^ k > 0.
 Proof.
   intros k r H1. induction k as [| k' IH].
@@ -16,7 +16,7 @@ Proof.
   - simpl. nra.
 Qed.
 
-Lemma Rpow_equ_0 : forall n r,
+Lemma Rpow_equ_0 : ∀ n r,
   r ^ n = 0 -> r = 0.
 Proof.
   intros n r. pose proof pow_nonzero r n.
@@ -25,7 +25,7 @@ Proof.
   - intros H2. apply H in H1. apply H1 in H2. exfalso. apply H2.
 Qed.
 
-Lemma Rpow_odd_lt_0 : forall x n,
+Lemma Rpow_odd_lt_0 : ∀ x n,
   x < 0 -> (Nat.Odd n -> x^n < 0) /\ (Nat.Even n -> x^n > 0).
 Proof.
   intros x n H1. induction n as [| k IH].
@@ -37,7 +37,7 @@ Proof.
     -- intro H2. simpl. rewrite Nat.Even_succ in H2. apply IH1 in H2. nra.
 Qed.
 
-Lemma Rpow_even_neg_eq_pos : forall x n,
+Lemma Rpow_even_neg_eq_pos : ∀ x n,
   x < 0 -> (Nat.Even n -> (-x)^n = x^n) /\ (Nat.Odd n -> (-x)^n = -x^n).
 Proof.
   intros x n H1. induction n as [| k IH].
@@ -47,7 +47,7 @@ Proof.
     -- intro H2. rewrite Nat.Odd_succ in H2. rewrite IH1. lra. apply H2.
 Qed.
 
-Lemma abs_smaller_neg_larger : forall x y, x < 0 -> y < 0 -> Rabs y < Rabs x -> x < y.
+Lemma abs_smaller_neg_larger : ∀ x y, x < 0 -> y < 0 -> Rabs y < Rabs x -> x < y.
 Proof.
   intros x y Hx Hy Habs.
   unfold Rabs in Habs.
@@ -60,7 +60,7 @@ Proof.
     -- lra.
 Qed.
 
-Lemma lemma_1_6_a : forall x y n,
+Lemma lemma_1_6_a : ∀ x y n,
   0 <= x < y -> (0 < n)%nat -> x^n < y^n.
 Proof.
   intros x y n [H1 H2] H3. induction n as [| k IH].
@@ -71,7 +71,7 @@ Proof.
        { apply Rmult_gt_0_lt_compat. apply Rpow_gt_0. lra. lra. lra. apply IH. lia. }
 Qed.
 
-Lemma lemma_1_6_b : forall x y n,
+Lemma lemma_1_6_b : ∀ x y n,
   x < y -> Nat.Odd n -> x^n < y^n.
 Proof.
   intros x y n H1 H2. assert (H3 : x >= 0 \/ x < 0) by lra. destruct H3 as [H3 | H3].
@@ -88,7 +88,7 @@ Proof.
        apply abs_smaller_neg_larger; assumption.
 Qed.
 
-Lemma lemma_1_6_c : forall x y n,
+Lemma lemma_1_6_c : ∀ x y n,
   x ^ n = y ^ n -> Nat.Odd n -> x = y.
 Proof.
   intros x y n H1 H2. pose proof Rtotal_order x y as H3. destruct H3 as [H3 | [H3 | H3]].
@@ -97,7 +97,7 @@ Proof.
   - pose proof lemma_1_6_b y x n as H4. apply H4 in H3. 2 : { apply H2. } lra.
 Qed.
 
-Lemma lemma_1_6_d : forall x y n,
+Lemma lemma_1_6_d : ∀ x y n,
   x ^ n = y ^ n -> Nat.Even n -> (0 < n)%nat -> (x = y \/ x = -y).
 Proof.
   intros x y n H1 H2 H3. 

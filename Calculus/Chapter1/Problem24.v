@@ -7,13 +7,13 @@ Fixpoint standard_sum (l : list R) : R :=
   | x :: xs => x + standard_sum xs
   end.
 
-Lemma lemma_1_24_a : forall l a,
+Lemma lemma_1_24_a : ∀ l a,
   a + standard_sum l = standard_sum (a :: l).
 Proof.
   intros; destruct l; simpl; lra.
 Qed.
 
-Lemma lemma_1_24_b : forall l1 l2,
+Lemma lemma_1_24_b : ∀ l1 l2,
   standard_sum l1 + standard_sum l2 = standard_sum (l1 ++ l2).
 Proof.
   intros l1 l2. induction l1 as [| a' l1' IH].
@@ -38,7 +38,7 @@ Fixpoint elements (e : add_expr) : list R :=
   | Sum e1 e2 => elements e1 ++ elements e2
   end.
 
-Lemma lemma_1_24_c : forall e : add_expr,
+Lemma lemma_1_24_c : ∀ e : add_expr,
   eval_add_expr e = standard_sum (elements e).
 Proof.
   intros e. induction e as [a | e1 IH1 e2 IH2].
@@ -46,7 +46,7 @@ Proof.
   - simpl. rewrite <- lemma_1_24_b. lra.
 Qed.
 
-Lemma R_add_assoc_general : forall e1 e2,
+Lemma R_add_assoc_general : ∀ e1 e2,
   elements e1 = elements e2 -> eval_add_expr e1 = eval_add_expr e2.
 Proof.
   intros e1 e2 H. repeat rewrite lemma_1_24_c. rewrite H. reflexivity.

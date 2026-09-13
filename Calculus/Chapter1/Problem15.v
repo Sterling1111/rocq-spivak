@@ -1,7 +1,7 @@
 From Calculus.Chapter1 Require Import Prelude.
 From Calculus.Chapter1 Require Import Problem6.
 
-Lemma lemma_1_15' : forall x y,
+Lemma lemma_1_15' : ∀ x y,
   x <> 0 -> x^2 + x * y + y^2 > 0 /\ x^4 + x^3 * y + x^2 * y^2 + x * y^3 + y^4 > 0.
 Proof.
   intros x y H1. split.
@@ -41,7 +41,7 @@ Proof.
        nra.
 Qed.
 
-Lemma lemma_1_15 : forall x y,
+Lemma lemma_1_15 : ∀ x y,
   (x <> 0 \/ y <> 0) -> x^2 + x * y + y^2 > 0 /\ x^4 + x^3 * y + x^2 * y^2 + x * y^3 + y^4 > 0.
 Proof.
   intros x y [H1 | H1].

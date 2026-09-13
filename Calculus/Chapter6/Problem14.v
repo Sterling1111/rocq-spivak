@@ -1,9 +1,9 @@
 From Calculus.Chapter6 Require Import Prelude.
 
-Lemma lemma_6_14_a : forall f g h a,
+Lemma lemma_6_14_a : ∀ f g h a,
   continuous_at g a -> continuous_at h a -> g a = h a ->
-  (forall x, x >= a -> f x = g x) ->
-  (forall x, x <= a -> f x = h x) ->
+  (∀ x, x >= a -> f x = g x) ->
+  (∀ x, x <= a -> f x = h x) ->
   continuous_at f a.
 Proof.
   intros f g h a H1 H2 H3 H4 H5. intros ε H6.

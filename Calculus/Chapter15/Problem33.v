@@ -1,20 +1,20 @@
 From Calculus.Chapter15 Require Import Prelude.
 
-(* Problem 33 *)
-
-(* (a) sin(k+1/2)x - sin(k-1/2)x = 2 sin(x/2) cos(kx) *)
-Lemma lemma_15_33_a : forall k x,
+Lemma lemma_15_33_a : ∀ k x,
   sin ((k + 1/2) * x) - sin ((k - 1/2) * x) = 2 * sin (x / 2) * cos (k * x).
+Proof.
+  intros k x. rewrite sum_to_product_sin_minus.
+  replace (((k + 1 / 2) * x - (k - 1 / 2) * x) / 2) with (x / 2) by lra.
+  replace (((k + 1 / 2) * x + (k - 1 / 2) * x) / 2) with (k * x) by lra.
+  reflexivity.
+Qed.
+
+Lemma lemma_15_33_b : ∀ (n : nat) x,
+  sin (x / 2) <> 0 ->
+  1/2 + ∑ 1 n (λ (i : ℕ), cos (i * x)) = sin ((n + 1/2) * x) / (2 * sin (x / 2)).
 Abort.
 
-(* (b) Dirichlet kernel: 1/2 + cos x + cos 2x + ... + cos nx = sin((n+1/2)x) / (2 sin(x/2)) *)
-Lemma lemma_15_33_b : forall (n : nat) x,
+Lemma lemma_15_33_c : ∀ (n : nat) x,
   sin (x / 2) <> 0 ->
-  1/2 + ∑ 1 n (fun i => cos (INR i * x)) = sin ((INR n + 1/2) * x) / (2 * sin (x / 2)).
-Abort.
-
-(* (c) sin x + sin 2x + ... + sin nx = sin((n+1)/2 * x) * sin(n/2 * x) / sin(x/2) *)
-Lemma lemma_15_33_c : forall (n : nat) x,
-  sin (x / 2) <> 0 ->
-  ∑ 1 n (fun i => sin (INR i * x)) = sin ((INR n + 1) / 2 * x) * sin (INR n / 2 * x) / sin (x / 2).
+  ∑ 1 n (λ (i : ℕ), sin (i * x)) = sin ((n + 1) / 2 * x) * sin (n / 2 * x) / sin (x / 2).
 Abort.

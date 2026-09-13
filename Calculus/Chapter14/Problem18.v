@@ -1,6 +1,6 @@
 From Calculus.Chapter14 Require Import Prelude.
 
-Lemma lemma_14_18 : forall h f g f' g',
+Lemma lemma_14_18 : ∀ h f g f' g',
   continuous h ->
   ⟦ der ⟧ f = f' ->
   ⟦ der ⟧ g = g' ->

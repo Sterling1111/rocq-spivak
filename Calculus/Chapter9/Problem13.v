@@ -1,13 +1,13 @@
 From Calculus.Chapter9 Require Import Prelude.
 Open Scope R_scope.
 
-Lemma lemma_9_13 : forall f f' g g' h a,
+Lemma lemma_9_13 : ∀ f f' g g' h a,
   f a = g a ->
   ⟦ der a⁻ ⟧ f = f' ->
   ⟦ der a⁺ ⟧ g = g' ->
   f' a = g' a ->
-  (forall x, x <= a -> h x = f x) ->
-  (forall x, x >= a -> h x = g x) ->
+  (∀ x, x <= a -> h x = f x) ->
+  (∀ x, x >= a -> h x = g x) ->
   differentiable_at h a.
 Proof.
   intros f f' g g' h a H1 H2 H3 H4 H5 H6.

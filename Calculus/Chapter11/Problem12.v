@@ -8,30 +8,30 @@ Hypothesis H1 : a > 0.
 Definition Volume (x y : ℝ) := (π * y^2 * x) / 3.
 Definition V (x : ℝ) := (π * (a^2 - x^2) * x) / 3.
 
-Lemma y_subst : forall x y,
+Lemma y_subst : ∀ x y,
   x^2 + y^2 = a^2 -> y^2 = a^2 - x^2.
 Proof.
   intros x y H2. lra.
 Qed.
 
-Lemma Volume_subst : forall x y,
+Lemma Volume_subst : ∀ x y,
   x^2 + y^2 = a^2 -> Volume x y = V x.
 Proof.
   intros x y H2. unfold Volume, V. apply y_subst in H2. rewrite H2. lra.
 Qed.
 
-Lemma V_derivative : ⟦ der ⟧ V (0, a) = (fun x => (π * (a^2 - 3 * x^2)) / 3).
+Lemma V_derivative : ⟦ der ⟧ V (0, a) = (λ x, (π * (a^2 - 3 * x^2)) / 3).
 Proof.
   unfold V. intros x H2. left. split; [ auto_interval | auto_diff ].
 Qed.
 
 Lemma V_differentiable : differentiable_on V (0, a).
 Proof.
-  apply derivative_on_imp_differentiable_on with (f' := (fun x => (π * (a^2 - 3 * x^2)) / 3)).
+  apply derivative_on_imp_differentiable_on with (f' := (λ x, (π * (a^2 - 3 * x^2)) / 3)).
   apply V_derivative.
 Qed.
 
-Lemma lemma_11_12 : forall x1 y1 x2 y2,
+Lemma lemma_11_12 : ∀ x1 y1 x2 y2,
   x1^2 + y1^2 = a^2 -> x2^2 + y2^2 = a^2 ->
   0 < x1 -> x1 < a -> 0 < x2 -> x2 < a ->
   x1 = a / √3 -> Volume x1 y1 >= Volume x2 y2.
@@ -41,7 +41,7 @@ Proof.
   rewrite (Volume_subst x1 y1 H2), (Volume_subst x2 y2 H3).
   assert (H10 : V x2 <= V (a / √3)).
   { 
-    apply first_derivative_test_domain_max with (f' := fun x => (π * (a^2 - 3 * x^2)) / 3) (D := (0, a));
+    apply first_derivative_test_domain_max with (f' := λ x, (π * (a^2 - 3 * x^2)) / 3) (D := (0, a));
     try solve [solve_R].
     - apply V_differentiable.
     - apply V_derivative.
@@ -57,7 +57,7 @@ Proof.
   subst. lra.
 Qed.
 
-Lemma lemma_11_12' : forall x1 y1 x2 y2,
+Lemma lemma_11_12' : ∀ x1 y1 x2 y2,
   x1^2 + y1^2 = a^2 -> x2^2 + y2^2 = a^2 ->
   0 < x1 -> x1 < a -> 0 < x2 -> x2 < a ->
   x1 = a / √3 -> x1 <> x2 -> Volume x1 y1 > Volume x2 y2.
@@ -67,7 +67,7 @@ Proof.
   rewrite (Volume_subst x1 y1 H2), (Volume_subst x2 y2 H3).
   assert (H11 : maximum_point_strict V (0, a) (a / √3)).
   { 
-    apply first_derivative_test_domain_strict_max with (f' := fun x => (π * (a^2 - 3 * x^2)) / 3) (D := (0, a));
+    apply first_derivative_test_domain_strict_max with (f' := λ x, (π * (a^2 - 3 * x^2)) / 3) (D := (0, a));
     try solve [solve_R].
     - apply V_differentiable.
     - apply V_derivative.

@@ -1,6 +1,5 @@
 From Calculus.Chapter19 Require Import Prelude.
 
-(* Finite elementary expressions; no integration constructor is allowed. *)
 Inductive elementary_19 : (R -> R) -> Prop :=
 | elementary_19_const : ∀ c, elementary_19 (λ _, c)
 | elementary_19_id : elementary_19 (λ x, x)

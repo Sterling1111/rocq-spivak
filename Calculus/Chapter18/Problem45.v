@@ -1,7 +1,5 @@
 From Calculus.Chapter18 Require Import Prelude.
 
-(* A list of at most m coefficients represents a polynomial of degree < m;
-   the empty list represents zero, including when m=0. *)
 From Lib Require Import Polynomial.
 
 Lemma lemma_18_45_a : ∀ n f, (1 <= n)%nat ->

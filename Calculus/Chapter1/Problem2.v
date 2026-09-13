@@ -1,7 +1,7 @@
 From Calculus.Chapter1 Require Import Prelude.
 From Calculus Require Import Chapter1.Problem1.
 
-Lemma lemma_1_2 : forall x y : R,
+Lemma lemma_1_2 : ∀ x y : R,
   x = y -> 1 = 2.
 Proof.
   intros x y H1. pose proof H1 as H2.

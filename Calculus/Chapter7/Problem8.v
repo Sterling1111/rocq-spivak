@@ -1,11 +1,11 @@
 From Calculus.Chapter7 Require Import Prelude.
 
-Lemma lemma_7_8 : forall f g,
+Lemma lemma_7_8 : ∀ f g,
   continuous f ->
   continuous g ->
   (f^2 = g^2)%function ->
-  (forall x, f x <> 0) ->
-  (forall x, f x = g x) \/ (forall x, f x = - g x).
+  (∀ x, f x <> 0) ->
+  (∀ x, f x = g x) \/ (∀ x, f x = - g x).
 Proof.
   intros f g H1 H2 H3 H4.
   pose proof classic ((∀ x : ℝ, f x = g x) ∨ ∀ x : ℝ, f x = - g x) as [H5 | H5]; auto.
@@ -14,7 +14,7 @@ Proof.
   apply not_all_ex_not in H5 as [x H7].
   apply not_all_ex_not in H6 as [y H8].
 
-  assert (H9 : forall z, f z = g z \/ f z = - g z).
+  assert (H9 : ∀ z, f z = g z \/ f z = - g z).
   {
     intros z. apply equal_f with (x := z) in H3.
     simpl in H3. repeat rewrite Rmult_1_r in H3.
@@ -23,7 +23,7 @@ Proof.
 
   destruct (H9 x) as [H10 | H10]; destruct (H9 y) as [H11 | H11]; try lra.
 
-  assert ((forall x, f x > 0) \/ (forall x, f x < 0)) as [H12 | H12].
+  assert ((∀ x, f x > 0) \/ (∀ x, f x < 0)) as [H12 | H12].
   {
     pose proof classic ((∀ x0 : ℝ, f x0 > 0) ∨ ∀ x0 : ℝ, f x0 < 0) as [H12 | H12]; auto.
     exfalso.

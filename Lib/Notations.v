@@ -5,6 +5,9 @@ Notation ℤ := Z.
 Notation ℚ := Q.
 Notation ℝ := R.
 
+Notation "∃! x .. y , P" := (exists! x, .. (exists! y, P) ..)
+  (at level 10, x binder, y binder, P at level 200) : type_scope.
+
 Notation "| x |" := (Rabs x)
   (at level 35, x at level 0, format "| x |", no associativity) : R_scope.
 

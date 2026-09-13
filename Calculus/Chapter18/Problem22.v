@@ -6,7 +6,6 @@ Proof.
   apply log_exp.
 Qed.
 
-(* Radioactive decay: c must be negative for a positive half-life. *)
 Lemma lemma_18_22_a : ∀ A c,
   c < 0 -> ⟦ der ⟧ A = (λ t, c * A t) ->
   ∀ t, A t = A 0 * exp (c * t).

@@ -1,13 +1,13 @@
 From Calculus.Chapter22 Require Import Prelude.
 
-Lemma lemma_22_13_a : forall f n,
+Lemma lemma_22_13_a : ∀ f n,
   (n > 1)%nat ->
-  increasing_on f (fun x => 1 <= x) ->
-  (sum_f 1 (n - 1)%nat (fun k => f (INR k))) < (∫ 1 (INR n) f) /\ (∫ 1 (INR n) f) < (sum_f 2 n (fun k => f (INR k))).
+  increasing_on f (λ x, 1 <= x) ->
+  (∑ 1 (n - 1) (λ k, f k)) < (∫ 1 n f) /\ (∫ 1 n f) < (∑ 2 n (λ k, f k)).
 Abort.
 
-Lemma lemma_22_13_b : forall n,
-  (n > 0)%nat ->
-  INR n ^ n / exp (INR (n - 1)) < INR (fact n) < INR (n + 1) ^ (n + 1) / exp (INR n) /\
-  ⟦ lim ⟧ (fun n => exp ((1 / INR n) * log (INR (fact n))) / INR n) = 1 / exp 1.
+Lemma lemma_22_13_b : ∀ n,
+  (n > 1)%nat ->
+  n ^ n / exp ((n - 1)%nat) < n! < (n + 1)%nat ^ (n + 1) / exp n /\
+  ⟦ lim ⟧ (λ n, n! ^^ (1 / n) / n) = 1 / exp 1.
 Abort.

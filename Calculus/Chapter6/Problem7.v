@@ -1,8 +1,8 @@
 From Calculus.Chapter6 Require Import Prelude.
 
-Lemma lemma_6_7 : forall f,
-  (forall x y, f(x + y) = f(x) + f(y)) -> 
-  continuous_at f 0 -> forall a, continuous_at f a.
+Lemma lemma_6_7 : ∀ f,
+  (∀ x y, f(x + y) = f(x) + f(y)) ->
+  continuous_at f 0 -> ∀ a, continuous_at f a.
 Proof.
   intros f H1 H2 a ε H3.
   specialize (H2 ε H3) as [δ [H4 H5]].

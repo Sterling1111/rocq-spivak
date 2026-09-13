@@ -15,17 +15,17 @@ Lemma lemma_3_12_a' :
   ~ (∀ f g, odd f -> even g -> odd (f + g)).
 Proof.
   repeat split; intros H1.
-  - assert (H2: even (fun _ => 0)) by (intro x; lra).
-    assert (H3: odd (fun x => x)) by (intro x; lra).
+  - assert (H2: even (λ _, 0)) by (intro x; lra).
+    assert (H3: odd (λ x, x)) by (intro x; lra).
     specialize (H1 _ _ H2 H3 1); lra.
-  - assert (H2: even (fun _ => 1)) by (intro x; lra).
-    assert (H3: odd (fun _ => 0)) by (intro x; lra).
+  - assert (H2: even (λ _, 1)) by (intro x; lra).
+    assert (H3: odd (λ _, 0)) by (intro x; lra).
     specialize (H1 _ _ H2 H3 1); lra.
-  - assert (H2: odd (fun x => x)) by (intro x; lra).
-    assert (H3: even (fun _ => 0)) by (intro x; lra).
+  - assert (H2: odd (λ x, x)) by (intro x; lra).
+    assert (H3: even (λ _, 0)) by (intro x; lra).
     specialize (H1 _ _ H2 H3 1); lra.
-  - assert (H2: odd (fun _ => 0)) by (intro x; lra).
-    assert (H3: even (fun _ => 1)) by (intro x; lra).
+  - assert (H2: odd (λ _, 0)) by (intro x; lra).
+    assert (H3: even (λ _, 1)) by (intro x; lra).
     specialize (H1 _ _ H2 H3 1); lra.
 Qed.
   
@@ -72,10 +72,25 @@ Lemma lemma_3_12_d : ∀ f l,
 Proof.
   intros f l H1.
   set (M := max_val l + 1).
-  set (g := fun x => if Rle_dec 0 x then f x else M).
+  set (g := λ x, if Rle_dec 0 x then f x else M).
   exists g; split.
   - intros H2. 
     pose proof max_val_ge g l H2 as H3.
     unfold g, M in *; solve_R.
   - unfold g; solve_R.
+Qed.
+
+Lemma lemma_3_12_a_mixed :
+  (∃ f g : R -> R, even f /\ odd g /\
+    ~ even (f + g)%function /\ ~ odd (f + g)%function) /\
+  (∃ f g : R -> R, odd f /\ even g /\
+    ~ even (f + g)%function /\ ~ odd (f + g)%function).
+Proof.
+  split.
+  - exists (λ _, 1), (λ x, x). split; [intro x; reflexivity |]. split; [intro x; reflexivity |]. split.
+    + intro H1. specialize (H1 1). cbn in H1. lra.
+    + intro H1. specialize (H1 0). cbn in H1. lra.
+  - exists (λ x, x), (λ _, 1). split; [intro x; reflexivity |]. split; [intro x; reflexivity |]. split.
+    + intro H1. specialize (H1 1). cbn in H1. lra.
+    + intro H1. specialize (H1 0). cbn in H1. lra.
 Qed.

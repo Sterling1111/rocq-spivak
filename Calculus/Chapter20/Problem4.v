@@ -1,6 +1,5 @@
 From Calculus.Chapter20 Require Import Prelude.
 
-(* Explicit sufficient truncation indices; no claim of minimality. *)
 Lemma lemma_20_4_i :
   |sin 1 - ∑ 0 (10^10) (λ k, (-1)^k / (fact (2*k+1)))| < / 10^(10^10).
 Abort.

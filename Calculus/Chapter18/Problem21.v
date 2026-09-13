@@ -24,8 +24,6 @@ Proof.
   intros f c H1. auto_diff.
 Qed.
 
-(* Part (c), on the interval in the exercise; retain the proved global
-   quotient-derivative lemma above. *)
 Lemma lemma_18_21_c_interval : ∀ f c a b,
   a < b -> ⟦ der ⟧ f (a,b) = (λ x, c * f x) ->
   ∃ k, ∀ x, a < x < b -> f x = k * exp (c*x).

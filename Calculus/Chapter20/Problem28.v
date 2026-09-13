@@ -11,10 +11,12 @@ Lemma lemma_20_28_a :
     (∀ a, a <> 0 -> m a = ⟦ Der ^ 2 a ⟧ f) /\
     second_order_expansion f f' m /\ ~ continuous_at m 0).
 Abort.
+
 Lemma lemma_20_28_b : ∀ f f',
   ⟦ der ⟧ f = f' -> second_order_expansion f f' (λ _, 0) ->
   ⟦ der ⟧ f' = (λ _, 0).
 Abort.
+
 Lemma lemma_20_28_c : ∀ f f' m,
   ⟦ der ⟧ f = f' -> second_order_expansion f f' m -> continuous m -> ⟦ der ⟧ f' = m.
 Abort.

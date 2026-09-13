@@ -1,16 +1,16 @@
 From Calculus.Chapter11 Require Import Prelude.
 
-Lemma lemma_11_43 : forall f f',
+Lemma lemma_11_43 : ∀ f f',
   ⟦ der ⟧ f = f' ->
-  (forall x, x > 0 -> f' x = 1 / x) -> f 1 = 0 ->
-  forall x y, x > 0 -> y > 0 -> f (x * y) = f x + f y.
+  (∀ x, x > 0 -> f' x = 1 / x) -> f 1 = 0 ->
+  ∀ x y, x > 0 -> y > 0 -> f (x * y) = f x + f y.
 Proof.
   intros f f' H1 H2 H3 x y H4 H5.
-  set (g := fun x => f (x * y)).
-  assert (H6 : forall z, z > 0 -> ⟦ der z ⟧ g = f').
+  set (g := λ x, f (x * y)).
+  assert (H6 : ∀ z, z > 0 -> ⟦ der z ⟧ g = f').
   {
     intros z H6.
-    assert (H7 : ⟦ der ⟧ g = (fun x => y * f' (x * y))) by (unfold g; auto_diff).
+    assert (H7 : ⟦ der ⟧ g = (λ x, y * f' (x * y))) by (unfold g; auto_diff).
     specialize (H7 z). apply derivative_at_ext' with (f1 := λ x : ℝ, y * f' (x * y)); auto.
     exists (z / 2). split; try lra. intros h H8. repeat rewrite H2; solve_R.
   }

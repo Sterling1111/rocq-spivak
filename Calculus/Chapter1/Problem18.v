@@ -1,6 +1,6 @@
 From Calculus.Chapter1 Require Import Prelude.
 
-Lemma lemma_1_18_a : forall b c x,
+Lemma lemma_1_18_a : ∀ b c x,
   (b^2 - 4 * c >= 0) -> ((x = (-b + √ (b^2 - 4 * c))/ 2 \/ x = (-b - √ (b^2 - 4 * c))/ 2)) -> x^2 + b * x + c = 0.
 Proof.
   intros b c x H1 [H2 | H2].
@@ -10,16 +10,16 @@ Proof.
     simpl. repeat rewrite Rmult_1_r. rewrite sqrt_sqrt. 2 : { lra. } nra.
 Qed.
 
-Lemma lemma_1_18_a' : forall b c,
-  b^2 - 4 * c >= 0 -> (exists x, x^2 + b * x + c = 0).
+Lemma lemma_1_18_a' : ∀ b c,
+  b^2 - 4 * c >= 0 -> (∃ x, x^2 + b * x + c = 0).
 Proof.
   intros b c H1.
   exists ((-b + √ (b^2 - 4 * c)) / 2).
   apply lemma_1_18_a; auto.
 Qed.
 
-Lemma lemma_1_18_a'' : forall b c,
-  (forall x, x^2 + b * x + c <> 0) -> b^2 - 4 * c < 0.
+Lemma lemma_1_18_a'' : ∀ b c,
+  (∀ x, x^2 + b * x + c <> 0) -> b^2 - 4 * c < 0.
 Proof.
   intros b c H1.
   assert (H2 : b^2 - 4 * c >= 0 \/ b^2 - 4 * c < 0) by nra. destruct H2 as [H2 | H2].
@@ -28,7 +28,7 @@ Proof.
   - apply H2.
 Qed.
 
-Lemma lemma_1_18_b : forall b c x,
+Lemma lemma_1_18_b : ∀ b c x,
   (b^2 - 4 * c < 0) -> x^2 + b * x + c > 0.
 Proof.
   intros b c x H1. replace (x^2 + b * x + c) with ((x + b / 2)^2 + (c - b^2 / 4)) by nra.
@@ -36,7 +36,7 @@ Proof.
   assert (H3 : (c - b^2 / 4) > 0). { nra. } nra.
 Qed.
 
-Lemma lemma_1_18_c : forall x y,
+Lemma lemma_1_18_c : ∀ x y,
   (x <> 0 \/ y <> 0) -> x^2 + x * y + y^2 > 0.
 Proof.
   intros x y [H1 | H1].
@@ -44,7 +44,7 @@ Proof.
   - rewrite Rmult_comm with (r1 := x) (r2 := y). apply lemma_1_18_b. nra.
 Qed.
 
-Lemma lemma_1_18_d : forall x y a,
+Lemma lemma_1_18_d : ∀ x y a,
   (x <> 0 \/ y <> 0) -> a^2 < 4 -> x^2 + a * x * y + y^2 > 0.
 Proof.
   intros x y a [H1 | H1].
@@ -54,7 +54,7 @@ Proof.
     replace (y^2 - a^2 * y^2 / 4) with (y^2 * (1 - a^2 / 4)) by nra. assert (H4 : y^2 > 0) by nra. nra.
 Qed.
 
-Lemma lemma_1_18_d' : forall a, a^2 >= 4 -> exists x y, (x <> 0 \/ y <> 0) -> x^2 + a * x * y + y^2 <= 0.
+Lemma lemma_1_18_d' : ∀ a, a^2 >= 4 -> ∃ x y, (x <> 0 \/ y <> 0) -> x^2 + a * x * y + y^2 <= 0.
 Proof.
   intros a H1. assert (H2 : a <= -2 \/ a >= 2) by nra. destruct H2 as [H2 | H2].
   - exists 1, 1. intros [H3 | H3].
@@ -65,7 +65,7 @@ Proof.
     -- nra.
 Qed.
 
-Lemma lemma_1_18_e : forall x b c,
+Lemma lemma_1_18_e : ∀ x b c,
   c - b^2 / 4 <=  x^2 + b * x + c /\ (x = -b / 2 -> x^2 + b * x + c = c - b^2 / 4).
 Proof.
   intros x b c. split.
@@ -75,7 +75,7 @@ Proof.
   - intros H1. rewrite H1. nra.
 Qed.
 
-Lemma lemma_1_18_e' : forall x a b c,
+Lemma lemma_1_18_e' : ∀ x a b c,
   a > 0 -> c - b^2 / (4 * a) <= a * x^2 + b * x + c /\ (x = -b / (2 * a) -> a * x^2 + b * x + c = c - b^2 / (4 * a)).
 Proof.
   intros x a b c H1. split.

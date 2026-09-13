@@ -1,7 +1,5 @@
 From Calculus.Chapter20 Require Import Prelude.
 
-(* The derivative hypotheses in this definition assert existence, rather than
-   relying on the default value of the total derivative operator. *)
 Definition ode_solution (n : ℕ) (a : ℕ -> ℝ) (f : ℝ -> ℝ) : Prop :=
   nth_differentiable n f /\
   ∀ x, ⟦ Der ^ n x ⟧ f = ∑ 0 (n-1) (λ j, a j * ⟦ Der ^ j x ⟧ f).
@@ -31,7 +29,6 @@ Lemma lemma_20_26_b : ∀ n a f,
     (λ x, ∑ 0 (n-1) (λ j, (previous_coefficient b j + b (n-1)%nat * a j) * ⟦ Der ^ j x ⟧ f)).
 Abort.
 
-(* Any N >= max(1,|a_0|,...,|a_(n-1)|) gives the stated estimates. *)
 Lemma lemma_20_26_c : ∀ n a f N,
   (0 < n)%nat -> ode_solution n a f ->
   N >= 1 -> (∀ j, (j < n)%nat -> |a j| <= N) ->
@@ -47,8 +44,6 @@ Lemma lemma_20_26_d : ∀ n a f N,
   ∀ x, ∃ M, M > 0 /\ ∀ k, |⟦ Der ^ (n+k) x ⟧ f| <= M * 2^k * N^(S k).
 Abort.
 
-(* For Taylor's remainder the constant must work on the whole segment
-   between 0 and x, not merely at the single point x of part (d). *)
 Lemma lemma_20_26_e_bound : ∀ n a f N,
   (0 < n)%nat -> ode_solution n a f ->
   N >= 1 -> (∀ j, (j < n)%nat -> |a j| <= N) ->

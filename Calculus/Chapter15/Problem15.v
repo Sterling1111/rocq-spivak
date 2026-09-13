@@ -1,18 +1,18 @@
 From Calculus.Chapter15 Require Import Prelude.
 
-Lemma lemma_15_15_a_sin2 : forall x,
+Lemma lemma_15_15_a_sin2 : ∀ x,
   (sin x)^2 = (1 - cos (2 * x)) / 2.
 Proof.
   intros x. rewrite cos_2x_3. lra.
 Qed.
 
-Lemma lemma_15_15_a_cos2 : forall x,
+Lemma lemma_15_15_a_cos2 : ∀ x,
   (cos x)^2 = (1 + cos (2 * x)) / 2.
 Proof.
   intros x. rewrite cos_2x_2. lra.
 Qed.
 
-Lemma lemma_15_15_b_cos_half : forall x,
+Lemma lemma_15_15_b_cos_half : ∀ x,
   0 <= x <= π / 2 ->
   cos (x / 2) = √((1 + cos x) / 2).
 Proof.
@@ -26,7 +26,7 @@ Proof.
   rewrite sqrt_square in H2; auto.
 Qed.
 
-Lemma lemma_15_15_b_sin_half : forall x,
+Lemma lemma_15_15_b_sin_half : ∀ x,
   0 <= x <= π / 2 ->
   sin (x / 2) = √((1 - cos x) / 2).
 Proof.
@@ -45,18 +45,18 @@ Proof.
   rewrite sqrt_square in H2; auto.
 Qed.
 
-Lemma lemma_15_15_c_sin2 : forall a b,
+Lemma lemma_15_15_c_sin2 : ∀ a b,
   a < b ->
-  ∫ a b (fun x => (sin x)^2) = (b - a) / 2 - (sin (2 * b) - sin (2 * a)) / 4.
+  ∫ a b (λ x, (sin x)^2) = (b - a) / 2 - (sin (2 * b) - sin (2 * a)) / 4.
 Proof.
   intros a b H1. auto_int.
   - pose proof pythagorean_identity x. nra.
   - repeat rewrite sin_2x. nra.
 Qed.
 
-Lemma lemma_15_15_c_cos2 : forall a b,
+Lemma lemma_15_15_c_cos2 : ∀ a b,
   a < b ->
-  ∫ a b (fun x => (cos x)^2) = (b - a) / 2 + (sin (2 * b) - sin (2 * a)) / 4.
+  ∫ a b (λ x, (cos x)^2) = (b - a) / 2 + (sin (2 * b) - sin (2 * a)) / 4.
 Proof.
   intros a b H1. auto_int.
   - pose proof pythagorean_identity x. nra.

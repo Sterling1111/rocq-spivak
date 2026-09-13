@@ -1,8 +1,8 @@
 From Calculus.Chapter6 Require Import Prelude.
 
-Lemma lemma_6_8 : forall f a α,
+Lemma lemma_6_8 : ∀ f a α,
   continuous_at f a -> f a = 0 -> α <> 0 ->
-  exists δ, δ > 0 /\ forall x, |x - a| < δ -> f x + α <> 0.
+  ∃ δ, δ > 0 /\ ∀ x, |x - a| < δ -> f x + α <> 0.
 Proof.
   intros f a α H1 H2 H3. pose proof H3 as H4.
   assert (|α| / 2 > 0) as H5 by (split_Rabs; lra).

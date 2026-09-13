@@ -1,7 +1,7 @@
 From Calculus.Chapter1 Require Import Prelude.
 From Calculus.Chapter1 Require Import Problem12.
 
-Lemma lemma_1_21 : forall x x0 y y0 ε,
+Lemma lemma_1_21 : ∀ x x0 y y0 ε,
   |x - x0| < Rmin (ε / (2 * (|y0| + 1))) 1 -> |y - y0| < ε / (2 * ((|x0|) + 1)) -> |x * y - x0 * y0| < ε.
 Proof.
   intros x x0 y y0 ε H1 H2. assert (H3 : (|x - x0|) < 1). { apply Rlt_gt in H1. apply Rmin_Rgt_l in H1. lra. }
@@ -20,7 +20,7 @@ Proof.
   { repeat rewrite <- lemma_1_12_i. apply Rabs_triang. }
   assert (H10 : (1 + |x0|) * (ε / (2 * (|x0| + 1))) = ε / 2). { field; try unfold Rabs; try destruct Rcase_abs; try nra. }
 
-  assert (H : forall x, x >= 0 -> x / (2 * (x + 1)) < 1 / 2).
+  assert (H : ∀ x, x >= 0 -> x / (2 * (x + 1)) < 1 / 2).
   {
     intros x1 H11. apply Rmult_lt_reg_l with (r := 2). lra. unfold Rdiv.
     replace (2 * (1 * / 2)) with (1) by lra. replace (2 * (x1 * / (2 * (x1 + 1)))) with ((x1) * (2 * / (2 * (x1 + 1)))) by lra.

@@ -16,7 +16,7 @@ Section section_10_10.
   Proof.
     assert (H8 : continuous_at h 0).
     { apply differentiable_imp_continuous. eapply derivative_imp_differentiable; eauto. }
-    apply derivative_at_eq with (f1 := fun x => h x ^ 2 * sin (1 / h x)).
+    apply derivative_at_eq with (f1 := λ x, h x ^ 2 * sin (1 / h x)).
     - specialize (H8 (3/2) ltac:(lra)) as [δ [H9 H10]]. exists δ. split; auto.
       intros x H11. unfold compose. rewrite H1. reflexivity.
       assert (x = 0 \/ x <> 0) as [H12 | H12] by lra.
@@ -28,10 +28,10 @@ Section section_10_10.
   Lemma lemma_10_10_ii : ⟦ der 0 ⟧ (k ∘ f) = λ _, 0.
   Proof.
     assert (H8 : ⟦ der 0 ⟧ f = λ _, 0).
-    { apply limit_eq with (f1 := fun h0 => h0 * sin (1 / h0)).
+    { apply limit_eq with (f1 := λ h0, h0 * sin (1 / h0)).
       - exists 1. split; [lra |].
         intros x H8. simp_zero. rewrite H1, H2; solve_R.
-      - apply limit_squeeze with (a := -1) (b := 1) (f1 := fun x => - Rabs x) (f3 := fun x => Rabs x); try auto_limit.
+      - apply limit_squeeze with (a := -1) (b := 1) (f1 := λ x, - Rabs x) (f3 := λ x, Rabs x); try auto_limit.
         intros x H8. pose proof (sin_bounds (1 / x)) as [H9 H10]. solve_R. }
     assert (H9 : ⟦ der f 0 ⟧ k = λ x : ℝ, f (x + 1)).
     { rewrite H2. apply H6. }
@@ -71,7 +71,7 @@ Proof.
   assert (H8 : continuous_at h 0).
   { apply differentiable_imp_continuous. eapply derivative_imp_differentiable; eauto. }
   repeat split.
-  - apply derivative_at_eq with (f1 := fun x => h x ^ 2 * sin (1 / h x)).
+  - apply derivative_at_eq with (f1 := λ x, h x ^ 2 * sin (1 / h x)).
     + specialize (H8 (3/2) ltac:(lra)) as [δ [H9 H10]]. exists δ. split; auto.
       intros x H11. unfold compose. rewrite H1. reflexivity.
       assert (x = 0 \/ x <> 0) as [H12 | H12] by lra.
@@ -80,10 +80,10 @@ Proof.
     + auto_diff. rewrite H4. lra.
   - assert (H9 : ⟦ der 0 ⟧ f = λ _, 0).
     {
-      apply limit_eq with (f1 := fun h => h * sin (1 / h)).
+      apply limit_eq with (f1 := λ h, h * sin (1 / h)).
       - exists 1. split; [lra |].
         intros x H9. simp_zero. rewrite H1, H2; solve_R.
-      - apply limit_squeeze with (a := -1) (b := 1) (f1 := fun x => - Rabs x) (f3 := fun x => Rabs x); try auto_limit.
+      - apply limit_squeeze with (a := -1) (b := 1) (f1 := λ x, - Rabs x) (f3 := λ x, Rabs x); try auto_limit.
         intros x H9.
         pose proof (sin_bounds (1 / x)) as [H11 H12]. solve_R.
     }

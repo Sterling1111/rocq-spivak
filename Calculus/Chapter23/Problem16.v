@@ -1,7 +1,9 @@
 From Calculus.Chapter23 Require Import Prelude.
 
-(* Problem 16: \int_{0}^{\infty} |\sin x / x| dx diverges. *)
 
-Lemma problem_23_16 :
-  ~ (exists L, ⟦ lim ∞ ⟧ (fun N => ∫ 0 N (fun x => if Req_dec_T x 0 then 1 else |sin x / x|)) = L).
+Lemma problem_23_16 : ∀ a S_abs S_total,
+  series_converges_absolutely (λ n, a (S n)) ->
+  (∑ 0 ∞ (λ n, if (n =? 0)%nat then 0 else a n) = S_total) ->
+  (∑ 0 ∞ (λ n, if (n =? 0)%nat then 0 else |a n|) = S_abs) ->
+  |S_total| <= S_abs.
 Abort.

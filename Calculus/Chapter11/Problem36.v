@@ -10,7 +10,7 @@ Proof.
   {
     intros x.
     unfold derivative_at.
-    apply limit_squeeze with (f1 := fun h => - |h| ^ (n - 1)) (f3 := fun h => |h| ^ (n - 1)) (a := -1) (b := 1).
+    apply limit_squeeze with (f1 := λ h, - |h| ^ (n - 1)) (f3 := λ h, |h| ^ (n - 1)) (a := -1) (b := 1).
     - lra.
     - solve_R.
     - assert (H3 : ⟦ lim 0 ⟧ (λ h : ℝ, |h|) = 0).

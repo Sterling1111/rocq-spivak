@@ -3,7 +3,7 @@ From Calculus.Chapter13 Require Import Problem23.
 Require Import Interval.Tactic.
 
 Lemma lemma_14_7_i :
-  1 / (7 * √2) <= ∫ 0 1 (fun x => x^6 / √(1 + x^2)) <= 1 / 7.
+  1 / (7 * √2) <= ∫ 0 1 (λ x, x^6 / √(1 + x^2)) <= 1 / 7.
 Proof.
   set (f := λ x, 1 / √(1 + x ^ 2)).
   set (g := λ x, x^6).
@@ -39,7 +39,7 @@ Proof.
 Qed.
 
 Lemma lemma_14_7_ii :
-  3 / 8 <= ∫ 0 (1/2) (fun x => √((1 - x) / (1 + x))) <= √3 / 4.
+  3 / 8 <= ∫ 0 (1/2) (λ x, √((1 - x) / (1 + x))) <= √3 / 4.
 Proof.
   set (f := λ x, 1 / √(1 - x ^ 2)).
   set (g := λ x, 1 - x).
@@ -63,31 +63,30 @@ Proof.
     assert (H10 : 0 <= 1 - x^2) by solve_R.
     apply pow_eq_1 with (n := 2%nat); try lia.
     apply sqrt_lt_R0. apply Rdiv_pos_pos; solve_R.
-    apply Rmult_pos_pos; solve_R. apply Rdiv_pos_pos; solve_R.
-    apply sqrt_lt_R0; solve_R.
-    rewrite pow2_sqrt; admit.
+    apply Rmult_pos_pos; solve_R. field_simplify; solve_R.
   }
 
   rewrite H7, H6.
   unfold f.
 
-  assert (H8 : 1 <= √(1 - ξ^2) <= √3 / 2).
+  assert (H8 : √3 / 2 <= √(1 - ξ^2) <= 1).
   {
-    split.
-    - rewrite <- sqrt_1 at 1.
-      apply sqrt_le_1_alt.
-      solve_R. admit.
-    - admit.
+    assert (H9 : 0 <= ξ <= 1/2) by solve_R.
+    pose proof sqrt_pos (1 - ξ^2) as H10.
+    pose proof sqrt_pos 3 as H11.
+    pose proof pow2_sqrt (1 - ξ^2) ltac:(nra) as H12.
+    pose proof pow2_sqrt 3 ltac:(lra) as H13.
+    nra.
   }
 
   pose proof sqrt_lt_R0 (1 - ξ^2) ltac:(solve_R) as H9.
   pose proof Rlt_sqrt3_0 as H10.
+  pose proof pow2_sqrt 3 ltac:(lra) as H11.
 
   split.
   - apply Rmult_le_reg_r with (r := 8 * √(1 - ξ^2));
-      field_simplify;
-      admit.
+      field_simplify; solve_R.
   - apply Rmult_le_reg_r with (r := 8 * √(1 - ξ^2) * √3);
       field_simplify;
-      nra.
-Admitted.
+      solve_R.
+Qed.

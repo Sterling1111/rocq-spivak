@@ -1,36 +1,54 @@
 From Calculus.Chapter22 Require Import Prelude.
 
-Lemma lemma_22_26_a : forall a b L,
-  b 0%nat = a -> (forall n, b (S n) = exp (b n * log a)) ->
-  ⟦ lim ⟧ b = L ->
-  exists y, a = exp ((1 / y) * log y) /\ 0 < a <= exp (1 / exp 1).
+Definition power_tower (a : ℝ) (s : sequence) : Prop :=
+  s 0%nat = a /\ ∀ n, s (S n) = a ^^ (s n).
+
+Lemma lemma_22_26_a : ∀ a s L,
+  0 < a -> power_tower a s -> ⟦ lim ⟧ s = L ->
+  (∃ y, 0 < y /\ a = y ^^ (1 / y)) /\ 0 < a <= e ^^ (1 / e).
 Abort.
 
-Lemma lemma_22_26_bc : forall a b,
-  b 0%nat = a -> (forall n, b (S n) = exp (b n * log a)) ->
-  1 <= a <= exp (1 / exp 1) ->
-  (increasing b) /\ (forall n, b n <= exp 1) /\
-  (exists L, ⟦ lim ⟧ b = L /\ exp (-1) <= L <= exp 1) /\
-  exp (- exp 1) <= a <= exp (1 / exp 1).
+Lemma lemma_22_26_a_graph :
+  increasing_on (λ y, y ^^ (1 / y)) (0, e] /\
+  decreasing_on (λ y, y ^^ (1 / y)) [e, ∞) /\
+  (⟦ lim 0 ⁺ ⟧ (λ y, y ^^ (1 / y)) = 0) /\
+  (⟦ lim ∞ ⟧ (λ y, y ^^ (1 / y)) = 1) /\
+  (∀ y, 0 < y -> y ^^ (1 / y) <= e ^^ (1 / e)).
 Abort.
 
-Lemma lemma_22_26_d : forall a,
-  exp (- exp 1) <= a < 1 ->
-  decreasing_on (fun x => exp (x * log a) / log x) (oo 0 1).
+Lemma lemma_22_26_b : ∀ a s,
+  power_tower a s -> 1 <= a <= e ^^ (1 / e) ->
+  nondecreasing s /\ (1 < a -> increasing s) /\
+  (∀ n, s n <= e) /\
+  ∃ L, ⟦ lim ⟧ s = L /\ L <= e.
 Abort.
 
-Lemma lemma_22_26_e : forall a b,
-  0 < a < 1 ->
-  (forall x, exp (x * log a) = x <-> x = b) ->
-  a < b < 1.
+Lemma lemma_22_26_c : ∀ a s L,
+  0 < a -> power_tower a s -> ⟦ lim ⟧ s = L ->
+  / e <= L <= e /\ e ^^ (-e) <= a <= e ^^ (1 / e).
 Abort.
 
-(* Parts f and g are quite specific limits properties about odd/even terms *)
-Lemma lemma_22_26_fg : forall a b L1 L2 s,
-  0 < a < 1 ->
-  exp (b * log a) = b ->
-  s 0%nat = a -> (forall n, s (S n) = exp (s n * log a)) ->
-  ⟦ lim ⟧ (fun n => s (2 * n + 1)%nat) = L1 /\ exp (exp (L1 * log a) * log a) = L1 /\
-  ⟦ lim ⟧ (fun n => s (2 * n + 2)%nat) = L2 /\ L2 = b /\
-  ⟦ lim ⟧ s = b.
+Lemma lemma_22_26_d : ∀ a,
+  e ^^ (-e) <= a < 1 ->
+  decreasing_on (λ x, a ^^ x / log x) (0, 1).
+Abort.
+
+Lemma lemma_22_26_e : ∀ a b s,
+  e ^^ (-e) <= a < 1 ->
+  (∀ x, a ^^ x = x <-> x = b) -> power_tower a s ->
+  a < b < 1 /\
+  (∀ x, 0 < x < b -> x < a ^^ (a ^^ x) < b) /\
+  ∃ l, ⟦ lim ⟧ (λ n, s (2*n)%nat) = l /\ a ^^ (a ^^ l) = l.
+Abort.
+
+Lemma lemma_22_26_f : ∀ a b s l,
+  e ^^ (-e) <= a < 1 ->
+  a ^^ b = b -> power_tower a s ->
+  ⟦ lim ⟧ (λ n, s (2*n)%nat) = l -> l = b.
+Abort.
+
+Lemma lemma_22_26_g : ∀ a b s,
+  e ^^ (-e) <= a < 1 ->
+  a ^^ b = b -> power_tower a s ->
+  ⟦ lim ⟧ (λ n, s (2*n + 1)%nat) = b /\ ⟦ lim ⟧ s = b.
 Abort.

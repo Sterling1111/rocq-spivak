@@ -1,6 +1,6 @@
 From Calculus.Chapter15 Require Import Prelude.
 
-Lemma lemma_15_16 : forall x,
+Lemma lemma_15_16 : ∀ x,
   sin (arctan x) = x / √(1 + x^2) /\ cos (arctan x) = 1 / √(1 + x^2).
 Proof.
   intros x.

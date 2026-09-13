@@ -1,7 +1,7 @@
 From Calculus.Chapter1 Require Import Prelude.
 From Calculus.Chapter1 Require Import Problem12 Problem21 Problem22.
 
-Lemma lemma_1_23 : forall x y x0 y0 ε,
+Lemma lemma_1_23 : ∀ x y x0 y0 ε,
   (y0 <> 0) -> (|x - x0| < Rmin (ε / (2 * (1 / |y0| + 1))) 1) -> (|y - y0| < Rmin (|y0 / 2|) ((ε * (|y0|)^2) / (4 * ((|x0|) + 1)))) -> (y <> 0 /\ |x / y - x0 / y0| < ε).
 Proof.
   intros x y x0 y0 ε H1 H2 H3. 
@@ -25,7 +25,7 @@ Proof.
     - nra.
   }
   split.
-  - assert (H6 : forall a b c : R, a >= 0 -> b > 0 -> c > 0 -> b >= c -> a / b <= a / c).
+  - assert (H6 : ∀ a b c : R, a >= 0 -> b > 0 -> c > 0 -> b >= c -> a / b <= a / c).
     { intros a b c H6 H7 H8 H9. apply Rmult_le_reg_r with (r := b). nra.
       replace (a / b * b) with a by (field; lra). apply Rmult_le_reg_r with (r := c). lra.
       replace (a / c * b * c) with (a * b) by (field; lra). nra.

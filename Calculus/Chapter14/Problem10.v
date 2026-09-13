@@ -2,7 +2,7 @@ From Calculus.Chapter14 Require Import Prelude.
 From Calculus.Chapter14 Require Import Problem9.
 
 
-Lemma lemma_14_10 : forall f x,
+Lemma lemma_14_10 : ∀ f x,
   continuous f ->
   ∫ 0 x (λ u, f u * (x - u)^2) =
   2 * ∫ 0 x (λ u2, ∫ 0 u2 (λ u1, ∫ 0 u1 f)).

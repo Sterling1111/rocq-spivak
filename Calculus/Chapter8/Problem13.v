@@ -1,6 +1,6 @@
 From Calculus.Chapter8 Require Import Prelude.
 
-Notation "A + B" := (fun z => ∃ x y, x ∈ A /\ y ∈ B /\ z = x + y) (at level 50, left associativity) : set_scope.
+Notation "A + B" := (λ z, ∃ x y, x ∈ A /\ y ∈ B /\ z = x + y) (at level 50, left associativity) : set_scope.
 
 Lemma lemma_8_13 : ∀ A B sup_A sup_B sup_AB,
   A ≠ ∅ -> B ≠ ∅ -> has_upper_bound A -> has_upper_bound B ->

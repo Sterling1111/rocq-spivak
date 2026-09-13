@@ -45,8 +45,8 @@ Qed.
 
 Lemma lemma_9_21_b : ∀ f g a l,
   (∃ δ, δ > 0 /\ ∀ x, |x - a| < δ -> f x = g x) ->
-  ⟦ der a ⟧ f = (fun _ => l) ->
-  ⟦ der a ⟧ g = (fun _ => l).
+  ⟦ der a ⟧ f = (λ _, l) ->
+  ⟦ der a ⟧ g = (λ _, l).
 Proof.
   intros f g a l [δ [H1 H2]] H3. 
   apply limit_eq with (f1 := λ h, (f (a + h) - f a) / h); auto.

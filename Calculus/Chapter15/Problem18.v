@@ -1,24 +1,34 @@
 From Calculus.Chapter15 Require Import Prelude.
 
-(* Problem 18 *)
-
-(* (a) sin(x + π/2) = cos x *)
-Lemma lemma_15_18_a : forall x,
+Lemma lemma_15_18_a : ∀ x,
   sin (x + π / 2) = cos x.
-Abort.
+Proof.
+  intros x. rewrite sin_plus, cos_π_over_2, sin_π_over_2. lra.
+Qed.
 
-(* (b) Simplifications *)
-Lemma lemma_15_18_b_arcsin_sin : forall x,
+Lemma lemma_15_18_b_arcsin_sin : ∀ x,
   -π / 2 <= x <= π / 2 ->
   arcsin (sin x) = x.
-Abort.
+Proof.
+  intros x H1. apply arcsin_spec. split; lra.
+Qed.
 
-Lemma lemma_15_18_b_arcsin_cos : forall x,
+Lemma lemma_15_18_b_arcsin_cos : ∀ x,
   0 <= x <= π ->
   arcsin (cos x) = π / 2 - x.
-Abort.
+Proof.
+  intros x H1.
+  replace (cos x) with (sin (π / 2 - x)).
+  - apply arcsin_spec. split; lra.
+  - rewrite sin_minus, sin_π_over_2, cos_π_over_2. lra.
+Qed.
 
-Lemma lemma_15_18_b_arccos_sin : forall x,
+Lemma lemma_15_18_b_arccos_sin : ∀ x,
   -π / 2 <= x <= π / 2 ->
   arccos (sin x) = π / 2 - x.
-Abort.
+Proof.
+  intros x H1.
+  replace (sin x) with (cos (π / 2 - x)).
+  - apply arccos_spec. split; lra.
+  - rewrite cos_minus, sin_π_over_2, cos_π_over_2. lra.
+Qed.

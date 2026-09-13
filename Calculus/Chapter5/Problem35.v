@@ -4,9 +4,9 @@ From Calculus.Chapter5 Require Import Problem34.
 Section Problem35.
 
 Variable α : R.
-Hypothesis H1 : ⟦ lim 0 ⟧ (fun x => sin x / x) = α.
+Hypothesis H1 : ⟦ lim 0 ⟧ (λ x, sin x / x) = α.
 
-Lemma lemma_5_35_i : ⟦ lim ∞ ⟧ (fun x => sin x / x) = 0.
+Lemma lemma_5_35_i : ⟦ lim ∞ ⟧ (λ x, sin x / x) = 0.
 Proof.
   intros ε H2.
   exists (1 / ε).
@@ -20,7 +20,7 @@ Proof.
   apply Rmult_lt_reg_r with (r := x); field_simplify; solve_R.
 Qed.
 
-Lemma lemma_5_35_ii : ⟦ lim ∞ ⟧ (fun x => x * sin (1 / x)) = α.
+Lemma lemma_5_35_ii : ⟦ lim ∞ ⟧ (λ x, x * sin (1 / x)) = α.
 Proof.
   assert (H2 : ⟦ lim 0⁺ ⟧ (λ x, sin x / x) = α) by (apply limit_iff; auto).
   pose proof lemma_5_34 (λ x, x * sin (1 / x)) α as H3.

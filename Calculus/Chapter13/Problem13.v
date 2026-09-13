@@ -1,6 +1,6 @@
 From Calculus.Chapter13 Require Import Prelude.
 
-Lemma lemma_13_13_a : forall f a b,
+Lemma lemma_13_13_a : ∀ f a b,
   a <= b ->
   integrable_on a b f ->
   (∀ x, x ∈ [a, b] -> f x >= 0) ->
@@ -13,11 +13,11 @@ Proof.
   solve_R.
 Qed.
 
-Lemma lemma_13_13_b : forall f g a b,
+Lemma lemma_13_13_b : ∀ f g a b,
   a <= b ->
   integrable_on a b f ->
   integrable_on a b g ->
-  (forall x, x ∈ [a, b] -> f x >= g x) ->
+  (∀ x, x ∈ [a, b] -> f x >= g x) ->
   ∫ a b f >= ∫ a b g.
 Proof.
   intros f g a b H1 H2 H3 H4.
@@ -38,11 +38,11 @@ Proof.
   lra.
 Qed.
 
-Lemma lemma_13_13_b' : forall f g a b,
+Lemma lemma_13_13_b' : ∀ f g a b,
   a <= b ->
   integrable_on a b f ->
   integrable_on a b g ->
-  (forall x, x ∈ [a, b] -> f x >= g x) ->
+  (∀ x, x ∈ [a, b] -> f x >= g x) ->
   ∫ a b f >= ∫ a b g.
 Proof.
   intros f g a b H1 H2 H3 H4.

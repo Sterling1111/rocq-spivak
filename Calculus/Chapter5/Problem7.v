@@ -5,7 +5,7 @@ Lemma lemma_5_7 : ∃ (f : R -> R) (l a : R) (ε δ : R),
   (∀ x, 0 < |x - a| < δ -> |f x - l| < ε) /\
   ¬ (∀ x, 0 < |x - a| < δ/2 -> |f x - l| < ε/2).
 Proof.
-  exists (fun x => √|x|), 0, 0, (1/2), (1/4); repeat split; try lra.
+  exists (λ x, √|x|), 0, 0, (1/2), (1/4); repeat split; try lra.
   - intros x [H1 H2].
     assert (H3: √(|x|) < 1 / 2).
     {

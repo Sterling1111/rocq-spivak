@@ -1,10 +1,10 @@
 From Calculus.Chapter11 Require Import Prelude.
 
-Lemma lemma_11_35 : forall f f' g g' a,
+Lemma lemma_11_35 : ∀ f f' g g' a,
   ⟦ der ⟧ f = f' -> ⟦ der ⟧ g = g' ->
-  (forall x, f x * g' x - f' x * g x = 0) ->
+  (∀ x, f x * g' x - f' x * g x = 0) ->
   f a = 0 -> g a <> 0 ->
-  exists δ, δ > 0 /\ forall x, |x - a| < δ -> f x = 0.
+  ∃ δ, δ > 0 /\ ∀ x, |x - a| < δ -> f x = 0.
 Proof.
  intros f f' g g' a H1 H2 H3 H4 H5.
 
@@ -22,7 +22,7 @@ Proof.
     
   set (h := λ x, f x / g x).
 
-  assert (H11 : forall y, |y - a| < δ -> ⟦ der y ⟧ h = λ _, 0).
+  assert (H11 : ∀ y, |y - a| < δ -> ⟦ der y ⟧ h = λ _, 0).
   {
     intros y H11. unfold h.
     apply derivative_at_ext' with (f1 := λ x, (f' x * g x - g' x * f x) / (g x * g x)).

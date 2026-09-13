@@ -1,7 +1,7 @@
 From Calculus.Chapter1 Require Import Prelude.
 From Calculus.Chapter1 Require Import Problem15.
 
-Lemma lemma_1_16_a : forall x y,
+Lemma lemma_1_16_a : ∀ x y,
   (x = 0 \/ y = 0) <-> (x + y)^2 = x^2 + y^2.
 Proof.
   intros x y. split.
@@ -11,7 +11,7 @@ Proof.
   - intros H1. nra.
 Qed.
 
-Lemma lemma_1_16_b' : forall x y,
+Lemma lemma_1_16_b' : ∀ x y,
   (x <> 0) -> 4 * x^2 + 6 * x * y + 4 * y^2 > 0.
 Proof.
   intros x y H1.
@@ -24,7 +24,7 @@ Proof.
   - apply H4.
 Qed.
 
-Lemma lemma_1_16_b : forall x y,
+Lemma lemma_1_16_b : ∀ x y,
   (x <> 0 \/ y <> 0) -> 4 * x^2 + 6 * x * y + 4 * y^2 > 0.
 Proof.
   intros x y [H1 | H1].
@@ -32,7 +32,7 @@ Proof.
   - pose proof lemma_1_16_b' y x as H2. nra.
 Qed.
 
-Lemma lemma_1_16_c : forall x y,
+Lemma lemma_1_16_c : ∀ x y,
   (x + y)^4 = (x^4 + y^4) <-> (x = 0 \/ y = 0).
 Proof.
   intros x y. split.
@@ -48,7 +48,7 @@ Proof.
     -- rewrite H1. lra.
 Qed.
 
-Lemma Rpow_eq_0 : forall x n,
+Lemma Rpow_eq_0 : ∀ x n,
   x ^ n = 0 -> x = 0.
 Proof.
   intros x n. induction n as [| k IH].
@@ -58,7 +58,7 @@ Proof.
     -- apply IH. apply H1.
 Qed.
 
-Lemma lemma_1_16_d : forall x y,
+Lemma lemma_1_16_d : ∀ x y,
   (x + y)^5 = (x^5 + y^5) <-> (x = 0 \/ y = 0 \/ x = -y).
 Proof.
   intros x y. split.

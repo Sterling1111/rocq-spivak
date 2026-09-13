@@ -48,13 +48,13 @@ Proof.
   apply differentiable_at_imp_derivative_at in H1 as [f' H1].
   apply differentiable_at_imp_derivative_at in H3 as [h' H3].
 
-  apply derivative_at_imp_differentiable_at with (f' := fun x => (h' x * f x - f' x * h x) / (f x * f x)).
+  apply derivative_at_imp_differentiable_at with (f' := λ x, (h' x * f x - f' x * h x) / (f x * f x)).
 
   assert (H4 : continuous_at f a).
   { apply differentiable_at_imp_continuous_at. exists (f' a). exact H1. }
 
   pose proof (continuous_at_locally_nonzero f a H4 H2) as [δ [H5 H6]].
-  apply derivative_at_eq with (f1 := fun x => h x / f x).
+  apply derivative_at_eq with (f1 := λ x, h x / f x).
   - exists δ. split; auto.
     intros x H7.
     specialize (H6 x H7).

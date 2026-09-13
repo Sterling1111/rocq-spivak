@@ -1,6 +1,6 @@
 From Calculus.Chapter1 Require Import Prelude.
 
-Lemma lemma_1_4_vii : forall x : R,
+Lemma lemma_1_4_vii : ∀ x : R,
   x < -2 \/ x > 3 <-> x^2 - x + 10 > 16.
 Proof.
   intros x. split.
@@ -14,13 +14,13 @@ Proof.
   - intro H. assert (H2 : (x - 3) * (x + 2) > 0) by nra. nra.
 Qed.
 
-Lemma lemma_1_4_viii : forall x : R,
+Lemma lemma_1_4_viii : ∀ x : R,
   x^2 + x + 1 > 0.
 Proof.
   intros x. nra.
 Qed.
 
-Lemma lemma_1_4_ix : forall x : R,
+Lemma lemma_1_4_ix : ∀ x : R,
   (x > -5 /\ x < 3) \/ (x > π) <-> (x - π) * (x + 5) * (x - 3) > 0.
 Proof.
   intros x. pose proof π_bounds as H0. split.
@@ -37,7 +37,7 @@ Proof.
       * nra.
 Qed.
 
-Lemma lemma_1_4_x : forall x : R,
+Lemma lemma_1_4_x : ∀ x : R,
   (x > Rpower 2 (1/2) \/ x < Rpower 2 (1/3)) <-> (x - Rpower 2 (1/3)) * (x - Rpower 2 (1/2)) > 0.
 Proof.
   intros x. split.
@@ -54,26 +54,26 @@ Proof.
     -- nra.
 Qed.
 
-Lemma lemma_1_4_xi : forall x : R,
+Lemma lemma_1_4_xi : ∀ x : R,
   x < 3 <-> Rpower 2 x < 8.
 Proof.
   intro x. split.
   - intro H1.  pose proof Rtotal_order x 0 as [H2 | [H2 | H2]].
-    -- replace 8 with (Rpower 2 (INR 3%nat)). 2 : { rewrite Rpower_pow. 2 : { nra. } nra. }
+    -- replace 8 with (Rpower 2 ((3%nat : ℝ)%nat)). 2 : { rewrite Rpower_pow. 2 : { nra. } nra. }
        apply Rpower_lt. lra. (simpl; lra).
     -- rewrite H2. rewrite Rpower_O. lra. lra.
-    -- replace 8 with (Rpower 2 (INR 3%nat)). 2 : { rewrite Rpower_pow. 2 : { nra. } nra. }
+    -- replace 8 with (Rpower 2 ((3%nat : ℝ)%nat)). 2 : { rewrite Rpower_pow. 2 : { nra. } nra. }
        apply Rpower_lt. lra. (simpl; lra).
   - intro H1. pose proof Rtotal_order x 3 as [H2 | [H2 | H2]].
     -- apply H2.
-    -- rewrite H2 in H1. replace 3 with (INR 3%nat) in H1, H2 by (simpl; lra).
+    -- rewrite H2 in H1. replace 3 with ((3%nat : ℝ)%nat) in H1, H2 by (simpl; lra).
         rewrite Rpower_pow in H1. 2 : { nra. } nra.
     -- assert (8 < Rpower 2 x).
-       { replace (8) with (Rpower 2 (INR 3%nat)). 2 : { rewrite Rpower_pow. 2 : { nra. } nra. }
+       { replace (8) with (Rpower 2 ((3%nat : ℝ)%nat)). 2 : { rewrite Rpower_pow. 2 : { nra. } nra. }
          apply Rpower_lt. lra. (simpl; lra). } nra.
 Qed.
 
-Lemma lemma_1_4_xii : forall x : R,
+Lemma lemma_1_4_xii : ∀ x : R,
   x < 1 <-> x + Rpower 3 x < 4.
 Proof.
   intro x. split.
@@ -82,18 +82,18 @@ Proof.
        { replace 1 with (Rpower 3 0). 2 : { rewrite Rpower_O. lra. lra. } apply Rpower_lt. lra. lra. } nra.
     -- rewrite H2. rewrite Rpower_O. lra. lra.
     -- assert (H3 : Rpower 3 (x) < 3).
-       { replace 3 with (Rpower 3 (INR 1%nat)) at 2. 2 : { rewrite Rpower_pow. 2 : { nra. } nra. }
+       { replace 3 with (Rpower 3 ((1%nat : ℝ)%nat)) at 2. 2 : { rewrite Rpower_pow. 2 : { nra. } nra. }
          apply Rpower_lt. lra. (simpl; lra). } nra.
   - intro H1. pose proof Rtotal_order x 1 as [H2 | [H2 | H2]].
     -- apply H2.
-    -- rewrite H2 in H1. replace 1 with (INR 1%nat) in H1, H2 by (simpl; lra).
+    -- rewrite H2 in H1. replace 1 with ((1%nat : ℝ)%nat) in H1, H2 by (simpl; lra).
         rewrite Rpower_pow in H1. 2 : { nra. } nra.
     -- assert (3 < Rpower 3 x).
-       { replace (3) with (Rpower 3 (INR 1%nat)) at 1. 2 : { rewrite Rpower_pow. 2 : { nra. } nra. }
+       { replace (3) with (Rpower 3 ((1%nat : ℝ)%nat)) at 1. 2 : { rewrite Rpower_pow. 2 : { nra. } nra. }
          apply Rpower_lt. lra. (simpl; lra). } nra.
 Qed.
 
-Lemma lemma_1_4_xiii : forall x : R,
+Lemma lemma_1_4_xiii : ∀ x : R,
   0 <= x <= 1 <-> 1 / x + 1 / (1 - x) > 0.
 Proof.
   intro x. split.
@@ -123,7 +123,7 @@ Proof.
        --- nra.
 Qed.
 
-Lemma lemma_1_4_xiv : forall x : R,
+Lemma lemma_1_4_xiv : ∀ x : R,
   (x > 1 \/ x < -1) <-> (x - 1) / (x + 1) > 0.
 Proof.
   intros x. split.

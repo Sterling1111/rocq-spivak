@@ -2,9 +2,9 @@ From Calculus.Chapter11 Require Import Prelude.
 
 Lemma lemma_11_41_a : 
   let f := (λ x, x^2 - cos x) in
-  exists x1 x2, x1 <> x2 /\ 
+  ∃ x1 x2, x1 <> x2 /\
   f x1 = 0 /\ f x2 = 0 /\
-  (forall x, f x = 0 -> x = x1 \/ x = x2).
+  (∀ x, f x = 0 -> x = x1 \/ x = x2).
 Proof.
   intros f.
 
@@ -21,14 +21,14 @@ Proof.
     pose proof cos_1_bounds as H3. rewrite cos_even_odd. lra.
   }
 
-  assert (exists x1, -1 < x1 < 0 /\ f x1 = 0) as [x1 [H4 H5]].
+  assert (∃ x1, -1 < x1 < 0 /\ f x1 = 0) as [x1 [H4 H5]].
   {
     pose proof (intermediate_value_theorem_decreasing f (-1) 0 0 ltac:(lra)) ltac:(unfold f; auto_cont) ltac:(lra) as [x [H6 H7]].
     exists x. split; auto.
     assert (x = -1 \/ x = 0 \/ x ∈ (-1, 0)) as [H8 | [H8 | H8]]; subst; solve_R.
   }
 
-  assert (exists x2, 0 < x2 < 1 /\ f x2 = 0) as [x2 [H6 H7]].
+  assert (∃ x2, 0 < x2 < 1 /\ f x2 = 0) as [x2 [H6 H7]].
   {
     pose proof (intermediate_value_theorem f 0 1 0 ltac:(lra)) ltac:(unfold f; auto_cont) ltac:(lra) as [x [H8 H9]].
     exists x. split; auto.
@@ -44,39 +44,39 @@ Proof.
   destruct (classic (x = x1 \/ x = x2)) as [H11 | H11]; auto.
   apply not_or_and in H11 as [H12 H13].
 
-  assert (H14 : forall a b, a < b -> f a = 0 -> f b = 0 -> exists c, a < c < b /\ 2 * c + sin c = 0).
+  assert (H14 : ∀ a b, a < b -> f a = 0 -> f b = 0 -> ∃ c, a < c < b /\ 2 * c + sin c = 0).
   {
     intros a b H15 H16 H17.
     assert (H18 : continuous_on f [a, b]) by (unfold f; auto_cont).
     assert (H19 : differentiable_on f (a, b)).
     {
-      apply derivative_on_imp_differentiable_on with (f' := fun y => 2 * y + sin y).
+      apply derivative_on_imp_differentiable_on with (f' := λ y, 2 * y + sin y).
       apply derivative_imp_derivative_on; auto.
       apply differentiable_domain_open; lra.
     }
     assert (H20 : f a = f b) by lra.
     pose proof (rolles_theorem f a b H15 H18 H19 H20) as [c [H21 H22]].
     exists c. split; [exact H21 |].
-    pose proof (derivative_at_unique f (λ _, 0) (fun y => 2 * y + sin y) c H22 (H9 c)) as H23; auto.
+    pose proof (derivative_at_unique f (λ _, 0) (λ y, 2 * y + sin y) c H22 (H9 c)) as H23; auto.
   }
   
-  assert (H15 : forall a b, a < b -> 2 * a + sin a = 0 -> 2 * b + sin b = 0 -> exists c, a < c < b /\ 2 + cos c = 0).
+  assert (H15 : ∀ a b, a < b -> 2 * a + sin a = 0 -> 2 * b + sin b = 0 -> ∃ c, a < c < b /\ 2 + cos c = 0).
   {
     intros a b H16 H17 H18.
-    assert (H19 : continuous_on (fun y => 2 * y + sin y) [a, b]) by auto_cont.
-    assert (H20 : differentiable_on (fun y => 2 * y + sin y) (a, b)).
+    assert (H19 : continuous_on (λ y, 2 * y + sin y) [a, b]) by auto_cont.
+    assert (H20 : differentiable_on (λ y, 2 * y + sin y) (a, b)).
     {
-      apply derivative_on_imp_differentiable_on with (f' := fun y => 2 + cos y).
+      apply derivative_on_imp_differentiable_on with (f' := λ y, 2 + cos y).
       apply derivative_imp_derivative_on; auto.
       apply differentiable_domain_open; lra.
     }
     assert (H21 : 2 * a + sin a = 2 * b + sin b) by lra.
-    pose proof (rolles_theorem (fun y => 2 * y + sin y) a b H16 H19 H20 H21) as [c [H22 H23]].
+    pose proof (rolles_theorem (λ y, 2 * y + sin y) a b H16 H19 H20 H21) as [c [H22 H23]].
     exists c. split; [exact H22 |].
-    pose proof (derivative_at_unique (fun y => 2 * y + sin y) (λ _, 0) (fun y => 2 + cos y) c H23 (H10 c)) as H24; auto.
+    pose proof (derivative_at_unique (λ y, 2 * y + sin y) (λ _, 0) (λ y, 2 + cos y) c H23 (H10 c)) as H24; auto.
   }
   
-  assert (exists c, 2 + cos c = 0) as [c H16].
+  assert (∃ c, 2 + cos c = 0) as [c H16].
   {
     assert (x < x1 \/ x1 < x < x2 \/ x2 < x) as [H17 | [H17 | H17]] by lra.
     - pose proof (H14 x x1 H17 H8 H5) as [c1 [H18 H19]].
@@ -100,9 +100,9 @@ Qed.
 
 Lemma lemma_11_41_b : 
   let f := (λ x, x^2 - x * sin x - cos x) in
-  exists x1 x2, x1 <> x2 /\ 
+  ∃ x1 x2, x1 <> x2 /\
   f x1 = 0 /\ f x2 = 0 /\
-  (forall x, f x = 0 -> x = x1 \/ x = x2).
+  (∀ x, f x = 0 -> x = x1 \/ x = x2).
 Proof.
   intros f.
 
@@ -118,14 +118,14 @@ Proof.
     rewrite sin_compat, cos_compat. interval.
   }
 
-  assert (exists x1, -2 < x1 < 0 /\ f x1 = 0) as [x1 [H4 H5]].
+  assert (∃ x1, -2 < x1 < 0 /\ f x1 = 0) as [x1 [H4 H5]].
   {
     pose proof (intermediate_value_theorem_decreasing f (-2) 0 0 ltac:(lra)) ltac:(unfold f; auto_cont) ltac:(lra) as [x [H6 H7]].
     exists x. split; auto.
     assert (x = -2 \/ x = 0 \/ x ∈ (-2, 0)) as [H8 | [H8 | H8]]; subst; solve_R.
   }
 
-  assert (exists x2, 0 < x2 < 2 /\ f x2 = 0) as [x2 [H6 H7]].
+  assert (∃ x2, 0 < x2 < 2 /\ f x2 = 0) as [x2 [H6 H7]].
   {
     pose proof (intermediate_value_theorem f 0 2 0 ltac:(lra)) ltac:(unfold f; auto_cont) ltac:(lra) as [x [H8 H9]].
     exists x. split; auto.
@@ -140,7 +140,7 @@ Proof.
   destruct (classic (x = x1 \/ x = x2)) as [H10 | H10]; auto.
   apply not_or_and in H10 as [H11 H12].
 
-  assert (H13 : forall a b, a < b -> f a = 0 -> f b = 0 -> exists c, a < c < b /\ c * (2 - cos c) = 0).
+  assert (H13 : ∀ a b, a < b -> f a = 0 -> f b = 0 -> ∃ c, a < c < b /\ c * (2 - cos c) = 0).
   {
     intros a b H14 H15 H16.
     assert (H17 : continuous_on f [a, b]) by (unfold f; auto_cont).
@@ -152,7 +152,7 @@ Proof.
     pose proof (derivative_at_unique f (λ _, 0) f' c H21 (H9 c)) as H22; auto.
   }
 
-  assert (H14 : forall c, c * (2 - cos c) = 0 -> c = 0).
+  assert (H14 : ∀ c, c * (2 - cos c) = 0 -> c = 0).
   { intros c H15. pose proof (cos_bounds c). nra. }
 
   assert (x < x1 \/ x1 < x < x2 \/ x2 < x) as [H15 | [H15 | H15]] by lra.
@@ -167,9 +167,9 @@ Qed.
 
 Lemma lemma_11_41_c : 
   let f := (λ x, 2 * x^2 - x * sin x - cos x * cos x) in
-  exists x1 x2, x1 <> x2 /\ 
+  ∃ x1 x2, x1 <> x2 /\
   f x1 = 0 /\ f x2 = 0 /\
-  (forall x, f x = 0 -> x = x1 \/ x = x2).
+  (∀ x, f x = 0 -> x = x1 \/ x = x2).
 Proof.
   intros f.
 
@@ -183,14 +183,14 @@ Proof.
   assert (H3 : f (-2) > 0).
   { unfold f. simpl. pose proof (sin_bounds (-2)). pose proof (cos_bounds (-2)). nra. }
 
-  assert (exists x1, -2 < x1 < 0 /\ f x1 = 0) as [x1 [H4 H5]].
+  assert (∃ x1, -2 < x1 < 0 /\ f x1 = 0) as [x1 [H4 H5]].
   {
     pose proof (intermediate_value_theorem_decreasing f (-2) 0 0 ltac:(lra)) ltac:(unfold f; auto_cont) ltac:(lra) as [x [H6 H7]].
     exists x. split; auto.
     assert (x = -2 \/ x = 0 \/ x ∈ (-2, 0)) as [H8 | [H8 | H8]]; subst; solve_R.
   }
 
-  assert (exists x2, 0 < x2 < 2 /\ f x2 = 0) as [x2 [H6 H7]].
+  assert (∃ x2, 0 < x2 < 2 /\ f x2 = 0) as [x2 [H6 H7]].
   {
     pose proof (intermediate_value_theorem f 0 2 0 ltac:(lra)) ltac:(unfold f; auto_cont) ltac:(lra) as [x [H8 H9]].
     exists x. split; auto.
@@ -205,7 +205,7 @@ Proof.
   destruct (classic (x = x1 \/ x = x2)) as [H11 | H11]; auto.
   apply not_or_and in H11 as [H12 H13].
 
-  assert (H14 : forall r, f r = 0 -> -1 <= r <= 1).
+  assert (H14 : ∀ r, f r = 0 -> -1 <= r <= 1).
   {
     intros r H14.
     pose proof (sin_bounds r) as H15.
@@ -222,7 +222,7 @@ Proof.
       lra.
   }
 
-  assert (H15 : forall a0 b0, a0 < b0 -> f a0 = 0 -> f b0 = 0 -> exists c0, a0 < c0 < b0 /\ f' c0 = 0).
+  assert (H15 : ∀ a0 b0, a0 < b0 -> f a0 = 0 -> f b0 = 0 -> ∃ c0, a0 < c0 < b0 /\ f' c0 = 0).
   {
     intros a0 b0 H16 H17 H18.
     assert (H19 : continuous_on f [a0, b0]) by (unfold f; auto_cont).
@@ -233,7 +233,7 @@ Proof.
     pose proof (derivative_at_unique f (λ _, 0) f' c0 H22 (H9 c0)) as H23; auto.
   }
 
-  assert (H16 : forall a0 b0, a0 < b0 -> f' a0 = 0 -> f' b0 = 0 -> exists c0, a0 < c0 < b0 /\ f'' c0 = 0).
+  assert (H16 : ∀ a0 b0, a0 < b0 -> f' a0 = 0 -> f' b0 = 0 -> ∃ c0, a0 < c0 < b0 /\ f'' c0 = 0).
   {
     intros a0 b0 H17 H18 H19.
     assert (H20 : continuous_on f' [a0, b0]) by (unfold f'; auto_cont).
@@ -245,7 +245,7 @@ Proof.
     pose proof (derivative_at_unique f' (λ _, 0) f'' c0 H23 (H10 c0)) as H24; auto.
   }
 
-  assert (exists c, f'' c = 0 /\ -1 <= c <= 1) as [c [H17 H18]].
+  assert (∃ c, f'' c = 0 /\ -1 <= c <= 1) as [c [H17 H18]].
   {
     assert (x < x1 \/ x1 < x < x2 \/ x2 < x) as [H19 | [H19 | H19]] by lra.
     - pose proof (H15 x x1 H19 H8 H5) as [c1 [H20 H21]].

@@ -1,8 +1,8 @@
 From Calculus.Chapter5 Require Import Prelude.
 
 Lemma lemma_5_14_a : ∀ (f : R -> R) (l b : R),
-  ⟦ lim 0 ⟧ (fun x => f x / x) = l -> b <> 0 ->
-  ⟦ lim 0 ⟧ (fun x => f (b * x) / x) = b * l.
+  ⟦ lim 0 ⟧ (λ x, f x / x) = l -> b <> 0 ->
+  ⟦ lim 0 ⟧ (λ x, f (b * x) / x) = b * l.
 Proof.
   intros f l b H1 H2.
   apply limit_eq with (f1 := λ x : ℝ, b * (f (b * x) / (b * x))).
@@ -23,7 +23,7 @@ Qed.
 
 Lemma lemma_5_14_b :
   ∀ (f : R -> R),
-    (∃ l, ⟦ lim 0 ⟧ (fun x => f (0 * x) / x) = l) <-> f 0 = 0.
+    (∃ l, ⟦ lim 0 ⟧ (λ x, f (0 * x) / x) = l) <-> f 0 = 0.
 Proof.
   intros f; split.
   - intros [l H1].
@@ -56,7 +56,7 @@ Proof.
     solve_R.
   - intros H1.
     exists 0.
-    apply limit_eq with (f1 := fun x => 0).
+    apply limit_eq with (f1 := λ x, 0).
     2 : { exists 1. split; solve_R. }
     exists 1; split; try lra.
     intros x H2.

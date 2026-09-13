@@ -22,4 +22,5 @@ Abort.
 
 Lemma lemma_18_43_c : f = (λ _, 0).
 Abort.
+
 End Uniqueness.

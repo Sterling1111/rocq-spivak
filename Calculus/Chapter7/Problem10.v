@@ -1,9 +1,9 @@
 From Calculus.Chapter7 Require Import Prelude.
 
-Lemma lemma_7_10 : forall a b f g,
+Lemma lemma_7_10 : ∀ a b f g,
   a < b -> continuous_on f [a, b] -> continuous_on g [a, b] ->
   f a < g a -> f b > g b ->
-  exists x, x ∈ [a, b] /\ f x = g x.
+  ∃ x, x ∈ [a, b] /\ f x = g x.
 Proof.
   intros a b f g H1 H2 H3 H4 H5.
   set (h := (f - g)%function).

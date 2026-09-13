@@ -10,7 +10,7 @@ Proof.
     field_simplify in H2; lra.
 Qed.
 
-Lemma lemma_5_38_c :  forall f, 
+Lemma lemma_5_38_c :  ∀ f,
   ⟦ lim 0⁺ ⟧ f = ∞ <-> ⟦ lim ∞ ⟧ (λ x, f (1 / x)) = ∞.
 Proof.
   intros f; split; intros H1 M.

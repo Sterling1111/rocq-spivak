@@ -1,7 +1,5 @@
 From Calculus.Chapter20 Require Import Prelude.
 
-(* The third- and fifth-degree cosine polynomials give these successive
-   approximations to the absolute value of either root. *)
 Lemma lemma_20_5_a : ∃ r, r > 0 /\
   (∀ x, x^2 = cos x <-> |x| = r) /\
   |r - sqrt (2/3)| < 1/50 /\

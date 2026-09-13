@@ -1,9 +1,9 @@
 From Calculus.Chapter2 Require Import Prelude Problem12.
 Open Scope R_scope.
 
-Lemma lemma_2_15_a : forall x p q m,
+Lemma lemma_2_15_a : ∀ x p q m,
   rational p -> rational q -> x = p + sqrt q -> q >= 0 ->
-    exists a b, rational a /\ rational b /\ x^m = a + b * sqrt q.
+    ∃ a b, rational a /\ rational b /\ x^m = a + b * sqrt q.
 Proof.
   intros x p q m H1 H2 H3 H4. induction m as [| m' IH].
   - exists 1, 0. repeat split.
@@ -17,9 +17,9 @@ Proof.
        rewrite sqrt_sqrt; lra. 
 Qed.
 
-Lemma lemma_2_15_b : forall p q m,
+Lemma lemma_2_15_b : ∀ p q m,
   rational p -> rational q -> q >= 0 ->
-    exists a b, rational a /\ rational b /\ (p - sqrt q)^m = a - b * sqrt q.
+    ∃ a b, rational a /\ rational b /\ (p - sqrt q)^m = a - b * sqrt q.
 Proof.
   intros p q m H1 H2 H3. induction m as [| m' IH].
   - exists 1, 0. repeat split.

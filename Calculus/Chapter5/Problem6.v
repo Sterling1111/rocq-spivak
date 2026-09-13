@@ -2,10 +2,10 @@ From Calculus.Chapter5 Require Import Prelude.
 
 Section Problem6.
   Variable f g : R -> R.
-  Hypothesis H1 : forall ε x, ε > 0 -> 0 < |x - 2| < (sin (ε^2 / 9))^2 + ε -> |f x - 2| < ε.
-  Hypothesis H2 : forall ε x, ε > 0 -> 0 < |x - 2| < ε^2 -> |g x - 4| < ε.
+  Hypothesis H1 : ∀ ε x, ε > 0 -> 0 < |x - 2| < (sin (ε^2 / 9))^2 + ε -> |f x - 2| < ε.
+  Hypothesis H2 : ∀ ε x, ε > 0 -> 0 < |x - 2| < ε^2 -> |g x - 4| < ε.
 
-  Lemma lemma_5_6_i : ⟦ lim 2 ⟧ (fun x => f x + g x) = 6. 
+  Lemma lemma_5_6_i : ⟦ lim 2 ⟧ (λ x, f x + g x) = 6.
   Proof.
     assert (H3 : ⟦ lim 2 ⟧ f = 2).
     { 
@@ -18,7 +18,7 @@ Section Problem6.
     apply limit_plus; auto.
   Qed.
 
-  Lemma lemma_5_6_ii : ⟦ lim 2 ⟧ (fun x => f x * g x) = 8. 
+  Lemma lemma_5_6_ii : ⟦ lim 2 ⟧ (λ x, f x * g x) = 8.
   Proof.
     assert (H3 : ⟦ lim 2 ⟧ f = 2).
     { 
@@ -31,14 +31,14 @@ Section Problem6.
     apply limit_mult; auto.
   Qed.
 
-  Lemma lemma_5_6_iii : ⟦ lim 2 ⟧ (fun x => 1 / g x) = 1/4.
+  Lemma lemma_5_6_iii : ⟦ lim 2 ⟧ (λ x, 1 / g x) = 1/4.
   Proof.
     assert (H3 : ⟦ lim 2 ⟧ g = 4).
     { unfold limit. intros ε H3. exists (ε^2). split; auto; nra. }
     replace (1 / 4) with (/ 4) by lra; apply limit_inv; auto; lra.
   Qed.
 
-  Lemma lemma_5_6_iv : ⟦ lim 2 ⟧ (fun x => f x / g x) = 1/2. 
+  Lemma lemma_5_6_iv : ⟦ lim 2 ⟧ (λ x, f x / g x) = 1/2.
   Proof.
     assert (H3 : ⟦ lim 2 ⟧ f = 2).
     { 

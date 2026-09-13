@@ -66,7 +66,7 @@ Qed.
 
 Lemma lemma_1_1_v : ∀ (x y : R) (n : nat),
   (n >= 1)%nat ->
-  x ^ n - y ^ n = (x - y) * ∑ 0 (n-1) (fun i => x ^ i * y ^ (n - i - 1)).
+  x ^ n - y ^ n = (x - y) * ∑ 0 (n-1) (λ i, x ^ i * y ^ (n - i - 1)).
 Proof.
   intros x y n H1.
   assert (H2 : (n = 1 \/ (n >= 2))%nat) by lia. destruct H2 as [H2 | H2].
@@ -77,12 +77,12 @@ Proof.
     replace (y ^ 0) with 1 by lra. rewrite Rmult_1_r.
     rewrite Rmult_plus_distr_l. replace (x * x ^ (n - 1)) with (x ^ n). 
       2 : { destruct n. simpl. lia. simpl. rewrite Nat.sub_0_r. reflexivity. }
-    assert (H3 : x * sum_f 0 (n - 2) (fun i : nat => x ^ i * y ^ (n - i - 1))
-                = sum_f 0 (n - 2) (fun i : nat => x ^ (i + 1) * y ^ (n - 1 - i))).
+    assert (H3 : x * sum_f 0 (n - 2) (λ i : nat, x ^ i * y ^ (n - i - 1))
+                = sum_f 0 (n - 2) (λ i : nat, x ^ (i + 1) * y ^ (n - 1 - i))).
       {
         rewrite r_mult_sum_f_i_n_f.
-        set (f1 := fun i : nat => x ^ i * y ^ (n - i - 1) * x).
-        set (f2 := fun i : nat => x ^ (i + 1) * y ^ (n - 1 - i)).
+        set (f1 := λ i : nat, x ^ i * y ^ (n - i - 1) * x).
+        set (f2 := λ i : nat, x ^ (i + 1) * y ^ (n - 1 - i)).
         assert (∀ i : nat, f1 i = f2 i).
         { intro i. unfold f1. unfold f2. replace (i + 1)%nat with (S i) by lia.
           replace (n - 1 - i)%nat with (n - i - 1)%nat by lia.
@@ -95,13 +95,13 @@ Proof.
       rewrite H3. rewrite sum_f_Si with (i := 0%nat) (n := (n-1)%nat). 2: lia.
       replace (x ^ 0) with 1 by lra. rewrite Rmult_1_l.
       replace ((n - 0 - 1)%nat) with (n - 1)%nat by lia.
-      assert (H4 : y * (sum_f 1 (n - 1) (fun i : nat => x ^ i * y ^ (n - i - 1)) + y ^ (n - 1))
-                = sum_f 1 (n - 1) (fun i : nat => x ^ i * y ^ (n - i)) + y ^ (n)).
+      assert (H4 : y * (sum_f 1 (n - 1) (λ i : nat, x ^ i * y ^ (n - i - 1)) + y ^ (n - 1))
+                = sum_f 1 (n - 1) (λ i : nat, x ^ i * y ^ (n - i)) + y ^ (n)).
         {
           rewrite Rmult_plus_distr_l. rewrite <- pow_equ. 2 : { lia. }
           rewrite r_mult_sum_f_i_n_f.
-          set (f1 := fun i : nat => x ^ i * y ^ (n - i - 1) * y).
-          set (f2 := fun i : nat => x ^ i * y ^ (n - i)).
+          set (f1 := λ i : nat, x ^ i * y ^ (n - i - 1) * y).
+          set (f2 := λ i : nat, x ^ i * y ^ (n - i)).
           rewrite sum_f_equiv with (f1 := f1) (f2 := f2). reflexivity. auto. auto. lia.
           intros i. destruct i.
           - lia.
@@ -112,8 +112,8 @@ Proof.
         }
       rewrite H4. rewrite sum_f_reindex with (s := 1%nat) (i := 1%nat). 2 : { lia. }
       replace ((1 - 1)%nat) with 0%nat by lia. replace ((n - 1 - 1)%nat) with (n - 2)%nat by lia. 
-      assert (H5 : sum_f 0 (n - 2) (fun i : nat => x ^ (i+1) * y ^ (n - 1 - i)) = 
-                   sum_f 0 (n - 2) (fun i : nat => x ^ (i+1) * y ^ (n - (i+1)))).
+      assert (H5 : sum_f 0 (n - 2) (λ i : nat, x ^ (i+1) * y ^ (n - 1 - i)) =
+                   sum_f 0 (n - 2) (λ i : nat, x ^ (i+1) * y ^ (n - (i+1)))).
         { apply sum_f_congruence. lia. intros i H5. replace ((n - 1 - i)%nat) with (n - (i+1))%nat by lia. reflexivity. }
       rewrite H5. lra.
 Qed.
