@@ -28,8 +28,15 @@ Definition matrix_mult {A : Type} {m n p : nat} `{Add A} `{Mul A} `{Zero A}
     vector_init (fun k => 
       vector_dot (get_row M1 i) (get_col M2 k))).
 
-Definition matrix_transpose {A : Type} {m n : nat} `{Zero A} (M : matrix A m n) : matrix A n m :=
-  vector_init (fun i => get_col M i).
+(** Extract the first column, then transpose the remaining columns. The row
+    lengths ensure that every head exists, even when the element type is empty. *)
+Fixpoint matrix_transpose {A : Type} {m n : nat} : matrix A m n -> matrix A n m :=
+  match n as k return matrix A m k -> matrix A k m with
+  | 0 => fun _ => mk_vector [] eq_refl
+  | S k => fun M =>
+      vector_cons (vector_map (@vector_head A k) M)
+        (matrix_transpose (vector_map (@vector_tail A k) M))
+  end.
 
 Definition identity_matrix {A : Type} {n : nat} `{Zero A} `{One A} : matrix A n n :=
   vector_init (fun i => 
@@ -56,6 +63,12 @@ End MatrixNotations.
 
 Import MatrixNotations.
 
+Definition inverse {n} (A B : matrix R n n) : Prop :=
+  (A × B = I /\ B × A = I)%M.
+
+Definition invertable {n} (A : matrix R n n) : Prop :=
+  exists B : matrix R n n, inverse A B.
+
 Ltac auto_mat_core :=
   unfold matrix_mult, matrix_transpose, identity_matrix, get_row, get_col, vector_nth, vector_init, vector_dot, vector_map2, vector_fold in *;
   auto_vec.
@@ -81,12 +94,12 @@ Section Matrix_Examples.
 
   Example matrix_mult_example : A × B = ⟨ ⟨31, 19⟩, ⟨85, 55⟩ ⟩.
   Proof.
-    unfold A, B. auto_mat.
+    auto_mat.
   Qed.
 
   Example matrix_transpose_example : A^T = ⟨ ⟨1, 4⟩, ⟨2, 5⟩, ⟨3, 6⟩ ⟩.
   Proof.
-    unfold A. auto_mat.
+    auto_mat.
   Qed.
 
   Lemma identity_matrix_3x3 : I = ⟨ ⟨1%R, 0%R, 0%R⟩, ⟨0%R, 1%R, 0%R⟩, ⟨0%R, 0%R, 1%R ⟩⟩.
@@ -116,9 +129,41 @@ Section Symbolic_Example.
     Md1 × Md2 = ⟨ ⟨10.0, 1.8⟩, 
                   ⟨ 9.0, 0.6⟩ ⟩.
   Proof.
-    unfold Md1, Md2, matrix_mult, matrix_transpose, vector_init, vector_dot, vector_map2, vector_fold, get_row, get_col, vector_nth;
-    repeat (try apply vector_eq; try simpl; try f_equal; unfold add, mul, zero, Add_R, Mul_R, Zero_R); solve_R.
+    auto_mat.
   Qed.
+
+End Symbolic_Example.
+
+Section Symbolic_Example.
+  Local Open Scope R_scope.
+  Local Open Scope V_Scope.
+  Local Open Scope M_Scope.
+
+  Variables a b c d e f g h : R.
+
+  Let Md1 : matrix R 2 2 :=
+    ⟨ ⟨a, b⟩,
+      ⟨c, d⟩ ⟩.
+
+  Let Md2 : matrix R 2 2 :=
+    ⟨ ⟨e, f⟩,
+      ⟨g, h⟩ ⟩.
+
+  Example matrix_mult_symbolic :
+  Md1 × Md2 =
+    ⟨ ⟨a * e + b * g, a * f + b * h⟩,
+      ⟨c * e + d * g, c * f + d * h⟩ ⟩.
+  Proof.
+    auto_mat.
+  Qed.
+
+  Example Md1_transpose :
+  Md1^T = ⟨ ⟨a, c⟩, ⟨b, d⟩ ⟩.
+  Proof.
+    auto_mat.
+  Qed.
+
+
 
 End Symbolic_Example.
 
@@ -241,6 +286,30 @@ Section Matrix_Coercion.
   Proof.
     intros A B n f v i d1 d2 H1. unfold vector_nth, vector_map.
     destruct v as [l1 H2]. simpl. apply list_map_nth. lia.
+  Qed.
+
+  Lemma vector_nth_cons_zero {A n} (x : A) (v : vector A n) d :
+    vector_nth (vector_cons x v) 0 d = x.
+  Proof. reflexivity. Qed.
+
+  Lemma vector_nth_cons_succ {A n} (x : A) (v : vector A n) i d :
+    vector_nth (vector_cons x v) (S i) d = vector_nth v i d.
+  Proof. reflexivity. Qed.
+
+  (** Compatibility with the legacy default-based accessors. The default is
+      used only in this statement, never by the transpose implementation. *)
+  Lemma matrix_transpose_nth_default {A m n} (M : matrix A m n) i j (d : A) :
+    (i < n)%nat -> (j < m)%nat ->
+    vector_nth (vector_nth (matrix_transpose M) i (vector_const d m)) j d =
+    vector_nth (vector_nth M j (vector_const d n)) i d.
+  Proof.
+    revert M i. induction n as [|n IH]; intros M [|i] Hi Hj; try lia.
+    - cbn [matrix_transpose]. rewrite vector_nth_cons_zero.
+      rewrite vector_nth_map with (d1 := vector_const d (S n)) by lia.
+      apply vector_head_nth.
+    - cbn [matrix_transpose]. rewrite vector_nth_cons_succ, IH by lia.
+      rewrite vector_nth_map with (d1 := vector_const d (S n)) by lia.
+      apply vector_tail_nth.
   Qed.
 
   Definition mat_nth {m n} (M : matrix R m n) i j : R :=
@@ -404,8 +473,8 @@ Section Matrix_Coercion.
   Lemma matrix_transpose_nth : forall m n (M : matrix R m n) i j,
     (i < n)%nat -> (j < m)%nat -> mat_nth (M^T) i j = mat_nth M j i.
   Proof.
-    intros m n M i j H1 H2. unfold mat_nth at 1. unfold matrix_transpose.
-    rewrite vector_init_nth by auto. apply get_col_nth; auto.
+    intros m n M i j H1 H2. unfold mat_nth.
+    apply matrix_transpose_nth_default; assumption.
   Qed.
 
   Lemma vec_to_col_nth : forall n (v : vector R n) i j,
@@ -585,8 +654,7 @@ Lemma matrix_coord_transpose {A m n} `{Zero A} (M : matrix A m n) i j :
   (i < n)%nat -> (j < m)%nat ->
   vector_coord (vector_coord (matrix_transpose M) i) j = vector_coord (vector_coord M j) i.
 Proof.
-  intros Hi Hj. unfold matrix_transpose. rewrite vector_coord_init by lia.
-  unfold get_col. rewrite vector_coord_map by lia. reflexivity.
+  apply (matrix_transpose_nth_default M i j zero).
 Qed.
 
 #[export] Hint Rewrite @matrix_coord_transpose @vector_coord_init @vector_coord_const
@@ -760,6 +828,7 @@ Ltac mat_simpl :=
 Ltac solve_mat :=
   solve [intros;
     first [solve [reflexivity | assumption]
+          | solve [vec_compute]
           | solve [matrix_solver_extension]
           | solve [mat_simpl; linear_scalar]
           | solve [solve_vec]

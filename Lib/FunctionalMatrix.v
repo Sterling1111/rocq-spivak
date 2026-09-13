@@ -83,13 +83,19 @@ Proof.
   symmetry. apply vector_to_function_nth.
 Qed.
 
-Lemma matrix_to_function_nth {m n} (M : matrix R m n) (i : Fin.t m) (j : Fin.t n) :
-  matrix_to_function M i j = mat_nth M (proj1_sig (Fin.to_nat i)) (proj1_sig (Fin.to_nat j)).
+Lemma matrix_to_function_entry {A m n} (M : matrix A m n) (i : Fin.t m) (j : Fin.t n) (d : A) :
+  matrix_to_function M i j =
+  Matrix.vector_nth (Matrix.vector_nth M (proj1_sig (Fin.to_nat i)) (vector_const d n))
+    (proj1_sig (Fin.to_nat j)) d.
 Proof.
-  unfold matrix_to_function, mat_nth, vector_nth.
-  rewrite (vector_to_function_nth M i (vector_const 0%R n)).
+  unfold matrix_to_function, Matrix.vector_nth.
+  rewrite (vector_to_function_nth M i (vector_const d n)).
   apply vector_to_function_nth.
 Qed.
+
+Lemma matrix_to_function_nth {m n} (M : matrix R m n) (i : Fin.t m) (j : Fin.t n) :
+  matrix_to_function M i j = mat_nth M (proj1_sig (Fin.to_nat i)) (proj1_sig (Fin.to_nat j)).
+Proof. apply matrix_to_function_entry. Qed.
 
 Lemma matrix_to_function_zero {A m n} `{Zero A} :
   matrix_to_function (zero : matrix A m n) = fmatrix_const zero.
@@ -123,11 +129,14 @@ Proof.
   rewrite vector_to_function_scale. reflexivity.
 Qed.
 
-Lemma matrix_to_function_transpose {A m n} `{Zero A} (M : matrix A m n) :
+Lemma matrix_to_function_transpose {A m n} (M : matrix A m n) :
   matrix_to_function (matrix_transpose M) = fmatrix_transpose (matrix_to_function M).
 Proof.
-  apply fmatrix_ext. intros i j. unfold matrix_to_function, matrix_transpose.
-  rewrite vector_to_function_init, matrix_to_function_col. reflexivity.
+  apply fmatrix_ext. intros i j. unfold fmatrix_transpose.
+  pose (d := matrix_to_function M j i).
+  rewrite (matrix_to_function_entry (matrix_transpose M) i j d),
+    (matrix_to_function_entry M j i d).
+  apply matrix_transpose_nth_default; apply proj2_sig.
 Qed.
 
 Lemma matrix_to_function_mult {A m n p} `{Add A} `{Mul A} `{Zero A}
@@ -195,7 +204,7 @@ Proof.
   rewrite matrix_to_function_scale, !matrix_function_roundtrip. reflexivity.
 Qed.
 
-Lemma function_to_matrix_transpose {A m n} `{Zero A} (M : fmatrix A m n) :
+Lemma function_to_matrix_transpose {A m n} (M : fmatrix A m n) :
   function_to_matrix (fmatrix_transpose M) = matrix_transpose (function_to_matrix M).
 Proof.
   apply matrix_function_eq_iff. intros i j.
@@ -250,12 +259,16 @@ Lemma fmatrix_transpose_involutive {A m n} (M : fmatrix A m n) :
   fmatrix_transpose (fmatrix_transpose M) = M.
 Proof. reflexivity. Qed.
 
-Lemma matrix_transpose_involutive {A m n} `{Zero A} (M : matrix A m n) :
+Lemma matrix_transpose_involutive {A m n} (M : matrix A m n) :
   matrix_transpose (matrix_transpose M) = M.
 Proof.
   apply matrix_function_eq_iff. intros i j.
-  rewrite !matrix_to_function_transpose. reflexivity.
+  rewrite !matrix_to_function_transpose.
+  rewrite fmatrix_transpose_involutive.
+  reflexivity.
 Qed.
+
+#[export] Hint Rewrite @matrix_transpose_involutive : matrix_algebra.
 
 Lemma fmatrix_assoc_R {m n p q} (M : fmatrix R m n) (N : fmatrix R n p) (P : fmatrix R p q) :
   fmatrix_mult (fmatrix_mult M N) P = fmatrix_mult M (fmatrix_mult N P).

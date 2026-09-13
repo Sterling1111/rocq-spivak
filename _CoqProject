@@ -49,9 +49,12 @@ Lib/Taylor.v
 Lib/Vector.v
 Lib/Matrix.v
 Lib/FunctionalVector.v
+Lib/VectorCalculus.v
 Lib/FunctionalMatrix.v
 Lib/VectorMatrixExamples.v
 Lib/LinearAlgebraTests.v
+Lib/RowReduction.v
+Lib/RowReductionTests.v
 Lib/Asymptotics.v
 Lib/PolySimp.v
 Lib/StdlibCompat.v
@@ -116,6 +119,9 @@ Calculus/Chapter3/Problem7.v
 Calculus/Chapter3/Problem16.v
 Calculus/Chapter3/Problem22.v
 
+Calculus/Chapter4/Prelude.v
+Calculus/Chapter4/VectorFunctions.v
+
 Calculus/Chapter5/Prelude.v
 Calculus/Chapter5/Problem10.v
 Calculus/Chapter5/Problem14.v
@@ -164,6 +170,15 @@ Calculus/Chapter15/Problem11.v
 Calculus/Chapter15/Problem12.v
 Calculus/Chapter15/Problem16.v
 Calculus/Chapter15/Problem19.v
+
+Calculus/Chapter17/Prelude.v
+Calculus/Chapter17/Polar.v
+Calculus/Chapter17/Area.v
+Calculus/Chapter17/Conics.v
+Calculus/Chapter17/Converse.v
+Calculus/Chapter17/Period.v
+Calculus/Chapter17/PlanetaryMotion.v
+Calculus/Chapter17/Examples.v
 
 Calculus/Chapter18/Prelude.v
 Calculus/Chapter18/Problem47.v

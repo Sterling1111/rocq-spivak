@@ -1,6 +1,56 @@
 From Lib Require Import Imports Vector Matrix.
 Import VectorNotations MatrixNotations.
 
+(** Local definitions must reduce without manual unfolding or symbolic search. *)
+Section ConcreteMatrixComputation.
+  Local Open Scope R_scope.
+  Local Open Scope V_Scope.
+  Local Open Scope M_Scope.
+  Let A : matrix R 2 3 := ⟨⟨1, 2, 3⟩, ⟨4, 5, 6⟩⟩.
+  Let B : matrix R 3 2 := ⟨⟨7, 8⟩, ⟨9, 1⟩, ⟨2, 3⟩⟩.
+
+  Example matrix_product_compute : A × B = ⟨⟨31, 19⟩, ⟨85, 55⟩⟩.
+  Proof. vec_compute. Qed.
+
+  Example matrix_product_auto : A × B = ⟨⟨31, 19⟩, ⟨85, 55⟩⟩.
+  Proof. auto_mat. Qed.
+
+  Example matrix_transpose_compute : A^T = ⟨⟨1, 4⟩, ⟨2, 5⟩, ⟨3, 6⟩⟩.
+  Proof. vec_compute. Qed.
+
+  Example symbolic_entries_compute (a b : R) :
+    ⟨⟨a, b⟩⟩ × ⟨⟨b⟩, ⟨a⟩⟩ = ⟨⟨(2 * a * b)%R⟩⟩.
+  Proof. vec_compute. Qed.
+End ConcreteMatrixComputation.
+
+(** Decimal coefficients are exact rationals, including in symbolic entries. *)
+Section DecimalComputation.
+  Local Open Scope R_scope.
+  Local Open Scope V_Scope.
+  Local Open Scope M_Scope.
+  Let Md1 : matrix R 2 2 := ⟨⟨1.5, 2.0⟩, ⟨0.5, 3.5⟩⟩.
+  Let Md2 : matrix R 2 2 := ⟨⟨4.0, 1.2⟩, ⟨2.0, 0.0⟩⟩.
+
+  Example decimal_product_compute : Md1 × Md2 = ⟨⟨10.0, 1.8⟩, ⟨9.0, 0.6⟩⟩.
+  Proof. vec_compute. Qed.
+
+  Example decimal_product_auto : Md1 × Md2 = ⟨⟨10.0, 1.8⟩, ⟨9.0, 0.6⟩⟩.
+  Proof. auto_mat. Qed.
+
+  Example decimal_symbolic_product (a b : R) :
+    ⟨⟨a, b⟩⟩ × ⟨⟨0.5⟩, ⟨1.25⟩⟩ = ⟨⟨((2*a + 5*b) / 4)%R⟩⟩.
+  Proof. vec_compute. Qed.
+
+  Example signed_decimal_and_fraction :
+    ⟨(-1.25)%R, 0.1, (1/3)%R⟩ + ⟨0.5, 0.2, (1/6)%R⟩ = ⟨(-0.75)%R, 0.3, 0.5⟩.
+  Proof. vec_compute. Qed.
+
+  Fail Definition reject_wrong_decimal : ⟨(0.1 + 0.2)%R⟩ = ⟨0.4⟩ := ltac:(vec_compute).
+  Fail Definition reject_zero_denominator : ⟨(1/0)%R⟩ = ⟨1%R⟩ := ltac:(vec_compute).
+  Fail Definition reject_unproved_denominator (a b : R) :
+    ⟨(a*b/b)%R⟩ = ⟨a⟩ := ltac:(vec_compute).
+End DecimalComputation.
+
 (** These tests intentionally precede the functional imports: the original
     Vector/Matrix entry points must work on their own. *)
 Section ListVectorTests.
@@ -116,6 +166,40 @@ Fail Definition reject_matrix_commutation n (A B : matrix R n n) :
 
 From Lib Require Import FunctionalMatrix.
 Import FunctionalVectorNotations FunctionalMatrixNotations.
+
+(** Transpose is structural: even an uninhabited element type needs no Zero. *)
+Example transpose_without_zero {A m n} (M : matrix A m n) : ((M^T)^T = M)%M.
+Proof.
+  apply matrix_function_eq_iff. intros i j.
+  rewrite !matrix_to_function_transpose. reflexivity.
+Qed.
+
+Example transpose_without_zero_solver {A m n} (M : matrix A m n) : ((M^T)^T = M)%M.
+Proof. auto_mat. Qed.
+
+Example boolean_transpose :
+  ((⟨⟨true, false, true⟩, ⟨false, true, false⟩⟩%V : matrix bool 2 3)^T)%M =
+  ⟨⟨true, false⟩, ⟨false, true⟩, ⟨true, false⟩⟩%V.
+Proof. vec_compute. Qed.
+
+Example transpose_empty_type_no_rows :
+  ((⟨⟩%V : matrix Datatypes.Empty_set 0 2)^T)%M =
+  (⟨⟨⟩, ⟨⟩⟩%V : matrix Datatypes.Empty_set 2 0).
+Proof. vec_compute. Qed.
+
+Example transpose_empty_type_no_columns :
+  ((⟨⟨⟩, ⟨⟩⟩%V : matrix Datatypes.Empty_set 2 0)^T)%M =
+  (⟨⟩%V : matrix Datatypes.Empty_set 0 2).
+Proof. vec_compute. Qed.
+
+Example transpose_empty_type_zero_by_zero :
+  ((⟨⟩%V : matrix Datatypes.Empty_set 0 0)^T)%M =
+  (⟨⟩%V : matrix Datatypes.Empty_set 0 0).
+Proof. vec_compute. Qed.
+
+Example transpose_bridge_without_zero {A m n} (M : fmatrix A m n) :
+  function_to_matrix (fmatrix_transpose M) = matrix_transpose (function_to_matrix M).
+Proof. apply function_to_matrix_transpose. Qed.
 
 Section FunctionalTests.
   Variables (m n p : nat) (u v w : fvector R n).

@@ -621,7 +621,14 @@ Ltac reify_expr x t :=
           lazymatch type of h with
           | R -> R =>
               let e1 := reify_expr x u in 
-              let df := match goal with | [ H1 : ⟦ der ⟧ h = ?g |- _ ] => constr:(Some g) | _ => constr:(@None (R -> R)) end in
+              (* Select a derivative witness from the context. A pointwise
+                 witness is only a candidate: wf_derive still requires its
+                 derivative proof at the actual argument of this application. *)
+              let df := match goal with
+                | H1 : ⟦ der ⟧ h = ?g |- _ => constr:(Some g)
+                | H1 : ⟦ der ?a ⟧ h = ?g |- _ => constr:(Some g)
+                | _ => constr:(@None (R -> R))
+                end in
               constr:(EApp h df e1)
           | _ => reify_constant t
           end
@@ -1488,6 +1495,17 @@ Qed.
 End Tactic_Tests.
 
 Module Tactic_Tests_Advanced.
+
+Lemma test_auto_diff_cos_pointwise (f f' : ℝ → ℝ) t :
+  ⟦ der t ⟧ f = f' →
+  ⟦ der t ⟧ (λ x, cos (f x)) = (λ x, -sin (f x) * f' x).
+Proof. intro H1. auto_diff. Qed.
+
+Lemma test_auto_diff_composition_pointwise (f f' g g' : ℝ → ℝ) t :
+  ⟦ der t ⟧ f = f' → ⟦ der (f t) ⟧ g = g' →
+  ⟦ der t ⟧ (λ x, sin (g (f x))) =
+    (λ x, cos (g (f x)) * (g' (f x) * f' x)).
+Proof. intros H1 H2. auto_diff. Qed.
 
 Lemma test_auto_diff_rpower : ⟦ der ⟧ (fun x => x ^^ 5) (1, 2) = (fun x => 5 * x ^^ 4).
 Proof.

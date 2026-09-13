@@ -52,6 +52,8 @@ A problem counts as completed when its statements have proofs closed with `Qed` 
 | Trigonometric and exponential functions | [Trigonometry.v](Lib/Trigonometry.v), [Exponential.v](Lib/Exponential.v) |
 | Complex numbers and complex analysis | [Complex.v](Lib/Complex.v), [ComplexFunctions.v](Lib/ComplexFunctions.v) |
 | Vectors and matrices, as lists and coordinate functions | [Guide](Lib/LinearAlgebra.md), [FunctionalVector.v](Lib/FunctionalVector.v), [FunctionalMatrix.v](Lib/FunctionalMatrix.v), [examples](Lib/VectorMatrixExamples.v) |
+| Vector functions and planetary motion | [Vector calculus](Lib/VectorCalculus.v), [Chapter 4 examples](Calculus/Chapter4/VectorFunctions.v), [PlanetaryMotion.v](Calculus/Chapter17/PlanetaryMotion.v), [Chapter 17 guide](Calculus/Chapter17/README.md) |
+| Exact rational REF and RREF, with correctness proofs over rationals and reals | [Guide](Lib/RowReduction.md), [RowReduction.v](Lib/RowReduction.v), [tests and examples](Lib/RowReductionTests.v) |
 | Exercise proofs | [Calculus/](Calculus/), [ATTAM/](ATTAM/) |
 
 The notation follows the textbook where practical. For example, the two parts of the fundamental theorem of calculus are stated in `Lib/Integral.v` as:

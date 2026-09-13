@@ -37,8 +37,7 @@ Proof.
   assert (H5 : A x2 <= A (P / 4)).
   {
     apply first_derivative_test_max with (f' := λ x, (P - 4 * x) / 2); solve_R.
-    - apply A_derivative.
-    - apply Full_intro.
+    apply A_derivative.
   }
   lra.
 Qed.
@@ -52,7 +51,6 @@ Proof.
   replace x1 with (P / 4) by (unfold Perimeter in H2; lra).
   apply first_derivative_test_strict_max with (f' := λ x, (P - 4 * x) / 2); solve_R.
   - apply A_derivative.
-  - apply Full_intro.
   - unfold Perimeter in H3. lra.
 Qed.
 

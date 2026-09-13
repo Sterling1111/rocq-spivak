@@ -11,6 +11,31 @@ Record vector (A : Type) (n : nat) := mk_vector {
 Arguments mk_vector {A n} vlist vlist_length.
 Arguments vlist {A n} _.
 
+(** Structural operations on nonempty vectors need no default element. *)
+Definition vector_cons {A n} (x : A) (v : vector A n) : vector A (S n) :=
+  mk_vector (x :: vlist v) (f_equal S (vlist_length A n v)).
+
+Definition vector_head {A n} (v : vector A (S n)) : A.
+Proof.
+  destruct v as [[|x xs] Hlength].
+  - discriminate Hlength.
+  - exact x.
+Defined.
+
+Definition vector_tail {A n} (v : vector A (S n)) : vector A n.
+Proof.
+  refine (mk_vector (List.tl (vlist v)) _).
+  destruct v as [[|x xs] Hlength]; simpl in *; lia.
+Defined.
+
+Lemma vector_head_nth {A n} (v : vector A (S n)) (d : A) :
+  vector_head v = List.nth 0 (vlist v) d.
+Proof. destruct v as [[|x xs] Hlength]; [discriminate Hlength | reflexivity]. Qed.
+
+Lemma vector_tail_nth {A n} (v : vector A (S n)) i (d : A) :
+  List.nth i (vlist (vector_tail v)) d = List.nth (S i) (vlist v) d.
+Proof. destruct v as [[|x xs] Hlength]; [discriminate Hlength | reflexivity]. Qed.
+
 Lemma vector_eq {A : Type} {n : nat} (v1 v2 : vector A n) :
   vlist v1 = vlist v2 -> v1 = v2.
 Proof.
@@ -101,8 +126,11 @@ Module VectorNotations.
   Delimit Scope V_Scope with V.
 
   Notation "⟨ ⟩" := (mk_vector nil eq_refl) : V_Scope.
-  Notation "⟨ x ⟩" := (mk_vector (cons x nil) eq_refl) : V_Scope.
-  Notation "⟨ x , .. , y ⟩" := (mk_vector (cons x .. (cons y nil) ..) eq_refl) : V_Scope.
+  (* Keep dimensions independent of entries: length-of-list types can cause
+     unification to assign overloaded 0/1 entries while matching row lengths. *)
+  Notation "⟨ x ⟩" := (vector_cons x (mk_vector nil eq_refl)) : V_Scope.
+  Notation "⟨ x , .. , y ⟩" :=
+    (vector_cons x .. (vector_cons y (mk_vector nil eq_refl)) ..) : V_Scope.
 
   Notation "v1 + v2" := (add v1 v2) (at level 50, left associativity) : V_Scope.
   Notation "v1 ⊙ v2" := (mul v1 v2) (at level 40, left associativity) : V_Scope.
@@ -131,6 +159,23 @@ Ltac auto_op :=
        Le_nat, Lt_nat, Ge_nat, Gt_nat, Le_Vector, Lt_Vector, Ge_Vector, Gt_Vector in *;
   try lra; try nra; try lia; try reflexivity.
 
+(** Concrete equalities should compute before trying coordinate rewriting or
+    general arithmetic search. Project away length proofs before reducing,
+    split only list constructors, and leave the context untouched. Decimal
+    literals use [Q2R]; expose their exact fractions for the field normalizer.
+    The surrounding [solve] requires every denominator obligation to close. *)
+Ltac vec_compute :=
+  solve [apply vector_eq;
+    repeat first
+      [ apply vector_eq
+      | match goal with |- @eq (list _) (_ :: _) (_ :: _) => f_equal end
+      | progress cbn ];
+    cbv beta iota zeta delta
+      [add mul scale zero one Add_R Mul_R Scale_R Zero_R One_R
+       Add_nat Mul_nat Scale_nat Zero_nat One_nat];
+    solve [reflexivity | ring |
+      cbv beta iota zeta delta [Q2R Qnum Qden]; field]].
+
 Ltac auto_vec_core :=
   repeat first
     [ progress (cbv beta iota zeta delta
@@ -143,7 +188,7 @@ Ltac auto_vec_core :=
     | solve [auto_op] ].
 
 Ltac auto_vec :=
-  solve [ auto_op | auto_vec_core ].
+  solve [ vec_compute | auto_op | auto_vec_core ].
 
 Section Vector_Examples.
   Section R_Examples.
@@ -155,7 +200,7 @@ Section Vector_Examples.
 
     Example vector_add_example : v1 + v2 = ⟨5, 7, 9⟩.
     Proof.
-      unfold v1, v2. auto_vec.
+      auto_vec.
     Qed.
   End R_Examples.
 
@@ -167,12 +212,12 @@ Section Vector_Examples.
 
     Example vector_add_example_nat : v1 + v2 = ⟨5, 7, 9⟩.
     Proof.
-      unfold v1, v2. auto_vec.
+      auto_vec.
     Qed.
 
     Example vector_dot_example_nat : v1 · v2 = 32%nat.
     Proof.
-      unfold v1, v2. auto_vec.
+      auto_vec.
     Qed.
 
   End Nat_Examples.
@@ -360,7 +405,8 @@ Ltac vec_simpl :=
 
 Ltac solve_vec :=
   solve [intros;
-    first [solve [vector_solver_extension]
+    first [solve [vec_compute]
+          | solve [vector_solver_extension]
           | solve [vec_simpl; linear_scalar]
           | solve [auto_op | auto_vec_core]]].
 
@@ -433,6 +479,7 @@ Ltac vector_dot_symmetry :=
 Ltac solve_vec ::=
   solve [intros;
     first [solve [reflexivity | assumption]
+          | solve [vec_compute]
           | solve [vector_solver_extension]
           | solve [autorewrite with vector_algebra; vector_dot_symmetry;
               vec_simpl; linear_scalar]
