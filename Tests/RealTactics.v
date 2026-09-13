@@ -52,7 +52,7 @@ Example real_rational : Real_of_Q (1#2)%Q + Real_of_Q (1#3)%Q = Real_of_Q (5#6)%
 Proof. solve_real. Qed.
 
 Example real_field_order : forall x y : Real,
-  Field.le x y -> Field.gt (y + 1) x.
+  x > y -> x + 1 > y.
 Proof. real_lra. Qed.
 
 Example real_manual_transfer : forall x : Real, x + 1 > x.
