@@ -1,6 +1,7 @@
 -R Lib Lib
 -R Calculus Calculus
 -R ATTAM ATTAM
+-R Backprop Backprop
 
 -arg -quiet
 -arg -w -arg "-uniform-inheritance,-ambiguous-paths,-deprecated-dirpath-Coq"
@@ -51,6 +52,11 @@ Lib/Matrix.v
 Lib/FunctionalVector.v
 Lib/VectorCalculus.v
 Lib/FunctionalMatrix.v
+Backprop/Calculus.v
+Backprop/NeuralNet.v
+Backprop/Correctness.v
+Backprop/Descent.v
+Backprop/Examples.v
 Lib/VectorMatrixExamples.v
 Lib/LinearAlgebraTests.v
 Lib/RowReduction.v
