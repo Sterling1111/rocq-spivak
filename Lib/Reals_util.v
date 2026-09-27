@@ -631,15 +631,16 @@ Proof.
 Qed.
 
 Lemma ceil_spec : forall x : R,
-  x > 0 ->
-  ⌈ x ⌉ - 1 <= x < ⌈ x ⌉.
+  x >= 0 ->
+  ⌈ x ⌉ - 1 < x <= ⌈ x ⌉.
 Proof.
   intros x H1.
   unfold Nceil.
   rewrite INR_IZR_INZ.
-  generalize (archimed x); intros [H2 H3].
-  rewrite Z2Nat.id; [ split; lra |].
-  apply le_IZR; lra.
+  generalize (base_Int_part (- x)); intros [H2 H3].
+  rewrite Z2Nat.id.
+  - rewrite opp_IZR. split; lra.
+  - apply le_IZR. rewrite opp_IZR. simpl. lra.
 Qed.
 
 Lemma floor_unique : forall (x : R) (n : nat),
@@ -662,18 +663,20 @@ Proof.
 Qed.
 
 Lemma ceil_unique : forall (x : R) (n : nat),
-  x > 0 ->
-  n - 1 <= x < n ->
+  x >= 0 ->
+  n - 1 < x <= n ->
   ⌈ x ⌉ = n.
 Proof.
   intros x n H1 [H2 H3].
-  unfold Nceil.
-  apply Nat2Z.inj.
-  rewrite Z2Nat.id.
-  - symmetry. apply tech_up; rewrite <- INR_IZR_INZ; lra.
-  - apply le_IZR.
-    transitivity x; [lra |].
-    generalize (archimed x); intros [H4 H5]. lra.
+  pose proof (ceil_spec x H1) as [H4 H5].
+  assert (H6 : INR ⌈x⌉ < INR (S n)) by (rewrite S_INR; lra).
+  assert (H7 : INR n < INR (S ⌈x⌉)) by (rewrite S_INR; lra).
+  apply INR_lt in H6. apply INR_lt in H7. lia.
+Qed.
+
+Lemma ceil_INR_id : forall n : nat, ⌈INR n⌉ = n.
+Proof.
+  intros n. apply ceil_unique; pose proof pos_INR n; lra.
 Qed.
 
 Lemma floor_INR : forall r, is_natural r -> INR ⌊r⌋ = r.

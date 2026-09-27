@@ -1,5 +1,6 @@
 From Lib Require Import Imports.
 From Lib Require Export Vector.
+Set Warnings "-stdlib-vector".
 From Stdlib Require Vectors.Fin.
 
 (** A coordinate function with exactly [n] valid indices. *)

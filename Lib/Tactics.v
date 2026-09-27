@@ -1667,3 +1667,156 @@ Section sigmoid.
   Qed.
 
 End sigmoid.
+From Stdlib Require Import QArith Qround.
+
+Open Scope Q_scope.
+
+Definition nat_Q (n : nat) : Q :=
+  inject_Z (Z.of_nat n).
+
+Fixpoint halve_Q (n : nat) (x : Q) : Q :=
+  match n with
+  | O => Qred x
+  | S n => halve_Q n (Qred (x / 2))
+  end.
+
+Definition reduction_steps (x : Q) : nat :=
+  match Qnum x with
+  | Z0 => 0%nat
+  | Zpos p =>
+      let n := (Pos.size_nat p - Pos.size_nat (Qden x))%nat in
+      if Qle_bool (halve_Q n x) 1 then n else S n
+  | Zneg p =>
+      let n := (Pos.size_nat p - Pos.size_nat (Qden x))%nat in
+      if Qle_bool (-1) (halve_Q n x) then n else S n
+  end.
+
+Fixpoint Q_exp_taylor
+    (x : Q) (n k : nat) (term sum : Q) : Q :=
+  match n with
+  | O => Qred sum
+  | S n =>
+      let k' := S k in
+      let term' := Qred (term * x / nat_Q k') in
+      Q_exp_taylor x n k' term' (Qred (sum + term'))
+  end.
+
+Fixpoint square_Q (x : Q) (n : nat) : Q :=
+  match n with
+  | O => Qred x
+  | S n => square_Q (Qred (x * x)) n
+  end.
+
+Definition Q_exp_raw (x : Q) : Q :=
+  let n := reduction_steps x in
+  let y := halve_Q n x in
+  square_Q (Q_exp_taylor y 16 0 1 1) n.
+
+Definition round_Q (digits : nat) (x : Q) : Q :=
+  let n := Nat.pow 10 digits in
+  let s := inject_Z (Z.of_nat n) in
+  Qmake (Qfloor (x * s + 0.5)) (Pos.of_nat n).
+
+Definition Q_exp (x : Q) : Q :=
+  round_Q 5 (Q_exp_raw x).
+
+Definition Q_sigmoid (x : Q) : Q :=
+  round_Q 5 (1 / (1 + Q_exp (-x))).
+
+Definition Q_sigmoid' (x : Q) : Q :=
+  let y := Q_sigmoid x in
+  round_Q 5 (y * (1 - y)).
+
+Close Scope Q_scope.
+Open Scope R_scope.
+
+Eval vm_compute in Q_exp 0.25.
+Eval vm_compute in Q_exp 1.
+Eval vm_compute in Q_exp (-1).
+Eval vm_compute in Q_exp 5.
+
+Lemma exp_025_bounds :
+  1.284025 < exp 0.25 < 1.284026.
+Proof.
+  rewrite exp_compat.
+  interval.
+Qed.
+
+Lemma exp_1_bounds :
+  2.718281 < exp 1 < 2.718282.
+Proof.
+  rewrite exp_compat.
+  interval.
+Qed.
+
+Lemma exp_neg1_bounds :
+  0.367879 < exp (-1) < 0.367880.
+Proof.
+  rewrite exp_compat.
+  interval.
+Qed.
+
+Lemma exp_5_bounds :
+  148.413159 < exp 5 < 148.413160.
+Proof.
+  rewrite exp_compat.
+  interval.
+Qed.
+
+Eval vm_compute in Q_sigmoid 0.
+Eval vm_compute in Q_sigmoid 0.25.
+Eval vm_compute in Q_sigmoid 1.
+Eval vm_compute in Q_sigmoid (-1).
+Eval vm_compute in Q_sigmoid 5.
+Eval vm_compute in Q_sigmoid (-5).
+
+Definition R_sigmoid (x : R) : R :=
+  1 / (1 + exp (-x)).
+
+Lemma sigmoid_0_bounds :
+  0.499995 <= R_sigmoid 0 < 0.500005.
+Proof.
+  unfold R_sigmoid.
+  rewrite exp_compat.
+  interval.
+Qed.
+
+Lemma sigmoid_025_bounds :
+  0.562175 <= R_sigmoid 0.25 < 0.562185.
+Proof.
+  unfold R_sigmoid.
+  rewrite exp_compat.
+  interval.
+Qed.
+
+Lemma sigmoid_1_bounds :
+  0.731055 <= R_sigmoid 1 < 0.731065.
+Proof.
+  unfold R_sigmoid.
+  rewrite exp_compat.
+  interval.
+Qed.
+
+Lemma sigmoid_neg1_bounds :
+  0.268935 <= R_sigmoid (-1) < 0.268945.
+Proof.
+  unfold R_sigmoid.
+  rewrite exp_compat.
+  interval.
+Qed.
+
+Lemma sigmoid_5_bounds :
+  0.993305 <= R_sigmoid 5 < 0.993315.
+Proof.
+  unfold R_sigmoid.
+  rewrite exp_compat.
+  interval.
+Qed.
+
+Lemma sigmoid_neg5_bounds :
+  0.006685 <= R_sigmoid (-5) < 0.006695.
+Proof.
+  unfold R_sigmoid.
+  rewrite exp_compat.
+  interval.
+Qed.

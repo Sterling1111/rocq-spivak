@@ -62,3 +62,16 @@ Proof.
     rewrite matrix_assoc, H1.
     reflexivity.
 Qed.
+
+Theorem theorem_2_10  {n} (A B C : matrix R n n) :
+  invertable C -> A × C = B × C -> A = B.
+Proof.
+  intros H1 H2.
+  pose proof invertable_unique_inverse C H1 as [C_inv [[H3 _] _]].
+  replace A with (A × I) by auto_mat.
+  replace B with (B × I) by auto_mat.
+  rewrite <- H3.
+  repeat rewrite <- matrix_assoc.
+  rewrite H2.
+  reflexivity.
+Qed.
