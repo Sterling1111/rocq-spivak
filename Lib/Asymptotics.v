@@ -1085,8 +1085,9 @@ Section Master_Theorem.
       g = Ο(λ k, (b^k) ^^ p)) /\
     (f = Θ(λ n, n ^^ p) -> 
       g = Θ(λ k, (b^k) ^^ p * k)) /\
-    ((∃ c N, 0 < c < 1 /\ 
-      (∀ n : ℕ, n >= N -> a * f (⌊n/b⌋) <= c * f n)) -> 
+    ((∃ ε c N, ε > 0 /\ 0 < c < 1 /\
+      f = Ω(λ n, n ^^ (p + ε)) /\
+      (∀ n : ℕ, n >= N -> a * f (⌊n/b⌋) <= c * f n)) ->
       g = Θ(λ k, f (⌊b^k⌋))).
   Proof.
     intros H0 g p. split; [| split].
@@ -1357,7 +1358,7 @@ Section Master_Theorem.
         apply Rmult_le_compat_l; try nra.
         unfold p. repeat rewrite <- power_base_change with (b := b); try lra.
         rewrite <- pow_add. replace (k0 + (n - k0))%nat with n; solve_R.
-      - intros [c [N [H10 H11]]].
+      - intros [ε [c [N [Hε [H10 [Hgrowth H11]]]]]].
     apply big_theta_iff; split.
     + destruct (pow_unbounded b (Rmax N b) H2) as [M H12].
       assert (H13 : (M > 0)%nat). { destruct M; [ | destruct M]; solve_R. }
@@ -1474,7 +1475,7 @@ Section Master_Theorem.
         replace 1 with (INR 1) by auto. rewrite floor_INR_id; auto. simpl.
         solve_R.
     - intros [ε [c1 [c2 [H13 [H14 [H15 H16]]]]]].
-      specialize (H11 (ex_intro _ c1 (ex_intro _ c2 (conj H14 H16)))).
+      specialize (H11 (ex_intro _ ε (ex_intro _ c1 (ex_intro _ c2 (conj H13 (conj H14 (conj H15 H16))))))).
       apply big_theta_iff; split.
       + apply big_o_trans with (λ k, (b ^ k) ^^ p + g k).
         * exists (Rmax 1 (T' 0)), 1%nat. split; [solve_R |]. intros n H17.
@@ -1531,7 +1532,7 @@ Theorem master_theorem_nat : ∀ (a b : ℝ) (f T : ℕ -> ℝ),
   a >= 1 -> b > 1 -> is_natural b ->
   (∀ n, f n >= 0) ->
   (∀ n, T n >= 0) -> 
-  (T 1%nat > 0) ->
+  (∀ n, (1 <= n)%nat -> T n > 0) ->
   (∀ n : ℕ, n >= b -> T n = a * T (⌊n/b⌋) + f n) ->
   ((∃ ε, ε > 0 /\ (f = Ο(λ n, n^^((log_ b a) - ε)))) -> T = Θ(λ n, n^^(log_ b a))) /\
   (f = Θ(λ n, n^^(log_ b a)) -> T = Θ(λ n, n^^(log_ b a) * lg n)) /\
@@ -1539,7 +1540,7 @@ Theorem master_theorem_nat : ∀ (a b : ℝ) (f T : ℕ -> ℝ),
    (∀ n : ℕ, n >= N -> a * f (⌊n/b⌋) <= c * f n)) -> T = Θ(f)).
 Proof.
   intros a b f T H1 H2 H3 H4 H5 H6 H7.
-  pose proof lemma_4_4 a b f T (λ n, T ⌊b ^ n⌋) H1 H2 H4 H5 H6 H7 as H8.
+  pose proof lemma_4_4 a b f T (λ n, T ⌊b ^ n⌋) H1 H2 H4 H5 (H6 1%nat ltac:(lia)) H7 as H8.
   specialize (H8 (λ k, eq_refl _) H3).
   set (p := log_ b a) in *.
   split; [| split].
@@ -1563,20 +1564,23 @@ Proof.
     + admit.
 Admitted.
 
-Theorem master_theorem : ∀ (a b : ℝ) (f T : ℕ -> ℝ),
+(* The same rounded subproblem size is used in the recurrence and regularity
+   condition. Positivity at every positive input covers every possible base case. *)
+Theorem master_theorem : ∀ (a b : ℝ) (f T : ℕ -> ℝ) (r : ℕ -> ℕ),
   a >= 1 -> b > 1 ->
   (∀ n, f n >= 0) ->
   (∀ n, T n >= 0) -> 
-  (T 1%nat > 0) ->
-  (∃ N, N >= b /\ (∀ n : ℕ, n >= N -> T n = a * T (⌊n/b⌋) + f n \/ T n = a * T (⌈n/b⌉) + f n)) ->
+  (∀ n, (1 <= n)%nat -> T n > 0) ->
+  (∀ n : ℕ, r n = ⌊n/b⌋ \/ r n = ⌈n/b⌉) ->
+  (∃ N, N >= b /\ (∀ n : ℕ, n >= N -> T n = a * T (r n) + f n)) ->
   ((∃ ε, ε > 0 /\ f = Ο(λ n, n^^((log_ b a) - ε))) -> T = Θ(λ n, n^^(log_ b a))) /\
   (∀ k, k > -1 -> f = Θ(λ n, n^^(log_ b a) * (lg n)^^k) -> T = Θ(λ n, n^^(log_ b a) * (lg n)^^(k + 1))) /\
   (f = Θ(λ n, n^^(log_ b a) * (lg n)^^(-1)) -> T = Θ(λ n, n^^(log_ b a) * lg (lg n))) /\
   (∀ k, k < -1 -> f = Θ(λ n, n^^(log_ b a) * (lg n)^^k) -> T = Θ(λ n, n^^(log_ b a))) /\
   ((∃ ε c N, ε > 0 /\ 0 < c < 1 /\ f = Ω(λ n, n^^((log_ b a) + ε)) /\ 
-  (∀ n : ℕ, n >= N -> a * f (⌊n/b⌋) <= c * f n \/ a * f (⌈n/b⌉) <= c * f n)) -> T = Θ(f)).
+  (∀ n : ℕ, n >= N -> a * f (r n) <= c * f n)) -> T = Θ(f)).
 Proof.
-  intros a b f T H1 H2 H3 H4 H5 H6.
+  intros a b f T r H1 H2 H3 H4 H5 Hr H6.
   split; [| split]; [ | | split; [| split ]].
   - intros [ε [H8 H9]]. admit.
   - intros k H8 H9. admit.
@@ -1618,9 +1622,18 @@ Proof.
   lra.
 Qed.
 
-Lemma H3 : T 1 > 0.
+Lemma T_pos : ∀ n, T n > 0.
 Proof.
-  compute; lra.
+  apply (well_founded_induction lt_wf); intros n IH.
+  rewrite T_equation. pose proof H1 n as Hf.
+  destruct (le_dec n 2); try lra.
+  specialize (IH (n / 2)%nat ltac:(apply Nat.div_lt; lia)).
+  lra.
+Qed.
+
+Lemma H3 : ∀ n, (1 <= n)%nat -> T n > 0.
+Proof.
+  intros n _. apply T_pos.
 Qed.
 
 Lemma H4 : ∃ N, N >= 2 /\ ∀ n : nat, n >= N → T n = 4 * T ⌊n / 2⌋ + f n.
@@ -1634,7 +1647,7 @@ Qed.
 
 Lemma problem_2a_solution : T = Θ(λ n, n^^2 * (lg n)^^2).
 Proof.
-  pose proof (master_theorem 4 2 f T ltac:(lra) ltac:(lra) H1 H2 H3) as [_ [_ [_ [_ H1]]]].
+  pose proof (master_theorem 4 2 f T (λ n, ⌊n/2⌋) ltac:(lra) ltac:(lra) H1 H2 H3 ltac:(intros; left; reflexivity)) as [_ [_ [_ [_ H1]]]].
   destruct H4 as [N [H2 H3]]. exists N. auto.
   exists 2%R, 1%R, 1%R.
   repeat split; try lra.
@@ -1672,9 +1685,18 @@ Proof.
   lra.
 Qed.
 
-Lemma H3 : T 1 > 0.
+Lemma T_pos : ∀ n, T n > 0.
 Proof.
-  compute; lra.
+  apply (well_founded_induction lt_wf); intros n IH.
+  rewrite T_equation. pose proof H1 n as Hf.
+  destruct (le_dec n 2); try lra.
+  specialize (IH (n / 7)%nat ltac:(apply Nat.div_lt; lia)).
+  lra.
+Qed.
+
+Lemma H3 : ∀ n, (1 <= n)%nat -> T n > 0.
+Proof.
+  intros n _. apply T_pos.
 Qed.
 
 Lemma H4 : ∃ N, N >= 7 /\ ∀ n : nat, n ≥ N → T n = 5 * T ⌊n / 7⌋ + f n.
@@ -1688,7 +1710,7 @@ Qed.
 
 Lemma problem_2b_solution : T = Θ(f).
 Proof.
-  pose proof (master_theorem 5 7 f T ltac:(lra) ltac:(lra) H1 H2 H3) as [_ [_ [_ [_ H1]]]].
+  pose proof (master_theorem 5 7 f T (λ n, ⌊n/7⌋) ltac:(lra) ltac:(lra) H1 H2 H3 ltac:(intros; left; reflexivity)) as [_ [_ [_ [_ H1]]]].
   destruct H4 as [N [H2 H3]]. exists N. auto.
   apply H1.
   exists 1%R, (1/2)%R, 1%R.
@@ -1704,7 +1726,7 @@ Proof.
           - solve_R.
     }
     apply big_o_poly_poly. admit.
-  - intros n H8. left. unfold f. 
+  - intros n H8. unfold f.
     admit.
 Admitted.
 

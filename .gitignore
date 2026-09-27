@@ -37,6 +37,7 @@ coq_stepper.py
 __pycache__/
 *.py
 !auto_int.py
+!Backprop/train_addition.py
 
 # Untracked MCP project
 rocq-mcp/

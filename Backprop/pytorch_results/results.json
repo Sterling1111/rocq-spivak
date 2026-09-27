@@ -1,0 +1,265 @@
+{
+  "torch_version": "2.14.0+cpu",
+  "architecture": [
+    2,
+    3,
+    1
+  ],
+  "activation": "sigmoid in both layers",
+  "dtype": "float64",
+  "domain": "Each input in [0, 1]; predictions approximate x + y",
+  "training": {
+    "points": 25,
+    "encoding": "0.1 + 0.4 * (x + y)",
+    "objective": "mean((output - encoded_target)^2) / 2",
+    "adam_steps": 1500,
+    "adam_lr": 0.03,
+    "lbfgs_max_iter": 2000,
+    "seed": 42,
+    "restarts": 12,
+    "selected_candidate": 6,
+    "selection": "lowest training loss; no global optimum guarantee"
+  },
+  "parameters": {
+    "w1": [
+      [
+        4.0322100562360506,
+        4.032881709195278
+      ],
+      [
+        -0.4164553448311624,
+        -0.41644618286368784
+      ],
+      [
+        4.142090969201663,
+        4.1428139057393745
+      ]
+    ],
+    "b1": [
+      -10.080814896393422,
+      0.22292853521730702,
+      2.7847624293826176
+    ],
+    "w2": [
+      6.361541640429767,
+      -14.5260318755587,
+      11.807538622861712
+    ],
+    "b2": -5.248236689153112
+  },
+  "parameters_5dp": {
+    "w1": [
+      [
+        4.03221,
+        4.03288
+      ],
+      [
+        -0.41646,
+        -0.41645
+      ],
+      [
+        4.14209,
+        4.14281
+      ]
+    ],
+    "b1": [
+      -10.08081,
+      0.22293,
+      2.78476
+    ],
+    "w2": [
+      6.36154,
+      -14.52603,
+      11.80754
+    ],
+    "b2": -5.24824
+  },
+  "baseline_rocq_net100_parameters": {
+    "w1": [
+      [
+        -1.14747,
+        -1.65057
+      ],
+      [
+        1.65307,
+        1.11217
+      ],
+      [
+        -0.69453,
+        -0.62955
+      ]
+    ],
+    "b1": [
+      0.84848,
+      -0.84009,
+      -0.24799
+    ],
+    "w2": [
+      -2.60862,
+      2.45107,
+      -1.10451
+    ],
+    "b2": -0.20947
+  },
+  "baseline_float_sigmoid": {
+    "train": {
+      "encoded_half_mse": 0.0003393881464798525,
+      "sum_rmse": 0.0651333388595898,
+      "sum_mae": 0.04199934289942346,
+      "sum_max_absolute_error": 0.23874208581028822,
+      "points": 25
+    },
+    "grid_101": {
+      "encoded_half_mse": 0.00015048293249727353,
+      "sum_rmse": 0.04337091947625639,
+      "sum_mae": 0.032905885718596546,
+      "sum_max_absolute_error": 0.23874208581028822,
+      "points": 10201
+    }
+  },
+  "best_float_sigmoid": {
+    "train": {
+      "encoded_half_mse": 3.282789411637386e-08,
+      "sum_rmse": 0.0006405846364491207,
+      "sum_mae": 0.0005396447063687282,
+      "sum_max_absolute_error": 0.0012988685357848695,
+      "points": 25
+    },
+    "grid_101": {
+      "encoded_half_mse": 4.15371524008657e-08,
+      "sum_rmse": 0.0007205653370866626,
+      "sum_mae": 0.000522378893614883,
+      "sum_max_absolute_error": 0.0032904115314149607,
+      "points": 10201
+    }
+  },
+  "rounded_parameters_float_sigmoid": {
+    "train": {
+      "encoded_half_mse": 3.2831735096215714e-08,
+      "sum_rmse": 0.0006406221106882465,
+      "sum_mae": 0.0005409749331922523,
+      "sum_max_absolute_error": 0.0013066518510485015,
+      "points": 25
+    },
+    "grid_101": {
+      "encoded_half_mse": 4.1569784553022946e-08,
+      "sum_rmse": 0.0007208483244849632,
+      "sum_mae": 0.0005224358123388928,
+      "sum_max_absolute_error": 0.0032972006646121432,
+      "points": 10201
+    }
+  },
+  "examples": [
+    {
+      "input": [
+        0.12,
+        0.34
+      ],
+      "expected": 0.46,
+      "prediction": 0.4606947308544414
+    },
+    {
+      "input": [
+        0.7,
+        0.15
+      ],
+      "expected": 0.85,
+      "prediction": 0.8496157516990462
+    },
+    {
+      "input": [
+        0.01,
+        0.99
+      ],
+      "expected": 1.0,
+      "prediction": 1.0001830194240087
+    },
+    {
+      "input": [
+        0.456,
+        0.123
+      ],
+      "expected": 0.579,
+      "prediction": 0.5791115191043582
+    },
+    {
+      "input": [
+        0.0,
+        0.0
+      ],
+      "expected": 0.0,
+      "prediction": 0.00020272772446039422
+    },
+    {
+      "input": [
+        1.0,
+        1.0
+      ],
+      "expected": 2.0,
+      "prediction": 1.9990209138692663
+    }
+  ],
+  "candidates": [
+    {
+      "seed": 42,
+      "warm_start": true,
+      "encoded_half_mse": 4.762094257861075e-05
+    },
+    {
+      "seed": 43,
+      "warm_start": false,
+      "encoded_half_mse": 4.529908673590308e-08
+    },
+    {
+      "seed": 44,
+      "warm_start": false,
+      "encoded_half_mse": 3.5546261403189845e-07
+    },
+    {
+      "seed": 45,
+      "warm_start": false,
+      "encoded_half_mse": 2.2005071327461005e-06
+    },
+    {
+      "seed": 46,
+      "warm_start": false,
+      "encoded_half_mse": 2.7467292475278214e-07
+    },
+    {
+      "seed": 47,
+      "warm_start": false,
+      "encoded_half_mse": 5.003908126293894e-07
+    },
+    {
+      "seed": 48,
+      "warm_start": false,
+      "encoded_half_mse": 3.282789411637386e-08
+    },
+    {
+      "seed": 49,
+      "warm_start": false,
+      "encoded_half_mse": 4.44152195029264e-07
+    },
+    {
+      "seed": 50,
+      "warm_start": false,
+      "encoded_half_mse": 9.508769997341297e-08
+    },
+    {
+      "seed": 51,
+      "warm_start": false,
+      "encoded_half_mse": 4.753825581747762e-05
+    },
+    {
+      "seed": 52,
+      "warm_start": false,
+      "encoded_half_mse": 1.1646489365433811e-07
+    },
+    {
+      "seed": 53,
+      "warm_start": false,
+      "encoded_half_mse": 1.135459746978517e-07
+    }
+  ],
+  "arithmetic_note": "PyTorch uses float64 sigmoid without intermediate rounding. BestParameters.v uses Rocq's rational Taylor sigmoid and round5. The 101x101 grid is a diagnostic, not a bound on the whole domain."
+}

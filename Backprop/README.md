@@ -134,6 +134,27 @@ Both parameter gradients are \(-1/8\). After one update,
 For sufficiently small positive eta, the theorem gives
 \(C_{\mathrm{new}}<1/8-\eta/64\). The file also checks the zero-gradient case with target \(1/2\) and shows how to construct a network with a hidden layer.
 
+## Executable addition trainer
+
+`Examples.v` also contains a rational 2–3–1 addition network. Its sigmoid
+uses a ten-term Taylor approximation after range reduction. The polynomial
+is evaluated with integer numerators and a common denominator, reducing the
+fraction only at the end. This preserves the original rational result and
+five-decimal rounding while avoiding repeated gcd computations.
+
+The examples save computed networks after 1, 10, 50, and 100 epochs, each
+continuing from the previous checkpoint. Thus compiling the file performs
+100 training epochs in total instead of 261. Use `addition_report` on a
+saved network to inspect loss and predictions without retraining;
+`addition_run n` still starts a fresh run from the initial network.
+
+On the local Rocq VM, a fresh 10-epoch `addition_run` took 6.7 seconds,
+compared with 27.0 seconds before the arithmetic change (about 4× faster).
+Timings depend on the machine. Regression examples compare the Taylor
+implementations and the original ten-epoch loss and predictions. The
+executable approximation is separate from the real-valued descent proofs;
+these changes do not alter the learning rate or number of updates per epoch.
+
 ## Build and inspect
 
 From the repository root:

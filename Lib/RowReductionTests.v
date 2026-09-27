@@ -108,6 +108,11 @@ Example zero_rows_move_to_bottom :
   ⟨⟨1, 1.5⟩, ⟨0, 0⟩, ⟨0, 0⟩⟩.
 Proof. qc_mat_compute. Qed.
 
+Example three_by_four_system :
+  matrix_rref (⟨⟨1, -2, 3, 9⟩, ⟨-1, 3, 0, -4⟩, ⟨2, -5, 5, 17⟩⟩ : matrix Qc 3 4) =
+  ⟨⟨1, 0, 0, 1⟩, ⟨0, 1, 0, -1⟩, ⟨0, 0, 1, 2⟩⟩.
+Proof. qc_mat_compute. Qed.
+
 (** Regression: overloaded zero and one must not be assigned other entries
     while unifying the dimensions of different rows. *)
 Example rational_literal_values : matrix_Qc_entries fractional_example =
@@ -147,3 +152,4 @@ Example eight_pivots :
    ⟨0, 0, 0, 0, 0, 0, 1, 0, 7⟩,
    ⟨0, 0, 0, 0, 0, 0, 0, 1, 8⟩⟩.
 Proof. qc_mat_compute. Qed.
+
