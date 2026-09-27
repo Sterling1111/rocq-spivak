@@ -282,6 +282,13 @@ Proof.
   auto.
 Qed.
 
+Lemma big_theta_eventually_eq : forall f g,
+  (exists N, forall n : nat, n >= N -> f n = g n) -> f = Θ(g).
+Proof.
+  intros f g [N H]. exists 1, 1, N. split; [lra |]. split; [lra |].
+  intros n Hn. rewrite H by auto. split; lra.
+Qed.
+
 Lemma big_o_const : forall c,
   c > 0 -> (λ n, c) = Ο(λ n, 1).
 Proof.
@@ -386,16 +393,6 @@ Fixpoint eval (e : expr) (n : nat) : R :=
   | EPow b e => Rpower (eval b n) e
   end.
 
-Fixpoint wf_expr (e : expr) (n : nat) : Prop :=
-  match e with
-  | EConst c => c > 0
-  | EVar => True
-  | EAdd e1 e2 | EMult e1 e2 => wf_expr e1 n /\ wf_expr e2 n
-  | ESub e1 e2 => wf_expr e1 n /\ wf_expr e2 n
-  | EDiv e1 e2 => wf_expr e1 n /\ wf_expr e2 n /\ eval e2 n <> 0
-  | EPow b e => wf_expr b n /\ eval b n > 0
-  end.
-
 Fixpoint get_degree (e : expr) : R :=
   match e with
   | EConst _ => 0
@@ -404,6 +401,19 @@ Fixpoint get_degree (e : expr) : R :=
   | EMult e1 e2 => get_degree e1 + get_degree e2
   | EDiv e1 e2 => get_degree e1 - get_degree e2
   | EPow b e => get_degree b * e
+  end.
+
+Fixpoint wf_expr (e : expr) (n : nat) : Prop :=
+  match e with
+  | EConst c => c > 0
+  | EVar => True
+  | EAdd e1 e2 | EMult e1 e2 => wf_expr e1 n /\ wf_expr e2 n
+  (* Subtraction must have a strictly dominant left term: equal degrees can
+     cancel after constants are normalized by reduce. *)
+  | ESub e1 e2 => wf_expr e1 n /\ wf_expr e2 n /\
+      get_degree e2 < get_degree e1
+  | EDiv e1 e2 => wf_expr e1 n /\ wf_expr e2 n /\ eval e2 n <> 0
+  | EPow b e => wf_expr b n /\ eval b n > 0
   end.
 
 Fixpoint reduce (e : expr) : expr :=
@@ -527,36 +537,267 @@ Proof.
     apply big_theta_iff in H4; destruct H4; auto.
 Qed.
 
+Definition power_bounds (f : nat -> R) (d : R) :=
+  exists c C N, c > 0 /\ C > 0 /\ forall n : nat, n >= N ->
+    c * n ^^ d <= f n <= C * n ^^ d.
+
+Lemma power_bounds_theta : forall f d,
+  power_bounds f d -> f = Θ(λ n, n ^^ d).
+Proof.
+  intros f d [c [C [N [Hc [HC H]]]]].
+  exists c, C, (Rmax N 1). split; [exact Hc |]. split; [exact HC |].
+  intros n Hn. specialize (H n ltac:(solve_R)).
+  pose proof (Rpower_gt_0 (INR n) d ltac:(solve_R)) as Hp.
+  rewrite (Rabs_right (f n)) by nra.
+  rewrite (Rabs_right (INR n ^^ d)) by lra. exact H.
+Qed.
+
+Lemma power_bounds_const : forall c, c > 0 -> power_bounds (λ _, c) 0.
+Proof.
+  intros c Hc. exists c, c, 1. split; [exact Hc |]. split; [exact Hc |].
+  intros n Hn. rewrite Rpower_0 by lra. split; lra.
+Qed.
+
+Lemma power_bounds_var : power_bounds INR 1.
+Proof.
+  exists 1, 1, 1. split; [lra |]. split; [lra |].
+  intros n Hn. rewrite Rpower_1 by lra. split; lra.
+Qed.
+
+Lemma power_bounds_add : forall f g p q,
+  power_bounds f p -> power_bounds g q ->
+  power_bounds (λ n, f n + g n) (Rmax p q).
+Proof.
+  intros f g p q [c1 [C1 [N1 [Hc1 [HC1 H1]]]]]
+    [c2 [C2 [N2 [Hc2 [HC2 H2]]]]].
+  exists (Rmin c1 c2), (C1 + C2), (Rmax 1 (Rmax N1 N2)).
+  split; [solve_R |]. split; [lra |]. intros n Hn.
+  specialize (H1 n ltac:(solve_R)). specialize (H2 n ltac:(solve_R)).
+  pose proof (Rpower_gt_0 (INR n) p ltac:(solve_R)) as Hp.
+  pose proof (Rpower_gt_0 (INR n) q ltac:(solve_R)) as Hq.
+  pose proof (Rmin_l c1 c2). pose proof (Rmin_r c1 c2).
+  destruct (Rle_dec p q) as [Hle|Hle].
+  - rewrite Rmax_right by lra.
+    pose proof (Rpower_exp_le (INR n) p q ltac:(solve_R) Hle). split; nra.
+  - rewrite Rmax_left by lra.
+    pose proof (Rpower_exp_le (INR n) q p ltac:(solve_R) ltac:(lra)). split; nra.
+Qed.
+
+Lemma power_bounds_mult : forall f g p q,
+  power_bounds f p -> power_bounds g q ->
+  power_bounds (λ n, f n * g n) (p + q).
+Proof.
+  intros f g p q [c1 [C1 [N1 [Hc1 [HC1 H1]]]]]
+    [c2 [C2 [N2 [Hc2 [HC2 H2]]]]].
+  exists (c1*c2), (C1*C2), (Rmax 1 (Rmax N1 N2)).
+  split; [nra |]. split; [nra |]. intros n Hn.
+  specialize (H1 n ltac:(solve_R)). specialize (H2 n ltac:(solve_R)).
+  pose proof (Rpower_gt_0 (INR n) p ltac:(solve_R)) as Hp.
+  pose proof (Rpower_gt_0 (INR n) q ltac:(solve_R)) as Hq.
+  rewrite Rpower_plus by solve_R. split.
+  - replace (c1*c2*(n^^p*n^^q)) with ((c1*n^^p)*(c2*n^^q)) by ring.
+    apply Rmult_le_compat; nra.
+  - replace (C1*C2*(n^^p*n^^q)) with ((C1*n^^p)*(C2*n^^q)) by ring.
+    apply Rmult_le_compat; nra.
+Qed.
+
+Lemma power_bounds_div : forall f g p q,
+  power_bounds f p -> power_bounds g q ->
+  power_bounds (λ n, f n / g n) (p - q).
+Proof.
+  intros f g p q [c1 [C1 [N1 [Hc1 [HC1 H1]]]]]
+    [c2 [C2 [N2 [Hc2 [HC2 H2]]]]].
+  exists (c1/C2), (C1/c2), (Rmax 1 (Rmax N1 N2)).
+  split; [apply Rdiv_pos_pos; lra |].
+  split; [apply Rdiv_pos_pos; lra |]. intros n Hn.
+  specialize (H1 n ltac:(solve_R)). specialize (H2 n ltac:(solve_R)).
+  pose proof (Rpower_gt_0 (INR n) p ltac:(solve_R)) as Hp.
+  pose proof (Rpower_gt_0 (INR n) q ltac:(solve_R)) as Hq.
+  assert (Hg : g n > 0) by nra.
+  rewrite Rpower_minus by solve_R. split.
+  - apply Rmult_le_reg_r with (r := C2 * n^^q * g n); [repeat apply Rmult_lt_0_compat; lra |].
+    field_simplify; try solve [split; lra | lra].
+    replace (C2 * n^^q * f n) with (f n * (C2 * n^^q)) by ring.
+    apply Rmult_le_compat; nra.
+  - apply Rmult_le_reg_r with (r := c2 * n^^q * g n); [repeat apply Rmult_lt_0_compat; lra |].
+    field_simplify; try solve [split; lra | lra].
+    replace (f n * c2 * n^^q) with ((c2 * n^^q) * f n) by ring.
+    replace (g n * C1 * n^^p) with (g n * (C1 * n^^p)) by ring.
+    apply Rmult_le_compat; nra.
+Qed.
+
+Lemma power_bounds_power : forall f p k,
+  power_bounds f p -> power_bounds (λ n, (f n) ^^ k) (p * k).
+Proof.
+  intros f p k [c [C [N [Hc [HC H]]]]].
+  destruct (Rle_dec 0 k) as [Hk|Hk].
+  - exists (c^^k), (C^^k), (Rmax N 1).
+    split; [apply Rpower_gt_0; lra |].
+    split; [apply Rpower_gt_0; lra |]. intros n Hn.
+    specialize (H n ltac:(solve_R)).
+    pose proof (Rpower_gt_0 (INR n) p ltac:(solve_R)) as Hp.
+    assert (Hf : f n > 0) by nra.
+    split.
+    + rewrite <- Rpower_mult by solve_R.
+      rewrite <- Rpower_mult_distr by lra. apply Rpower_le; nra.
+    + rewrite <- Rpower_mult by solve_R.
+      rewrite <- Rpower_mult_distr by lra. apply Rpower_le; nra.
+  - exists (C^^k), (c^^k), (Rmax N 1).
+    split; [apply Rpower_gt_0; lra |].
+    split; [apply Rpower_gt_0; lra |]. intros n Hn.
+    specialize (H n ltac:(solve_R)).
+    pose proof (Rpower_gt_0 (INR n) p ltac:(solve_R)) as Hp.
+    assert (Hf : f n > 0) by nra.
+    split.
+    + rewrite <- Rpower_mult by solve_R.
+      rewrite <- Rpower_mult_distr by lra. apply Rpower_le_contravar; nra.
+    + rewrite <- Rpower_mult by solve_R.
+      rewrite <- Rpower_mult_distr by lra. apply Rpower_le_contravar; nra.
+Qed.
+
+Lemma power_dominates : forall p q c C,
+  p < q -> c > 0 -> C > 0 ->
+  exists N, forall n : nat, n >= N -> C * n ^^ p <= c * n ^^ q.
+Proof.
+  intros p q c C Hpq Hc HC.
+  set (x := (C/c) ^^ (1/(q-p))).
+  assert (Hx : x > 0) by (unfold x; apply Rpower_gt_0; apply Rdiv_pos_pos; lra).
+  assert (Hxp : x ^^ (q-p) = C/c).
+  { unfold x. rewrite Rpower_mult by (apply Rdiv_pos_pos; lra).
+    replace (1/(q-p)*(q-p)) with 1 by (field; lra).
+    apply Rpower_1. apply Rlt_le, Rdiv_pos_pos; lra. }
+  exists (Rmax 1 x). intros n Hn.
+  pose proof (Rpower_le x (INR n) (q-p) Hx ltac:(solve_R) ltac:(lra)) as Hpow.
+  rewrite Hxp in Hpow.
+  assert (Hscaled : C <= c * n ^^ (q-p)).
+  { apply Rmult_le_compat_l with (r := c) in Hpow; [| lra].
+    field_simplify in Hpow; lra. }
+  pose proof (Rpower_gt_0 (INR n) p ltac:(solve_R)) as Hp.
+  assert (Heq : n ^^ q = n ^^ p * n ^^ (q-p)).
+  { rewrite <- Rpower_plus by solve_R. f_equal. ring. }
+  rewrite Heq. nra.
+Qed.
+
+Lemma power_bounds_sub : forall f g p q,
+  power_bounds f p -> power_bounds g q -> q < p ->
+  power_bounds (λ n, f n - g n) p.
+Proof.
+  intros f g p q [c1 [C1 [N1 [Hc1 [HC1 H1]]]]]
+    [c2 [C2 [N2 [Hc2 [HC2 H2]]]]] Hqp.
+  destruct (power_dominates q p (c1/2) C2 Hqp ltac:(lra) HC2) as [N3 H3].
+  exists (c1/2), C1, (Rmax 1 (Rmax N1 (Rmax N2 N3))).
+  split; [lra |]. split; [exact HC1 |]. intros n Hn.
+  specialize (H1 n ltac:(solve_R)). specialize (H2 n ltac:(solve_R)).
+  specialize (H3 n ltac:(solve_R)).
+  pose proof (Rpower_gt_0 (INR n) p ltac:(solve_R)).
+  pose proof (Rpower_gt_0 (INR n) q ltac:(solve_R)). split; nra.
+Qed.
+
+Lemma expr_power_bounds : forall e,
+  eventually_wf e -> power_bounds (eval e) (get_degree e).
+Proof.
+  induction e as [c| |e1 IH1 e2 IH2|e1 IH1 e2 IH2|
+    e1 IH1 e2 IH2|e1 IH1 e2 IH2|e IH k]; intros [N Hwf]; simpl in *.
+  - apply power_bounds_const. apply (Hwf N); lia.
+  - apply power_bounds_var.
+  - apply power_bounds_add.
+    + apply IH1. exists N. intros n Hn. specialize (Hwf n Hn). tauto.
+    + apply IH2. exists N. intros n Hn. specialize (Hwf n Hn). tauto.
+  - assert (Hdeg : get_degree e2 < get_degree e1).
+    { specialize (Hwf N ltac:(lia)). tauto. }
+    rewrite Rmax_left by lra. apply power_bounds_sub with (q := get_degree e2); auto.
+    + apply IH1. exists N. intros n Hn. specialize (Hwf n Hn). tauto.
+    + apply IH2. exists N. intros n Hn. specialize (Hwf n Hn). tauto.
+  - apply power_bounds_mult.
+    + apply IH1. exists N. intros n Hn. specialize (Hwf n Hn). tauto.
+    + apply IH2. exists N. intros n Hn. specialize (Hwf n Hn). tauto.
+  - apply power_bounds_div.
+    + apply IH1. exists N. intros n Hn. specialize (Hwf n Hn). tauto.
+    + apply IH2. exists N. intros n Hn. specialize (Hwf n Hn). tauto.
+  - apply power_bounds_power. apply IH. exists N.
+    intros n Hn. specialize (Hwf n Hn). tauto.
+Qed.
+
+Lemma reduced_power_bounds : forall e,
+  eventually_wf e ->
+  power_bounds (eval (reduce e)) (get_degree e) /\
+  get_degree (reduce e) = get_degree e.
+Proof.
+  induction e as [c| |e1 IH1 e2 IH2|e1 IH1 e2 IH2|
+    e1 IH1 e2 IH2|e1 IH1 e2 IH2|e IH k]; intros [N Hwf]; simpl in *.
+  - split; [apply power_bounds_const; lra | reflexivity].
+  - split; [apply power_bounds_var | reflexivity].
+  - assert (Hwf1 : eventually_wf e1).
+    { exists N. intros n Hn. specialize (Hwf n Hn). tauto. }
+    assert (Hwf2 : eventually_wf e2).
+    { exists N. intros n Hn. specialize (Hwf n Hn). tauto. }
+    destruct (IH1 Hwf1) as [HB1 HD1]. destruct (IH2 Hwf2) as [HB2 HD2].
+    destruct (Rlt_dec (get_degree e1) (get_degree e2)) as [Hlt|Hlt].
+    + rewrite Rmax_right by lra. auto.
+    + destruct (Rlt_dec (get_degree e2) (get_degree e1)) as [Hgt|Hgt].
+      * rewrite Rmax_left by lra. auto.
+      * simpl. split; [apply power_bounds_add; auto |]. rewrite HD1, HD2. reflexivity.
+  - assert (Hdeg : get_degree e2 < get_degree e1).
+    { specialize (Hwf N ltac:(lia)). tauto. }
+    assert (Hwf1 : eventually_wf e1).
+    { exists N. intros n Hn. specialize (Hwf n Hn). tauto. }
+    destruct (IH1 Hwf1) as [HB1 HD1].
+    destruct (Rlt_dec (get_degree e2) (get_degree e1)); [| lra].
+    rewrite Rmax_left by lra. auto.
+  - assert (Hwf1 : eventually_wf e1).
+    { exists N. intros n Hn. specialize (Hwf n Hn). tauto. }
+    assert (Hwf2 : eventually_wf e2).
+    { exists N. intros n Hn. specialize (Hwf n Hn). tauto. }
+    destruct (IH1 Hwf1) as [HB1 HD1]. destruct (IH2 Hwf2) as [HB2 HD2].
+    simpl. split; [apply power_bounds_mult; auto |]. rewrite HD1, HD2. reflexivity.
+  - assert (Hwf1 : eventually_wf e1).
+    { exists N. intros n Hn. specialize (Hwf n Hn). tauto. }
+    assert (Hwf2 : eventually_wf e2).
+    { exists N. intros n Hn. specialize (Hwf n Hn). tauto. }
+    destruct (IH1 Hwf1) as [HB1 HD1]. destruct (IH2 Hwf2) as [HB2 HD2].
+    simpl. split; [apply power_bounds_div; auto |]. rewrite HD1, HD2. reflexivity.
+  - assert (Hwfe : eventually_wf e).
+    { exists N. intros n Hn. specialize (Hwf n Hn). tauto. }
+    destruct (IH Hwfe) as [HB HD].
+    simpl. split; [apply power_bounds_power; auto |]. rewrite HD. reflexivity.
+Qed.
+
 Lemma reduce_valid : forall e, 
   eventually_wf e ->
   (fun n => eval e n) = Θ(fun n => eval (reduce e) n).
 Proof.
-  intros e [N H1]. induction e as 
-  [c | | e1 IH1 e2 IH2 | e1 IH1 e2 IH2 | e1 IH1 e2 IH2 | e1 IH1 e2 IH2 | b IH k]; simpl.
-  - apply big_theta_const. specialize (H1 N ltac:(solve_R)). auto.
-  - apply big_theta_refl.
-  - destruct (Rlt_dec (get_degree e1) (get_degree e2)) as [Hl | Hl].
-    + apply big_theta_plus; admit.
-    + admit.
-  - admit.
-  - admit.
-  - admit.
-  - admit.
-Admitted.
+  intros e Hwf. apply big_theta_trans with (λ n, n ^^ get_degree e).
+  - apply power_bounds_theta, expr_power_bounds; exact Hwf.
+  - apply big_theta_sym, power_bounds_theta.
+    apply (proj1 (reduced_power_bounds e Hwf)).
+Qed.
 
 Lemma degree_correct : forall e, 
   eventually_wf e ->
   (fun n => eval (reduce e) n) = Θ(fun n => Rpower (INR n) (get_degree (reduce e))).
-Proof. Admitted.
+Proof.
+  intros e Hwf. destruct (reduced_power_bounds e Hwf) as [HB HD].
+  rewrite HD. apply power_bounds_theta. exact HB.
+Qed.
 
 Lemma rpower_big_o : forall d1 d2, d1 <= d2 -> (fun n => Rpower (INR n) d1) = Ο(fun n => Rpower (INR n) d2).
-Proof. Admitted.
+Proof.
+  intros d1 d2 H. exists 1, 1%nat. split; [lra |].
+  intros n Hn. rewrite Rmult_1_l.
+  repeat rewrite Rabs_right; try apply Rpower_ge_0.
+  apply Rpower_exp_le; solve_R.
+Qed.
 
 Lemma rpower_big_omega : forall d1 d2, d1 >= d2 -> (fun n => Rpower (INR n) d1) = Ω(fun n => Rpower (INR n) d2).
-Proof. Admitted.
+Proof.
+  intros d1 d2 H. apply transpose_sym_o_Omega.
+  apply rpower_big_o; lra.
+Qed.
 
 Lemma rpower_big_theta : forall d1 d2, d1 = d2 -> (fun n => Rpower (INR n) d1) = Θ(fun n => Rpower (INR n) d2).
-Proof. Admitted.
+Proof.
+  intros d1 d2 H. subst. apply big_theta_refl.
+Qed.
 
 Lemma big_theta_iff_both_big_o : forall f g,
   f = Θ(g) <-> (f = Ο(g) /\ g = Ο(f)).
@@ -587,6 +828,16 @@ Proof.
   specialize (H2 n ltac:(solve_R)).
   specialize (H4 n ltac:(solve_R)).
   solve_R.
+Qed.
+
+Lemma big_theta_mult : forall f1 f2 g1 g2,
+  f1 = Θ(g1) -> f2 = Θ(g2) ->
+  (λ n, f1 n * f2 n) = Θ(λ n, g1 n * g2 n).
+Proof.
+  intros f1 f2 g1 g2 H1 H2.
+  apply big_theta_iff_both_big_o in H1 as [H1 H1'].
+  apply big_theta_iff_both_big_o in H2 as [H2 H2'].
+  apply big_theta_iff_both_big_o. split; apply big_o_mult; auto.
 Qed.
 
 Lemma big_o_pow : forall f g k,
@@ -975,28 +1226,73 @@ Section Examples.
     pose proof e_bounds; lra.
   Qed.
 
+  Lemma f8_theta : f8 = Θ(λ n, n * log_ π n).
+  Proof.
+    assert (Hpi : π > 1) by (pose proof π_bounds; lra).
+    apply big_theta_trans with (λ n, 5 * (n * log_ π ((2/23) * n))).
+    - apply big_theta_eventually_eq. exists 1. intros n Hn.
+      unfold f8. rewrite log_b_pow; lra.
+    - apply big_theta_mult_const; [lra |]. apply big_theta_mult.
+      + apply big_theta_refl.
+      + apply big_theta_log_of_poly with (k := 1); try lra.
+        * exists 23. intros n Hn. lra.
+        * apply big_theta_trans with (λ n, (2/23) * n ^^ 1).
+          -- apply big_theta_eventually_eq. exists 1. intros n Hn.
+             rewrite Rpower_1; lra.
+          -- apply big_theta_mult_const; [lra | apply big_theta_refl].
+  Qed.
+
   Lemma f7_big_o_f8 : f7 = Ο(f8).
   Proof.
-    unfold f7, f8.
-   
-  Admitted.
+    apply big_o_theta_trans with (λ n, n * log_ π n).
+    - unfold f7, ln. apply big_o_mult; [apply big_o_refl |].
+      apply big_o_log_b_log_b; [pose proof e_bounds | pose proof π_bounds]; lra.
+    - apply big_theta_sym, f8_theta.
+  Qed.
 
   Lemma f8_big_o_f9 : f8 = Ο(f9).
   Proof.
-    unfold f8, f9.
-  Admitted.
+    apply big_o_canonical_reduction with
+      (f' := λ n, n * log_ π n) (g' := λ n, n ^^ (5/2)).
+    - apply f8_theta.
+    - apply big_theta_eventually_eq. exists 1. intros n Hn.
+      unfold f9. replace (INR n ^ 3) with (INR n ^^ 3).
+      2: { replace 3%R with (INR 3%nat) by (simpl; lra).
+           apply Rpower_nat; lra. }
+      rewrite <- Rpower_minus by lra. f_equal. field.
+    - apply big_o_trans with (λ n, n ^^ 1 * n ^^ (3/2)).
+      + apply big_o_mult.
+        * apply big_theta_iff, big_theta_eventually_eq.
+          exists 1. intros n Hn. rewrite Rpower_1; lra.
+        * apply big_o_log_poly with (k := 3/2); try lra.
+          -- pose proof π_bounds; lra.
+          -- apply big_theta_refl.
+      + apply big_theta_iff, big_theta_eventually_eq.
+        exists 1. intros n Hn. rewrite <- Rpower_plus by lra.
+        f_equal. field.
+  Qed.
 
   Lemma f9_big_o_f10 : f9 = Ο(f10).
   Proof.
     unfold f9, f10.
-  Admitted.
+    apply big_o_trans with (λ n, n ^^ (5/2)).
+    - exists 1, 1%nat. split; [lra |]. intros n Hn.
+      replace (INR n ^ 3) with (INR n ^^ 3).
+      2: { replace 3%R with (INR 3%nat) by (simpl; lra). apply Rpower_nat; solve_R. }
+      rewrite <- Rpower_minus by solve_R.
+      replace (3 - 1/2) with (5/2) by field. lra.
+    - replace (λ n : nat, (3/2)^n) with (λ n : nat, (3/2)^^n).
+      2: { extensionality n. apply Rpower_nat; solve_R. }
+      apply big_o_poly_exp; lra.
+Qed.
 
   Lemma f10_big_o_f11 : f10 = Ο(f11).
   Proof.
-    unfold f10, f11.
-
-
-  Admitted.
+    unfold f10, f11. exists 1, 0%nat. split; [lra |].
+    intros n _. rewrite Rmult_1_l.
+    repeat rewrite Rabs_right by (apply Rle_ge, pow_le; lra).
+    apply pow_incr; lra.
+Qed.
 End Examples.
 
 Lemma floor_power_bound : forall p : R, 
@@ -1022,6 +1318,915 @@ Proof.
       f_equal; lra.
     }
     apply Rpower_le_contravar; try lra.
+Qed.
+
+Lemma finite_upper_bound : forall (u : nat -> R) L,
+  exists C, C > 0 /\ forall n, (n <= L)%nat -> u n <= C.
+Proof.
+  intros u L. induction L as [|L [C [HC Hbound]]].
+  - exists (Rmax 1 (u 0%nat)). split; [solve_R |].
+    intros n Hn. assert (n = 0)%nat by lia. subst. apply Rmax_r.
+  - exists (Rmax C (u (S L))). split; [solve_R |].
+    intros n Hn. destruct (Nat.eq_dec n (S L)) as [->|Hne].
+    + apply Rmax_r.
+    + eapply Rle_trans; [apply Hbound; lia | apply Rmax_l].
+Qed.
+
+Lemma recurrence_upper_comparison : forall a (f T U : nat -> R) (r : nat -> nat),
+  a >= 0 -> (forall n, f n >= 0) -> (forall n, T n >= 0) ->
+  (exists M, forall n : nat, n >= M -> U n > 0) ->
+  (forall M : R, exists N, forall n : nat, n >= N ->
+    (r n < n)%nat /\ INR (r n) >= M) ->
+  (exists c N, c > 0 /\ forall n : nat, n >= N ->
+    T n = a * T (r n) + f n /\ f n <= c * (U n - a * U (r n))) ->
+  T = Ο(U).
+Proof.
+  intros a f T U r Ha Hf HT [M HU] Hsize [c [N [Hc Hrec]]].
+  destruct (Hsize M) as [Ns Hs].
+  destruct (INR_unbounded (Rmax N Ns)) as [L HL].
+  destruct (finite_upper_bound (fun n => T n / U n) L) as [C [HC Hbound]].
+  set (K := Rmax C c).
+  assert (HK : K > 0) by (unfold K; solve_R).
+  assert (HKC : C <= K) by (unfold K; apply Rmax_l).
+  assert (HKc : c <= K) by (unfold K; apply Rmax_r).
+  assert (Hupper : forall n : nat, n >= M -> T n <= K * U n).
+  { refine (well_founded_induction lt_wf
+      (fun n : nat => INR n >= M -> T n <= K * U n) _).
+    intros n IH Hn. destruct (le_dec n L) as [Hsmall|Hlarge].
+    - specialize (Hbound n Hsmall). specialize (HU n Hn).
+      apply Rmult_le_compat_r with (r := U n) in Hbound; [| lra].
+      unfold Rdiv in Hbound.
+      rewrite Rmult_assoc, Rinv_l, Rmult_1_r in Hbound by lra. nra.
+    - assert (HnL : INR L < INR n) by (apply lt_INR; lia).
+      destruct (Hs n ltac:(solve_R)) as [Hlt HrM].
+      destruct (Hrec n ltac:(solve_R)) as [Heq Hgap].
+      specialize (IH (r n) Hlt HrM).
+      pose proof Hf n as Hfn.
+      assert (Hdiff : 0 <= U n - a * U (r n)) by nra.
+      assert (HgapK : f n <= K * (U n - a * U (r n))) by nra.
+      assert (Hstep : a * T (r n) <= K * (a * U (r n))) by nra. nra. }
+  exists K, M. split; [exact HK |]. intros n Hn.
+  rewrite (Rabs_right (T n)) by apply HT.
+  rewrite (Rabs_right (U n)) by (specialize (HU n Hn); lra).
+  apply Hupper; exact Hn.
+Qed.
+
+Lemma recurrence_lower_comparison : forall a (f T U : nat -> R) (r : nat -> nat),
+  a >= 0 -> (forall n, f n >= 0) ->
+  (forall n, (1 <= n)%nat -> T n > 0) ->
+  (exists M, forall n : nat, n >= M -> U n > 0) ->
+  (forall M : R, exists N, forall n : nat, n >= N ->
+    (r n < n)%nat /\ INR (r n) >= M) ->
+  (exists c N, c > 0 /\ forall n : nat, n >= N ->
+    T n = a * T (r n) + f n /\ c * (U n - a * U (r n)) <= f n) ->
+  T = Ω(U).
+Proof.
+  intros a f T U r Ha Hf HT [M HU] Hsize [c [N [Hc Hrec]]].
+  set (M' := Rmax M 1).
+  destruct (Hsize M') as [Ns Hs].
+  destruct (INR_unbounded (Rmax N Ns)) as [L HL].
+  destruct (finite_upper_bound (fun n => U n / T n) L) as [C [HC Hbound]].
+  set (K := Rmin (/C) c).
+  assert (HK : K > 0) by (unfold K; pose proof Rinv_0_lt_compat C HC; solve_R).
+  assert (HKC : K * C <= 1).
+  { pose proof (Rmin_l (/C) c) as H. unfold K.
+    apply Rmult_le_compat_r with (r := C) in H; [| lra].
+    rewrite Rinv_l in H by lra. exact H. }
+  assert (HKc : K <= c) by (unfold K; apply Rmin_r).
+  assert (Hlower : forall n : nat, n >= M' -> K * U n <= T n).
+  { refine (well_founded_induction lt_wf
+      (fun n : nat => INR n >= M' -> K * U n <= T n) _).
+    intros n IH Hn.
+    assert (HTn : T n > 0) by (apply HT; apply INR_le; unfold M' in Hn; solve_R).
+    destruct (le_dec n L) as [Hsmall|Hlarge].
+    - specialize (Hbound n Hsmall).
+      apply Rmult_le_compat_r with (r := T n) in Hbound; [| lra].
+      unfold Rdiv in Hbound.
+      rewrite Rmult_assoc, Rinv_l, Rmult_1_r in Hbound by lra.
+      assert (Hscaled : K * U n <= K * (C * T n)) by nra.
+      assert (Hlast : K * C * T n <= T n) by nra. nra.
+    - assert (HnL : INR L < INR n) by (apply lt_INR; lia).
+      destruct (Hs n ltac:(solve_R)) as [Hlt HrM].
+      destruct (Hrec n ltac:(solve_R)) as [Heq Hgap].
+      specialize (IH (r n) Hlt HrM).
+      pose proof Hf n as Hfn.
+      assert (HgapK : K * (U n - a * U (r n)) <= f n).
+      { destruct (Rle_dec 0 (U n - a * U (r n))); nra. }
+      assert (Hstep : K * (a * U (r n)) <= a * T (r n)) by nra. nra. }
+  exists K, M'. split; [exact HK |]. intros n Hn.
+  rewrite (Rabs_right (T n)) by (pose proof HT n ltac:(apply INR_le; unfold M' in Hn; solve_R); lra).
+  rewrite (Rabs_right (U n)) by (pose proof HU n ltac:(unfold M' in Hn; solve_R); lra).
+  apply Rle_ge, Hlower; exact Hn.
+Qed.
+
+Lemma recurrence_regular_theta : forall a (f T : nat -> R) (r : nat -> nat),
+  a >= 0 ->
+  (forall n, T n >= 0) ->
+  (exists M, forall n : nat, n >= M -> f n > 0) ->
+  (forall M : R, exists N, forall n : nat, n >= N ->
+    (r n < n)%nat /\ INR (r n) >= M) ->
+  (exists c N, 0 < c < 1 /\ forall n : nat, n >= N ->
+    T n = a * T (r n) + f n /\ a * f (r n) <= c * f n) ->
+  T = Θ(f).
+Proof.
+  intros a f T r Ha HT [M Hpos] Hsize [c [N [Hc Hrec]]].
+  destruct (Hsize M) as [Nsize HsizeM].
+  destruct (INR_unbounded (Rmax N Nsize)) as [L HL].
+  destruct (finite_upper_bound (fun n => T n / f n) L)
+    as [C [HC Hbound]].
+  set (K := Rmax C (1 / (1 - c))).
+  assert (HK : K > 0) by (unfold K; solve_R).
+  assert (HKC : C <= K) by (unfold K; apply Rmax_l).
+  assert (HKc : 1 <= K * (1 - c)).
+  { unfold K. pose proof (Rmax_r C (1 / (1 - c))) as H.
+    apply Rmult_le_compat_r with (r := 1 - c) in H; [| lra].
+    field_simplify in H; lra. }
+  assert (Hupper : forall n : nat, n >= M -> T n <= K * f n).
+  { refine (well_founded_induction lt_wf
+      (fun n : nat => INR n >= M -> T n <= K * f n) _).
+    intros n IH Hn.
+    destruct (le_dec n L) as [Hsmall|Hlarge].
+    - specialize (Hbound n Hsmall). specialize (Hpos n Hn).
+      apply Rmult_le_compat_r with (r := f n) in Hbound; [| lra].
+      unfold Rdiv in Hbound.
+      rewrite Rmult_assoc, Rinv_l, Rmult_1_r in Hbound by lra.
+      nra.
+    - assert (HnL : INR L < INR n) by (apply lt_INR; lia).
+      destruct (HsizeM n ltac:(solve_R)) as [Hlt HrM].
+      destruct (Hrec n ltac:(solve_R)) as [Heq Hreg].
+      specialize (IH (r n) Hlt HrM).
+      specialize (Hpos n Hn).
+      assert (Hstep : a * T (r n) <= K * (a * f (r n))) by nra.
+      assert (HregK : K * (a * f (r n)) <= K * (c * f n)) by nra.
+      assert (Hclose : (K * c + 1) * f n <= K * f n) by nra.
+      nra. }
+  exists 1, K, (Rmax M N). split; [lra |]. split; [exact HK |].
+  intros n Hn.
+  pose proof (Hpos n ltac:(solve_R)) as Hfn.
+  pose proof (Hupper n ltac:(solve_R)) as Hup.
+  destruct (Hrec n ltac:(solve_R)) as [Heq _].
+  pose proof HT (r n) as HTr.
+  rewrite (Rabs_right (T n)) by apply HT.
+  rewrite (Rabs_right (f n)) by lra. split; nra.
+Qed.
+
+Lemma rounded_size_eventually : forall b (r : nat -> nat),
+  b > 1 ->
+  (forall n : nat, r n = ⌊n/b⌋ \/ r n = ⌈n/b⌉) ->
+  forall M : R, exists N, forall n : nat, n >= N ->
+    (r n < n)%nat /\ INR (r n) >= M.
+Proof.
+  intros b r Hb Hr M.
+  exists (Rmax (b * (Rmax M 0 + 1)) (b / (b - 1) + 1)).
+  intros n Hn.
+  assert (Hlow : Rmax M 0 + 1 <= INR n / b).
+  { apply Rmult_le_reg_r with (r := b); [lra |].
+    field_simplify; solve_R. }
+  assert (Hshrink : INR n / b + 1 < INR n).
+  { assert (H : b / (b - 1) < INR n) by solve_R.
+    apply Rmult_lt_compat_r with (r := b - 1) in H; [| lra].
+    field_simplify in H; [| lra].
+    apply Rmult_lt_reg_r with (r := b); [lra |].
+    field_simplify; lra. }
+  assert (Hdiv : INR n / b >= 0) by solve_R.
+  destruct (Hr n) as [Hr'|Hr']; rewrite Hr'.
+  - pose proof (floor_spec (INR n / b) Hdiv) as Hfloor.
+    split; [apply INR_lt |]; solve_R.
+  - pose proof (ceil_spec (INR n / b) Hdiv) as Hceil.
+    split; [apply INR_lt |]; solve_R.
+Qed.
+
+Lemma omega_power_eventually_pos : forall (f : nat -> R) p,
+  (forall n, f n >= 0) -> f = Ω(λ n, n ^^ p) ->
+  exists M, forall n : nat, n >= M -> f n > 0.
+Proof.
+  intros f p Hf [c [N [Hc Hbound]]]. exists (Rmax N 1).
+  intros n Hn. specialize (Hbound n ltac:(solve_R)).
+  rewrite (Rabs_right (f n)) in Hbound by apply Hf.
+  rewrite (Rabs_right (INR n ^^ p)) in Hbound by apply Rpower_ge_0.
+  pose proof (Rpower_gt_0 (INR n) p ltac:(solve_R)). nra.
+Qed.
+
+Lemma master_regular_case : forall a b (f T : nat -> R) r p,
+  a >= 0 -> b > 1 ->
+  (forall n, f n >= 0) -> (forall n, T n >= 0) ->
+  (forall n : nat, r n = ⌊n/b⌋ \/ r n = ⌈n/b⌉) ->
+  (exists N, forall n : nat, n >= N -> T n = a * T (r n) + f n) ->
+  f = Ω(λ n, n ^^ p) ->
+  (exists c N, 0 < c < 1 /\ forall n : nat, n >= N ->
+    a * f (r n) <= c * f n) ->
+  T = Θ(f).
+Proof.
+  intros a b f T r p Ha Hb Hf HT Hr [Nrec Hrec] Hgrowth
+    [c [Nreg [Hc Hreg]]].
+  apply recurrence_regular_theta with (a := a) (r := r); auto.
+  - eapply omega_power_eventually_pos; eauto.
+  - apply rounded_size_eventually with b; auto.
+  - exists c, (Rmax Nrec Nreg). split; [exact Hc |].
+    intros n Hn. split; [apply Hrec | apply Hreg]; solve_R.
+Qed.
+
+Lemma powers_eventually_ge : forall b M,
+  b > 1 -> exists N, forall k : nat, k >= N -> INR ⌊b^k⌋ >= M.
+Proof.
+  intros b M Hb. destruct (pow_unbounded b (M+1) Hb) as [N HN].
+  exists (INR N). intros k Hk.
+  assert (Hpow : b^N <= b^k).
+  { apply Rle_pow; [lra | apply INR_le; lra]. }
+  pose proof (floor_spec (b^k) ltac:(apply Rle_ge, pow_le; lra)). lra.
+Qed.
+
+Lemma power_bounds_shift : forall s, power_bounds (λ n, INR n + s) 1.
+Proof.
+  intros s. exists (1/2), 2, (Rmax 1 (2 * |s|)).
+  split; [lra |]. split; [lra |]. intros n Hn.
+  rewrite Rpower_1 by solve_R.
+  pose proof Rle_abs s. pose proof Rabs_pos s.
+  pose proof Rle_abs (-s). rewrite Rabs_Ropp in H1. split; solve_R.
+Qed.
+
+Lemma power_bounds_eventually_pos : forall f p,
+  power_bounds f p -> exists N, forall n : nat, n >= N -> f n > 0.
+Proof.
+  intros f p [c [C [N [Hc [HC H]]]]]. exists (Rmax N 1).
+  intros n Hn. specialize (H n ltac:(solve_R)).
+  pose proof (Rpower_gt_0 (INR n) p ltac:(solve_R)). nra.
+Qed.
+
+Lemma rounded_shift_bounds : forall b r,
+  b > 1 -> (forall n : nat, r n = ⌊n/b⌋ \/ r n = ⌈n/b⌉) ->
+  let s := b / (b-1) in forall n : nat,
+  INR (r n) - s <= (INR n - s) / b /\
+  (INR n + s) / b <= INR (r n) + s.
+Proof.
+  intros b r Hb Hr s n.
+  assert (Hdiv : INR n / b >= 0).
+  { apply Rdiv_nonneg_nonneg; [pose proof pos_INR n; lra | lra]. }
+  assert (Hround : INR n/b - 1 <= INR (r n) <= INR n/b + 1).
+  { destruct (Hr n) as [Hr1 | Hr2]; [rewrite Hr1 | rewrite Hr2].
+    - pose proof (floor_spec (INR n/b) Hdiv). lra.
+    - pose proof (ceil_spec (INR n/b) Hdiv). lra. }
+  assert (Hminus : (INR n-s)/b = INR n/b + 1-s) by (unfold s; field; lra).
+  assert (Hplus : (INR n+s)/b = INR n/b - 1+s) by (unfold s; field; lra).
+  rewrite Hminus, Hplus. split; lra.
+Qed.
+
+Lemma power_difference_monotone : forall p q x y,
+  p >= 0 -> q < p -> 1 <= x -> x <= y ->
+  x ^^ p - x ^^ q <= y ^^ p - y ^^ q.
+Proof.
+  intros p q x y Hp Hqp Hx Hxy.
+  assert (Hxpos : x > 0) by lra. assert (Hypos : y > 0) by lra.
+  assert (Heqx : x^^q = x^^p * x^^(q-p)).
+  { rewrite <- Rpower_plus by lra. f_equal. ring. }
+  assert (Heqy : y^^q = y^^p * y^^(q-p)).
+  { rewrite <- Rpower_plus by lra. f_equal. ring. }
+  assert (Hxp : 0 <= x^^p) by (apply Rge_le, Rpower_ge_0).
+  assert (Hpow : x^^p <= y^^p) by (apply Rpower_le; lra).
+  assert (Hneg : y^^(q-p) <= x^^(q-p)) by (apply Rpower_le_contravar; lra).
+  assert (Hone : x^^(q-p) <= 1).
+  { replace 1 with (x^^0) by (rewrite Rpower_0; lra). apply Rpower_exp_le; lra. }
+  assert (Hprod : x^^p * (1-x^^(q-p)) <= y^^p * (1-y^^(q-p))).
+  { apply Rmult_le_compat; lra. }
+  rewrite Heqx, Heqy. nra.
+Qed.
+
+Lemma critical_power_scale : forall a b p x,
+  a > 0 -> b > 0 -> x > 0 -> b^^p = a ->
+  a * (x/b)^^p = x^^p.
+Proof.
+  intros a b p x Ha Hb Hx Hbp. rewrite Rpower_div by lra.
+  rewrite Hbp. field; lra.
+Qed.
+
+Lemma master_polynomial_case : forall a b (f T : nat -> R) r,
+  a >= 1 -> b > 1 ->
+  (forall n, f n >= 0) -> (forall n, T n >= 0) ->
+  (forall n, (1 <= n)%nat -> T n > 0) ->
+  (forall n : nat, r n = ⌊n/b⌋ \/ r n = ⌈n/b⌉) ->
+  (exists N, forall n : nat, n >= N -> T n = a * T (r n) + f n) ->
+  (exists ε, ε > 0 /\ f = Ο(λ n, n ^^ (log_ b a - ε))) ->
+  T = Θ(λ n, n ^^ log_ b a).
+Proof.
+  intros a b f T r Ha Hb Hf HT HTpos Hr [Nrec Hrec] [ε [Hε Hgrowth]].
+  set (p := log_ b a). set (q := p-ε). set (s := b/(b-1)).
+  assert (Hp : p >= 0) by (unfold p; apply log_b_nonneg; lra).
+  assert (Hqp : q < p) by (unfold q; lra).
+  assert (Hs : s > 0) by (unfold s; apply Rdiv_pos_pos; lra).
+  assert (Hbp : b^^p = a).
+  { symmetry. apply (proj2 (log_b_spec a b p ltac:(lra) ltac:(lra) ltac:(lra))). reflexivity. }
+  assert (Hshift : forall n : nat,
+    INR (r n)-s <= (INR n-s)/b /\ (INR n+s)/b <= INR (r n)+s).
+  { apply rounded_shift_bounds; auto. }
+  assert (HBminus : power_bounds (λ n, INR n-s) 1) by apply power_bounds_shift.
+  assert (HBplus : power_bounds (λ n, INR n+s) 1) by apply power_bounds_shift.
+  pose proof (power_bounds_power _ _ p HBminus) as HBp.
+  pose proof (power_bounds_power _ _ q HBminus) as HBq.
+  pose proof (power_bounds_power _ _ p HBplus) as HBplusp.
+  replace (1*p) with p in HBp, HBplusp by ring.
+  replace (1*q) with q in HBq by ring.
+  set (U := λ n : nat, (INR n-s)^^p - (INR n-s)^^q).
+  assert (HBU : power_bounds U p) by (apply power_bounds_sub with q; auto).
+  apply big_theta_iff. split.
+  - apply big_o_theta_trans with U; [| apply power_bounds_theta; exact HBU].
+    apply recurrence_upper_comparison with (a := a) (f := f) (r := r); auto; try lra.
+    + apply power_bounds_eventually_pos with p; exact HBU.
+    + apply rounded_size_eventually with b; auto.
+    + assert (Hcost : f = Ο(λ n, (INR n-s)^^q)).
+      { apply big_o_theta_trans with (λ n, n^^q); [exact Hgrowth |].
+        apply big_theta_sym, power_bounds_theta; exact HBq. }
+      destruct Hcost as [D [ND [HD Hcost]]].
+      destruct (rounded_size_eventually b r Hb Hr (s+1)) as [Ns Hsize].
+      assert (Hbe : b^^ε > 1) by (apply Rpower_gt_1; lra).
+      exists (D/(b^^ε-1)), (Rmax Nrec (Rmax ND Ns)).
+      split; [apply Rdiv_pos_pos; lra |]. intros n Hn. split.
+      * apply Hrec; solve_R.
+      * specialize (Hcost n ltac:(solve_R)).
+        rewrite (Rabs_right (f n)) in Hcost by apply Hf.
+        rewrite (Rabs_right ((INR n-s)^^q)) in Hcost by apply Rpower_ge_0.
+        destruct (Hsize n ltac:(solve_R)) as [Hlt Hrn].
+        destruct (Hshift n) as [Hsm Hsp].
+        assert (Hy : (INR n-s)/b >= 1) by lra.
+        assert (Hnpos : INR n-s > 0).
+        { pose proof (Rdiv_pos_neg (INR n-s) b). apply Rmult_lt_reg_r with (r := /b).
+          - apply Rinv_0_lt_compat; lra.
+          - unfold Rdiv in Hy. lra. }
+        pose proof (power_difference_monotone p q (INR (r n)-s)
+          ((INR n-s)/b) Hp Hqp ltac:(lra) Hsm) as Hmono.
+        assert (Hscale : a * (((INR n-s)/b)^^p - ((INR n-s)/b)^^q) =
+          (INR n-s)^^p - b^^ε * (INR n-s)^^q).
+        { rewrite Rmult_minus_distr_l, (critical_power_scale a b p _ ltac:(lra) ltac:(lra) Hnpos Hbp).
+          rewrite Rpower_div by lra. unfold q. rewrite (Rpower_minus b p ε) by lra. rewrite Hbp.
+          field. split; [apply Rgt_not_eq, Rpower_gt_0; lra | lra]. }
+        assert (Hgap : (b^^ε-1) * (INR n-s)^^q <= U n-a*U(r n)).
+        { unfold U. nra. }
+        apply Rmult_le_reg_r with (r := b^^ε-1); [lra |].
+        field_simplify; nra.
+  - apply big_omega_trans with (λ n, (INR n+s)^^p).
+    + apply recurrence_lower_comparison with (a := a) (f := f) (r := r); auto; try lra.
+      * apply power_bounds_eventually_pos with p; exact HBplusp.
+      * apply rounded_size_eventually with b; auto.
+      * exists 1, (Rmax Nrec 1). split; [lra |]. intros n Hn. split.
+        -- apply Hrec; solve_R.
+        -- destruct (Hshift n) as [_ Hsp].
+           assert (Hpos : (INR n+s)/b > 0) by (apply Rdiv_pos_pos; solve_R).
+           pose proof (Rpower_le ((INR n+s)/b) (INR (r n)+s) p Hpos Hsp ltac:(lra)) as Hpow.
+           pose proof (critical_power_scale a b p (INR n+s) ltac:(lra) ltac:(lra) ltac:(solve_R) Hbp).
+           pose proof Hf n. nra.
+    + apply big_theta_iff, power_bounds_theta; exact HBplusp.
+Qed.
+
+Lemma lg_div : forall x b, x > 0 -> b > 0 -> lg (x/b) = lg x - lg b.
+Proof.
+  intros x b Hx Hb. unfold lg, log_.
+  replace (x/b) with (x * /b) by reflexivity.
+  rewrite theorem_18_1; [| lra | apply Rinv_0_lt_compat; lra].
+  replace (/b) with (1/b) by lra. rewrite log_inv by lra. unfold Rdiv. ring.
+Qed.
+
+Lemma power_log_monotone : forall p x y,
+  p >= 0 -> 1 <= x -> x <= y -> x^^p * lg x <= y^^p * lg y.
+Proof.
+  intros p x y Hp Hx Hxy.
+  apply Rmult_le_compat.
+  - apply Rge_le, Rpower_ge_0.
+  - apply Rge_le, log_b_nonneg; lra.
+  - apply Rpower_le; lra.
+  - apply log_b_le; lra.
+Qed.
+
+Lemma shifted_power_log_theta : forall s p,
+  (λ n : nat, (n+s)^^p * lg (n+s)) = Θ(λ n, n^^p * lg n).
+Proof.
+  intros s p. apply big_theta_mult.
+  - pose proof (power_bounds_power _ 1 p (power_bounds_shift s)) as H.
+    replace (1*p) with p in H by ring. apply power_bounds_theta; exact H.
+  - unfold lg. apply (big_theta_log_of_poly (λ x : R, x+s) 1 2); [lra | lra | |].
+    + exists (|s|+1). intros n Hn. pose proof Rle_abs (-s).
+      rewrite Rabs_Ropp in H. lra.
+    + apply power_bounds_theta, power_bounds_shift.
+Qed.
+
+Lemma critical_power_log_scale : forall a b p x,
+  a > 0 -> b > 0 -> x > 0 -> b^^p = a ->
+  a * ((x/b)^^p * lg (x/b)) = x^^p * lg x - lg b * x^^p.
+Proof.
+  intros a b p x Ha Hb Hx Hbp.
+  rewrite <- Rmult_assoc, (critical_power_scale a b p x Ha Hb Hx Hbp).
+  rewrite lg_div by lra. ring.
+Qed.
+
+Lemma master_logarithmic_case : forall a b (f T : nat -> R) r,
+  a >= 1 -> b > 1 ->
+  (forall n, f n >= 0) -> (forall n, T n >= 0) ->
+  (forall n, (1 <= n)%nat -> T n > 0) ->
+  (forall n : nat, r n = ⌊n/b⌋ \/ r n = ⌈n/b⌉) ->
+  (exists N, forall n : nat, n >= N -> T n = a * T (r n) + f n) ->
+  f = Θ(λ n, n ^^ log_ b a) ->
+  T = Θ(λ n, n ^^ log_ b a * lg n).
+Proof.
+  intros a b f T r Ha Hb Hf HT HTpos Hr [Nrec Hrec] Hgrowth.
+  set (p := log_ b a). set (s := b/(b-1)).
+  assert (Hp : p >= 0) by (unfold p; apply log_b_nonneg; lra).
+  assert (Hs : s > 0) by (unfold s; apply Rdiv_pos_pos; lra).
+  assert (Hlb : lg b > 0) by (apply log_b_pos; lra).
+  assert (Hbp : b^^p = a).
+  { symmetry. apply (proj2 (log_b_spec a b p ltac:(lra) ltac:(lra) ltac:(lra))). reflexivity. }
+  assert (Hshift : forall n : nat,
+    INR (r n)-s <= (INR n-s)/b /\ (INR n+s)/b <= INR (r n)+s).
+  { apply rounded_shift_bounds; auto. }
+  pose proof (power_bounds_power _ 1 p (power_bounds_shift (-s))) as HBminus.
+  pose proof (power_bounds_power _ 1 p (power_bounds_shift s)) as HBplus.
+  replace (1*p) with p in HBminus, HBplus by ring.
+  apply big_theta_iff in Hgrowth as [Hupper Hlower].
+  apply big_theta_iff. split.
+  - apply big_o_theta_trans with (λ n, (INR n-s)^^p * lg (INR n-s)).
+    2: apply shifted_power_log_theta.
+    apply recurrence_upper_comparison with (a := a) (f := f) (r := r); auto; try lra.
+    + exists (s+2). intros n Hn. apply Rmult_gt_0_compat.
+      * apply Rpower_gt_0; lra.
+      * apply log_b_pos; lra.
+    + apply rounded_size_eventually with b; auto.
+    + assert (Hcost : f = Ο(λ n, (INR n-s)^^p)).
+      { apply big_o_theta_trans with (λ n, n^^p); [exact Hupper |].
+        apply big_theta_sym, power_bounds_theta; exact HBminus. }
+      destruct Hcost as [D [ND [HD Hcost]]].
+      destruct (rounded_size_eventually b r Hb Hr (s+1)) as [Ns Hsize].
+      exists (D/lg b), (Rmax Nrec (Rmax ND Ns)).
+      split; [apply Rdiv_pos_pos; lra |]. intros n Hn. split.
+      * apply Hrec; solve_R.
+      * specialize (Hcost n ltac:(solve_R)).
+        rewrite (Rabs_right (f n)) in Hcost by apply Hf.
+        rewrite (Rabs_right ((INR n-s)^^p)) in Hcost by apply Rpower_ge_0.
+        destruct (Hsize n ltac:(solve_R)) as [Hlt Hrn].
+        destruct (Hshift n) as [Hsm Hsp].
+        assert (Hnpos : INR n-s > 0).
+        { apply Rmult_lt_reg_r with (r := /b); [apply Rinv_0_lt_compat; lra |].
+          unfold Rdiv in Hsm. lra. }
+        pose proof (power_log_monotone p (INR (r n)-s) ((INR n-s)/b)
+          Hp ltac:(lra) Hsm) as Hmono.
+        pose proof (critical_power_log_scale a b p (INR n-s)
+          ltac:(lra) ltac:(lra) Hnpos Hbp) as Hscale.
+        assert (Hgap : lg b * (INR n-s)^^p <=
+          (INR n-s)^^p * lg (INR n-s) - a*((INR (r n)-s)^^p * lg (INR (r n)-s))) by nra.
+        apply Rmult_le_reg_r with (r := lg b); [lra |].
+        field_simplify; nra.
+  - apply big_omega_trans with (λ n, (INR n+s)^^p * lg (INR n+s)).
+    2: apply big_theta_iff, shifted_power_log_theta.
+    apply recurrence_lower_comparison with (a := a) (f := f) (r := r); auto; try lra.
+    + exists 2. intros n Hn. apply Rmult_gt_0_compat.
+      * apply Rpower_gt_0; lra.
+      * apply log_b_pos; lra.
+    + apply rounded_size_eventually with b; auto.
+    + assert (Hcost : f = Ω(λ n, (INR n+s)^^p)).
+      { apply big_omega_trans with (λ n, n^^p); [exact Hlower |].
+        apply big_theta_iff, big_theta_sym, power_bounds_theta; exact HBplus. }
+      destruct Hcost as [D [ND [HD Hcost]]].
+      exists (D/lg b), (Rmax Nrec (Rmax ND b)).
+      split; [apply Rdiv_pos_pos; lra |]. intros n Hn. split.
+      * apply Hrec; solve_R.
+      * specialize (Hcost n ltac:(solve_R)).
+        rewrite (Rabs_right (f n)) in Hcost by apply Hf.
+        rewrite (Rabs_right ((INR n+s)^^p)) in Hcost by apply Rpower_ge_0.
+        destruct (Hshift n) as [Hsm Hsp].
+        assert (Hx : 1 <= (INR n+s)/b).
+        { apply Rmult_le_reg_r with (r := b); [lra |]. field_simplify; solve_R. }
+        pose proof (power_log_monotone p ((INR n+s)/b) (INR (r n)+s)
+          Hp Hx Hsp) as Hmono.
+        pose proof (critical_power_log_scale a b p (INR n+s)
+          ltac:(lra) ltac:(lra) ltac:(solve_R) Hbp) as Hscale.
+        assert (Hgap : (INR n+s)^^p * lg (INR n+s) - a*((INR (r n)+s)^^p * lg (INR (r n)+s)) <=
+          lg b * (INR n+s)^^p) by nra.
+        apply Rmult_le_reg_r with (r := lg b); [lra |].
+        field_simplify; nra.
+Qed.
+
+Lemma Rpower_scaled_bounds : forall x y c C k,
+  y > 0 -> c > 0 -> C > 0 -> c*y <= x <= C*y ->
+  Rmin (c^^k) (C^^k) * y^^k <= x^^k <= Rmax (c^^k) (C^^k) * y^^k.
+Proof.
+  intros x y c C k Hy Hc HC Hxy.
+  assert (Hx : x > 0) by nra.
+  pose proof (Rpower_gt_0 y k Hy) as Hyk.
+  pose proof (Rmin_l (c^^k) (C^^k)). pose proof (Rmin_r (c^^k) (C^^k)).
+  pose proof (Rmax_l (c^^k) (C^^k)). pose proof (Rmax_r (c^^k) (C^^k)).
+  destruct (Rle_dec 0 k) as [Hk|Hk].
+  - assert (Hlo : (c*y)^^k <= x^^k) by (apply Rpower_le; nra).
+    assert (Hhi : x^^k <= (C*y)^^k) by (apply Rpower_le; nra).
+    rewrite Rpower_mult_distr in Hlo, Hhi by lra. split; nra.
+  - assert (Hlo : (C*y)^^k <= x^^k) by (apply Rpower_le_contravar; nra).
+    assert (Hhi : x^^k <= (c*y)^^k) by (apply Rpower_le_contravar; nra).
+    rewrite Rpower_mult_distr in Hlo, Hhi by lra. split; nra.
+Qed.
+
+Lemma big_theta_realpower : forall f g k,
+  f = Θ(g) ->
+  (exists M, forall n : nat, n >= M -> f n > 0 /\ g n > 0) ->
+  (λ n, (f n)^^k) = Θ(λ n, (g n)^^k).
+Proof.
+  intros f g k [c [C [N [Hc [HC H]]]]] [M Hpos].
+  exists (Rmin (c^^k) (C^^k)), (Rmax (c^^k) (C^^k)), (Rmax M N).
+  assert (Hck : c^^k > 0) by (apply Rpower_gt_0; lra).
+  assert (HCk : C^^k > 0) by (apply Rpower_gt_0; lra).
+  split; [solve_R |]. split; [solve_R |]. intros n Hn.
+  specialize (H n ltac:(solve_R)). destruct (Hpos n ltac:(solve_R)) as [Hf Hg].
+  rewrite (Rabs_right (f n)), (Rabs_right (g n)) in H by lra.
+  rewrite (Rabs_right ((f n)^^k)), (Rabs_right ((g n)^^k)) by apply Rpower_ge_0.
+  apply Rpower_scaled_bounds; auto.
+Qed.
+
+Lemma lg_shift_eventually_ge : forall s M,
+  exists N, forall n : nat, n >= N -> INR n+s > 0 /\ lg (INR n+s) >= M.
+Proof.
+  intros s M. exists (|s| + 2^^M + 1). intros n Hn.
+  pose proof (Rpower_gt_0 2 M ltac:(lra)) as Hp.
+  pose proof Rle_abs (-s) as Hs. rewrite Rabs_Ropp in Hs.
+  assert (Hx : 2^^M <= INR n+s) by lra.
+  split; [lra |].
+  pose proof (log_b_le 2 ltac:(lra) (2^^M) (INR n+s) ltac:(lra)) as Hlog.
+  rewrite log_b_pow, log_b_b in Hlog by lra. unfold lg. lra.
+Qed.
+
+Lemma shifted_polylog_theta : forall s p k,
+  (λ n : nat, (n+s)^^p * (lg (n+s))^^k) = Θ(λ n, n^^p * (lg n)^^k).
+Proof.
+  intros s p k. apply big_theta_mult.
+  - pose proof (power_bounds_power _ 1 p (power_bounds_shift s)) as H.
+    replace (1*p) with p in H by ring. apply power_bounds_theta; exact H.
+  - apply big_theta_realpower.
+    + unfold lg. apply (big_theta_log_of_poly (λ x : R, x+s) 1 2); [lra | lra | |].
+      * exists (|s|+1). intros x Hx. pose proof Rle_abs (-s).
+        rewrite Rabs_Ropp in H. lra.
+      * apply power_bounds_theta, power_bounds_shift.
+    + exists (|s|+2). intros n Hn. pose proof Rle_abs (-s). pose proof Rabs_pos s.
+      rewrite Rabs_Ropp in H. split; apply log_b_pos; lra.
+Qed.
+
+Lemma primitive_increment_bounds : forall P k L,
+  L > 0 -> (forall x, x > 0 -> derivative_at P (λ t, t^^k) x) ->
+  exists c C, c > 0 /\ C > 0 /\ forall t, t >= 2*L ->
+    c*t^^k <= P t - P (t - L) <= C*t^^k.
+Proof.
+  intros P k L HL HD.
+  set (c := L * Rmin ((1/2)^^k) (1^^k)).
+  set (C := L * Rmax ((1/2)^^k) (1^^k)).
+  assert (Hhalf : (1/2)^^k > 0) by (apply Rpower_gt_0; lra).
+  assert (Hone : 1^^k > 0) by (apply Rpower_gt_0; lra).
+  exists c, C. split; [unfold c; apply Rmult_gt_0_compat; solve_R |].
+  split; [unfold C; apply Rmult_gt_0_compat; solve_R |]. intros t Ht.
+  assert (Hcont : continuous_on P [t-L,t]).
+  { apply continuous_at_imp_continuous_on. intros x Hx.
+    apply differentiable_at_imp_continuous_at.
+    apply derivative_at_imp_differentiable_at with (f' := λ u, u^^k).
+    apply HD; solve_R. }
+  assert (Hder : derivative_on P (λ u, u^^k) (t-L,t)).
+  { apply derivative_at_imp_derivative_on.
+    - apply differentiable_domain_open; lra.
+    - intros x Hx. apply HD; solve_R. }
+  destruct (MVT P (λ u, u^^k) (t-L) t ltac:(lra) Hcont Hder) as [x [Hx Heq]].
+  simpl in Heq. replace (t-(t-L)) with L in Heq by ring.
+  assert (Hdiff : P t - P (t - L) = L*x^^k).
+  { apply Rmult_eq_reg_r with (r := /L); [| apply Rinv_neq_0_compat; lra].
+    unfold Rdiv in Heq. field_simplify; nra. }
+  pose proof (Rpower_scaled_bounds x t (1/2) 1 k ltac:(lra) ltac:(lra) ltac:(lra) ltac:(solve_R)) as Hbounds.
+  rewrite Hdiff. unfold c, C. split; nra.
+Qed.
+
+Lemma power_profile_monotone : forall p F x y,
+  p >= 0 -> x > 0 -> x <= y -> lg x >= 1 ->
+  (forall t, t >= 1 -> F t >= 0) ->
+  (forall u v, 1 <= u -> u <= v -> F u <= F v) ->
+  x^^p * F (lg x) <= y^^p * F (lg y).
+Proof.
+  intros p F x y Hp Hx Hxy Hlx HF Hmono.
+  pose proof (log_b_le 2 ltac:(lra) x y ltac:(lra)) as Hlog.
+  apply Rmult_le_compat.
+  - apply Rge_le, Rpower_ge_0.
+  - apply Rge_le, HF; exact Hlx.
+  - apply Rpower_le; lra.
+  - apply Hmono; auto; unfold lg in *; lra.
+Qed.
+
+Lemma master_profile_case : forall a b (f T G : nat -> R) r F k,
+  a >= 1 -> b > 1 ->
+  (forall n, f n >= 0) -> (forall n, T n >= 0) ->
+  (forall n, (1 <= n)%nat -> T n > 0) ->
+  (forall n : nat, r n = ⌊n/b⌋ \/ r n = ⌈n/b⌉) ->
+  (exists N, forall n : nat, n >= N -> T n = a*T(r n)+f n) ->
+  (forall x, x > 0 -> derivative_at F (λ t, t^^k) x) ->
+  (forall t, t >= 1 -> F t >= 0) ->
+  (forall t, t >= 2 -> F t > 0) ->
+  (forall u v, 1 <= u -> u <= v -> F u <= F v) ->
+  (forall s, (λ n : nat, (n+s)^^(log_ b a) * F (lg (n+s))) = Θ(G)) ->
+  f = Θ(λ n, n^^(log_ b a) * (lg n)^^k) -> T = Θ(G).
+Proof.
+  intros a b f T G r F k Ha Hb Hf HT HTpos Hr [Nrec Hrec]
+    HD HF HFpos HFmono Htheta Hgrowth.
+  set (p := log_ b a). set (s := b/(b-1)). set (L := lg b).
+  assert (Hp : p >= 0) by (unfold p; apply log_b_nonneg; lra).
+  assert (Hs : s > 0) by (unfold s; apply Rdiv_pos_pos; lra).
+  assert (HL : L > 0) by (unfold L; apply log_b_pos; lra).
+  assert (Hbp : b^^p = a).
+  { symmetry. apply (proj2 (log_b_spec a b p ltac:(lra) ltac:(lra) ltac:(lra))). reflexivity. }
+  assert (Hshift : forall n : nat,
+    INR (r n)-s <= (INR n-s)/b /\ (INR n+s)/b <= INR (r n)+s).
+  { apply rounded_shift_bounds; auto. }
+  destruct (primitive_increment_bounds F k L HL HD) as [c [C [Hc [HC Hinc]]]].
+  assert (Hscale : forall x, x > 0 ->
+    a*((x/b)^^p * F (lg (x/b))) = x^^p * F (lg x-L)).
+  { intros x Hx. rewrite <- Rmult_assoc, (critical_power_scale a b p x ltac:(lra) ltac:(lra) Hx Hbp).
+    rewrite lg_div by lra. reflexivity. }
+  assert (Hpositive : forall z, exists M, forall n : nat, n >= M ->
+    (INR n+z)^^p * F (lg (INR n+z)) > 0).
+  { intros z. destruct (lg_shift_eventually_ge z 2) as [M HM].
+    exists M. intros n Hn. destruct (HM n Hn) as [Hx Hlog].
+    apply Rmult_gt_0_compat; [apply Rpower_gt_0 | apply HFpos]; auto. }
+  apply big_theta_iff in Hgrowth as [Hupper Hlower].
+  apply big_theta_iff. split.
+  - apply big_o_theta_trans with (λ n, (INR n-s)^^p * F (lg (INR n-s))); [| apply Htheta].
+    apply recurrence_upper_comparison with (a := a) (f := f) (r := r); auto; try lra.
+    + apply Hpositive.
+    + apply rounded_size_eventually with b; auto.
+    + assert (Hcost : f = Ο(λ n, (INR n-s)^^p * (lg (INR n-s))^^k)).
+      { apply big_o_theta_trans with (λ n, n^^p * (lg n)^^k); [exact Hupper |].
+        apply big_theta_sym, shifted_polylog_theta. }
+      destruct Hcost as [D [ND [HDpos Hcost]]].
+      destruct (lg_shift_eventually_ge (-s) 2) as [M HM].
+      destruct (rounded_size_eventually b r Hb Hr M) as [Ns Hsize].
+      destruct (lg_shift_eventually_ge (-s) (2*L+2)) as [Nlog Hlog].
+      exists (D/c), (Rmax Nrec (Rmax ND (Rmax Ns Nlog))).
+      split; [apply Rdiv_pos_pos; lra |]. intros n Hn. split.
+      * apply Hrec; solve_R.
+      * specialize (Hcost n ltac:(solve_R)).
+        rewrite (Rabs_right (f n)) in Hcost by apply Hf.
+        rewrite Rabs_right in Hcost by (apply Rle_ge, Rmult_le_pos; apply Rge_le, Rpower_ge_0).
+        destruct (Hsize n ltac:(solve_R)) as [Hlt HrM].
+        destruct (HM (r n) HrM) as [Hchild Hchildlog].
+        change (lg (INR (r n)-s) >= 2) in Hchildlog.
+        destruct (Hlog n ltac:(solve_R)) as [Hx Hxlog].
+        change (lg (INR n-s) >= 2*L+2) in Hxlog.
+        destruct (Hshift n) as [Hsm Hsp].
+        pose proof (power_profile_monotone p F (INR (r n)-s) ((INR n-s)/b)
+          Hp Hchild Hsm ltac:(lra) HF HFmono) as Hmono.
+        pose proof (Hscale (INR n-s) Hx) as Hscale'.
+        specialize (Hinc (lg (INR n-s)) ltac:(lra)).
+        pose proof (Rpower_gt_0 (INR n-s) p Hx) as Hpow.
+        assert (Hgap : c*((INR n-s)^^p * (lg (INR n-s))^^k) <=
+          (INR n-s)^^p * F (lg (INR n-s)) - a*((INR (r n)-s)^^p * F (lg (INR (r n)-s)))).
+        { assert (Hinc' : (INR n-s)^^p * (c * (lg (INR n-s))^^k) <=
+            (INR n-s)^^p * (F (lg (INR n-s))-F (lg (INR n-s)-L))) by nra.
+          nra. }
+        apply Rmult_le_reg_r with (r := c); [lra |]. field_simplify; nra.
+  - apply big_omega_trans with (λ n, (INR n+s)^^p * F (lg (INR n+s))).
+    2: apply big_theta_iff, Htheta.
+    apply recurrence_lower_comparison with (a := a) (f := f) (r := r);
+      [lra | exact Hf | exact HTpos | | |].
+    + apply Hpositive.
+    + apply rounded_size_eventually with b; auto.
+    + assert (Hcost : f = Ω(λ n, (INR n+s)^^p * (lg (INR n+s))^^k)).
+      { apply big_omega_trans with (λ n, n^^p * (lg n)^^k); [exact Hlower |].
+        apply big_theta_iff, big_theta_sym, shifted_polylog_theta. }
+      destruct Hcost as [D [ND [HDpos Hcost]]].
+      destruct (lg_shift_eventually_ge s (2*L+2)) as [Nlog Hlog].
+      exists (D/C), (Rmax Nrec (Rmax ND Nlog)).
+      split; [apply Rdiv_pos_pos; lra |]. intros n Hn. split.
+      * apply Hrec; solve_R.
+      * specialize (Hcost n ltac:(solve_R)).
+        rewrite (Rabs_right (f n)) in Hcost by apply Hf.
+        rewrite Rabs_right in Hcost by (apply Rle_ge, Rmult_le_pos; apply Rge_le, Rpower_ge_0).
+        destruct (Hlog n ltac:(solve_R)) as [Hx Hxlog].
+        destruct (Hshift n) as [Hsm Hsp].
+        assert (Hxb : (INR n+s)/b > 0) by (apply Rdiv_pos_pos; lra).
+        assert (Hlx : lg ((INR n+s)/b) >= 1) by (rewrite lg_div by lra; unfold L in *; lra).
+        pose proof (power_profile_monotone p F ((INR n+s)/b) (INR (r n)+s)
+          Hp Hxb Hsp Hlx HF HFmono) as Hmono.
+        pose proof (Hscale (INR n+s) Hx) as Hscale'.
+        specialize (Hinc (lg (INR n+s)) ltac:(lra)).
+        pose proof (Rpower_gt_0 (INR n+s) p Hx) as Hpow.
+        assert (Hgap : (INR n+s)^^p * F (lg (INR n+s)) - a*((INR (r n)+s)^^p * F (lg (INR (r n)+s))) <=
+          C*((INR n+s)^^p * (lg (INR n+s))^^k)).
+        { assert (Hinc' : (INR n+s)^^p * (F (lg (INR n+s))-F (lg (INR n+s)-L)) <=
+            (INR n+s)^^p * (C * (lg (INR n+s))^^k)) by nra. nra. }
+        apply Rmult_le_reg_r with (r := C); [lra |]. field_simplify; nra.
+Qed.
+
+Definition log_primitive (k t : R) : R :=
+  if Req_EM_T k (-1) then log t else (t^^(k+1)-1)/(k+1).
+
+Lemma log_primitive_derivative : forall k x, x > 0 ->
+  derivative_at (log_primitive k) (λ t, t^^k) x.
+Proof.
+  intros k x Hx. unfold log_primitive. destruct (Req_EM_T k (-1)) as [->|Hk].
+  - apply derivative_at_ext_val with (f' := λ t, 1/t).
+    + apply derivative_log_x; exact Hx.
+    + cbn beta. replace (-1)%R with (0-1) by lra.
+      rewrite Rpower_minus, Rpower_0, Rpower_1; lra.
+  - apply derivative_at_ext_val with
+      (f' := λ t, ((k+1)*t^^((k+1)-1)-0) * /(k+1)).
+    + unfold Rdiv. apply derivative_at_mult_const_r.
+      apply derivative_at_minus; [apply derivative_Rpower; lra | apply derivative_at_const].
+    + simpl. replace (k+1-1) with k by ring. field; lra.
+Qed.
+
+Lemma log_primitive_one : forall k, log_primitive k 1 = 0.
+Proof.
+  intros k. unfold log_primitive. destruct (Req_EM_T k (-1));
+    [apply log_1 | rewrite Rpower_1_base; unfold Rdiv; ring].
+Qed.
+
+Lemma log_primitive_increasing : forall k x y,
+  0 < x -> x < y -> log_primitive k x < log_primitive k y.
+Proof.
+  intros k x y Hx Hxy.
+  assert (Hcont : continuous_on (log_primitive k) [x,y]).
+  { apply continuous_at_imp_continuous_on. intros t Ht.
+    apply differentiable_at_imp_continuous_at.
+    apply derivative_at_imp_differentiable_at with (f' := λ u, u^^k).
+    apply log_primitive_derivative; solve_R. }
+  assert (Hder : derivative_on (log_primitive k) (λ u, u^^k) (x,y)).
+  { apply derivative_at_imp_derivative_on.
+    - apply differentiable_domain_open; lra.
+    - intros t Ht. apply log_primitive_derivative; solve_R. }
+  destruct (MVT _ _ x y Hxy Hcont Hder) as [t [Ht Heq]].
+  pose proof (Rpower_gt_0 t k ltac:(solve_R)) as Hp.
+  simpl in Heq. apply Rmult_lt_compat_r with (r := y-x) in Hp; [| lra].
+  rewrite Heq in Hp. field_simplify in Hp; lra.
+Qed.
+
+Lemma log_primitive_nonneg : forall k t, t >= 1 -> log_primitive k t >= 0.
+Proof.
+  intros k t Ht. destruct (Req_EM_T t 1) as [->|Hne].
+  - rewrite log_primitive_one; lra.
+  - pose proof (log_primitive_increasing k 1 t ltac:(lra) ltac:(lra)).
+    rewrite log_primitive_one in H. lra.
+Qed.
+
+Lemma log_primitive_pos : forall k t, t >= 2 -> log_primitive k t > 0.
+Proof.
+  intros k t Ht. pose proof (log_primitive_increasing k 1 t ltac:(lra) ltac:(lra)).
+  rewrite log_primitive_one in H. lra.
+Qed.
+
+Lemma log_primitive_monotone : forall k u v,
+  1 <= u -> u <= v -> log_primitive k u <= log_primitive k v.
+Proof.
+  intros k u v Hu Huv. destruct Huv as [Hlt| ->]; [| lra].
+  apply Rlt_le, log_primitive_increasing; lra.
+Qed.
+
+Lemma positive_log_primitive_theta : forall s k,
+  k > -1 ->
+  (λ n : nat, log_primitive k (lg (n+s))) = Θ(λ n, (lg (n+s))^^(k+1)).
+Proof.
+  intros s k Hk. set (h := k+1).
+  assert (Hh : h > 0) by (unfold h; lra).
+  set (B := 2^^(1/h)).
+  assert (HB : B > 0) by (unfold B; apply Rpower_gt_0; lra).
+  assert (HBh : B^^h = 2).
+  { unfold B. rewrite Rpower_mult by lra.
+    replace (1/h*h) with 1 by (field; lra). rewrite Rpower_1; lra. }
+  destruct (lg_shift_eventually_ge s B) as [N HN].
+  exists (1/(2*h)), (1/h), N.
+  split; [apply Rdiv_pos_pos; lra |]. split; [apply Rdiv_pos_pos; lra |].
+  intros n Hn. destruct (HN n Hn) as [Hx Hlog].
+  assert (Hpow : (lg (INR n+s))^^h >= 2).
+  { rewrite <- HBh. apply Rle_ge, Rpower_le; lra. }
+  unfold log_primitive. destruct (Req_EM_T k (-1)); [lra |]. fold h.
+  assert (Hpos : ((lg (INR n+s))^^h-1)/h > 0) by (apply Rdiv_pos_pos; lra).
+  rewrite Rabs_right by lra. rewrite Rabs_right by lra.
+  split; apply Rmult_le_reg_r with (r := 2*h); try lra; field_simplify; nra.
+Qed.
+
+Lemma negative_log_primitive_theta : forall s k,
+  k < -1 -> (λ n : nat, log_primitive k (lg (n+s))) = Θ(λ _, 1).
+Proof.
+  intros s k Hk. set (h := k+1).
+  assert (Hh : h < 0) by (unfold h; lra).
+  assert (Htwo : 2^^h < 1).
+  { unfold Rpower. destruct (Rlt_dec 0 2); [| lra].
+    rewrite <- exp_0. apply exp_increasing; try apply Full_intro.
+    pose proof log_2_pos. nra. }
+  destruct (lg_shift_eventually_ge s 2) as [N HN].
+  exists ((1-2^^h)/(-h)), (1/(-h)), N.
+  split; [apply Rdiv_pos_pos; lra |]. split; [apply Rdiv_pos_pos; lra |].
+  intros n Hn. destruct (HN n Hn) as [Hx Hlog].
+  pose proof (Rpower_le_contravar 2 (lg (INR n+s)) h ltac:(lra) ltac:(lra) ltac:(lra)) as Hpow.
+  pose proof (Rpower_gt_0 (lg (INR n+s)) h ltac:(lra)) as Hp.
+  rewrite (Rabs_right (log_primitive k (lg (INR n+s)))) by (apply log_primitive_nonneg; lra).
+  unfold log_primitive. destruct (Req_EM_T k (-1)); [lra |]. fold h.
+  rewrite Rabs_R1. split; apply Rmult_le_reg_r with (r := -h); try lra; field_simplify; try lra.
+  - replace ((-h * (lg (INR n+s))^^h+h)/h) with (1-(lg (INR n+s))^^h) by (field; lra). lra.
+  - replace ((-(lg (INR n+s))^^h*h+h)/h) with (1-(lg (INR n+s))^^h) by (field; lra). lra.
+Qed.
+
+Lemma log_le_positive : forall x y, 0 < x -> x <= y -> log x <= log y.
+Proof.
+  intros x y Hx Hxy. destruct Hxy as [Hlt| ->]; [| lra].
+  apply Rlt_le, log_increasing; solve_R.
+Qed.
+
+Lemma log_of_theta : forall f g,
+  f = Θ(g) ->
+  (exists M, forall n : nat, n >= M -> f n > 0 /\ g n > 0) ->
+  (forall B, exists N, forall n : nat, n >= N -> g n >= B) ->
+  (λ n, log (f n)) = Θ(λ n, log (g n)).
+Proof.
+  intros f g [c [C [N [Hc [HC H]]]]] [M Hpos] Hunbounded.
+  set (D := 2*(|log c|+|log C|)+2).
+  destruct (Hunbounded (exp D)) as [Nbig Hbig].
+  exists (1/2), 2, (Rmax N (Rmax M Nbig)).
+  split; [lra |]. split; [lra |]. intros n Hn.
+  specialize (H n ltac:(solve_R)).
+  destruct (Hpos n ltac:(solve_R)) as [Hf Hg].
+  specialize (Hbig n ltac:(solve_R)).
+  rewrite (Rabs_right (f n)), (Rabs_right (g n)) in H by lra.
+  assert (Hlg : D <= log (g n)).
+  { rewrite <- (log_exp D). apply log_le_positive; [apply exp_pos | lra]. }
+  assert (Hlo : log (c*g n) <= log (f n)) by (apply log_le_positive; nra).
+  assert (Hhi : log (f n) <= log (C*g n)) by (apply log_le_positive; nra).
+  rewrite theorem_18_1 in Hlo, Hhi by lra.
+  assert (Hbounds : (1/2)*log(g n) <= log(f n) <= 2*log(g n)).
+  { unfold D in Hlg. solve_R. }
+  assert (Hlgpos : log(g n) > 0) by (unfold D in Hlg; solve_R).
+  rewrite (Rabs_right (log (f n))), (Rabs_right (log (g n))) by lra.
+  exact Hbounds.
+Qed.
+
+Lemma log_theta_lg : forall f : nat -> R,
+  (λ n, log (f n)) = Θ(λ n, lg (f n)).
+Proof.
+  intros f. exists (log 2), (log 2), 0.
+  split; [apply log_2_pos |]. split; [apply log_2_pos |]. intros n _.
+  unfold lg, log_, Rdiv. rewrite Rabs_mult, Rabs_inv.
+  rewrite (Rabs_right (log 2)) by (pose proof log_2_pos; lra).
+  assert (H : log 2 <> 0) by (pose proof log_2_pos; lra).
+  split; field_simplify; lra.
+Qed.
+
+Lemma shifted_loglog_theta : forall s,
+  (λ n : nat, log (lg (n+s))) = Θ(λ n, lg (lg n)).
+Proof.
+  intros s. apply big_theta_trans with (λ n, log (lg n)); [| apply log_theta_lg].
+  apply log_of_theta.
+  - unfold lg. apply (big_theta_log_of_poly (λ x : R, x+s) 1 2); [lra | lra | |].
+    + exists (|s|+1). intros x Hx. pose proof Rle_abs (-s).
+      rewrite Rabs_Ropp in H. lra.
+    + apply power_bounds_theta, power_bounds_shift.
+  - exists (|s|+2). intros n Hn. pose proof Rle_abs (-s). pose proof Rabs_pos s.
+    rewrite Rabs_Ropp in H. split; apply log_b_pos; lra.
+  - intros B. destruct (lg_shift_eventually_ge 0 B) as [N HN].
+    exists N. intros n Hn. specialize (HN n Hn). rewrite Rplus_0_r in HN. tauto.
+Qed.
+
+Lemma positive_primitive_profile_theta : forall s p k,
+  k > -1 ->
+  (λ n : nat, (n+s)^^p * log_primitive k (lg (n+s))) = Θ(λ n, n^^p * (lg n)^^(k+1)).
+Proof.
+  intros s p k Hk.
+  apply big_theta_trans with (λ n, (INR n+s)^^p * (lg (INR n+s))^^(k+1)).
+  - apply big_theta_mult; [apply big_theta_refl | apply positive_log_primitive_theta; exact Hk].
+  - apply shifted_polylog_theta.
+Qed.
+
+Lemma negative_primitive_profile_theta : forall s p k,
+  k < -1 ->
+  (λ n : nat, (n+s)^^p * log_primitive k (lg (n+s))) = Θ(λ n, n^^p).
+Proof.
+  intros s p k Hk.
+  apply big_theta_trans with (λ n, (INR n+s)^^p * 1).
+  - apply big_theta_mult; [apply big_theta_refl | apply negative_log_primitive_theta; exact Hk].
+  - replace (λ n : nat, (INR n+s)^^p*1) with (λ n : nat, (INR n+s)^^p)
+      by (extensionality n; ring).
+    pose proof (power_bounds_power _ 1 p (power_bounds_shift s)) as H.
+    replace (1*p) with p in H by ring. apply power_bounds_theta; exact H.
+Qed.
+
+Lemma critical_primitive_profile_theta : forall s p,
+  (λ n : nat, (n+s)^^p * log_primitive (-1) (lg (n+s))) = Θ(λ n, n^^p * lg (lg n)).
+Proof.
+  intros s p. unfold log_primitive. destruct (Req_EM_T (-1) (-1)); [| contradiction].
+  apply big_theta_mult.
+  - pose proof (power_bounds_power _ 1 p (power_bounds_shift s)) as H.
+    replace (1*p) with p in H by ring. apply power_bounds_theta; exact H.
+  - apply shifted_loglog_theta.
+Qed.
+
+Lemma master_primitive_case : forall a b (f T G : nat -> R) r k,
+  a >= 1 -> b > 1 ->
+  (forall n, f n >= 0) -> (forall n, T n >= 0) ->
+  (forall n, (1 <= n)%nat -> T n > 0) ->
+  (forall n : nat, r n = ⌊n/b⌋ \/ r n = ⌈n/b⌉) ->
+  (exists N, forall n : nat, n >= N -> T n = a*T(r n)+f n) ->
+  (forall s, (λ n : nat, (n+s)^^(log_ b a) * log_primitive k (lg (n+s))) = Θ(G)) ->
+  f = Θ(λ n, n^^(log_ b a) * (lg n)^^k) -> T = Θ(G).
+Proof.
+  intros a b f T G r k Ha Hb Hf HT HTpos Hr Hrec Htheta Hgrowth.
+  apply master_profile_case with (a := a) (b := b) (f := f) (r := r)
+    (F := log_primitive k) (k := k); auto.
+  - apply log_primitive_derivative.
+  - apply log_primitive_nonneg.
+  - apply log_primitive_pos.
+  - apply log_primitive_monotone.
 Qed.
 
 Section Master_Theorem.
@@ -1358,59 +2563,38 @@ Section Master_Theorem.
         apply Rmult_le_compat_l; try nra.
         unfold p. repeat rewrite <- power_base_change with (b := b); try lra.
         rewrite <- pow_add. replace (k0 + (n - k0))%nat with n; solve_R.
-      - intros [ε [c [N [Hε [H10 [Hgrowth H11]]]]]].
-    apply big_theta_iff; split.
-    + destruct (pow_unbounded b (Rmax N b) H2) as [M H12].
-      assert (H13 : (M > 0)%nat). { destruct M; [ | destruct M]; solve_R. }
-      assert (H14: exists N' : nat, forall n : nat, (n >= N') -> 
-      ∑ (S (n - M - 1)) (n - 1) (λ j : ℕ, a ^ j * f ⌊b ^ (n - j)⌋) <= f ⌊b ^ n⌋).
-      {
-        admit.
-      }
-      destruct H14 as [N' H14].
-      exists (1 / (1 - c) + 1), (Rmax (Rmax N (INR M + 1)) (INR N')).
-      split. { apply Rplus_lt_0_compat; [apply Rdiv_pos_pos; lra | lra]. }
-      intros n H15.
-      assert (H16: (n >= M + 1)%nat).
-      { apply INR_ge. solve_R. }
-      assert (H17: (n >= N')%nat).
-      { apply INR_ge. solve_R. }
-      rewrite Rabs_right.
-      2: { apply Rle_ge. apply sum_f_nonneg; try lia. intros k H18.
-           specialize (H3 (⌊b^(n - k)⌋)). pose proof pow_lt a k ltac:(lra) as H19. nra. }
-      rewrite Rabs_right; [| apply H3].
-      unfold g.
-      rewrite (sum_f_split 0 (n - M - 1) (n - 1)); try lia.
-      rewrite Rmult_plus_distr_r.
-      apply Rplus_le_compat.
-      * apply Rle_trans with (∑ 0 (n - M - 1) (fun j => c ^ j * f ⌊b ^ n⌋)).
-        -- apply sum_f_congruence_le; try lia.
-           intros j H18. apply iter_ineq_on_powers with (c2 := N) (M := M); auto; try lra.
-        -- rewrite <- r_mult_sum_f_i_n_f, Rmult_comm. 
-           apply Rmult_le_compat_r; [apply Rge_le, H3 |].
-           replace (pow c) with (λ j : ℕ, c ^ j) by reflexivity.
-           rewrite sum_f_geometric; try lra.
-           apply Rmult_le_reg_r with (r := (1 - c)); [ lra |]. field_simplify; try lra.
-           assert (H18 : c ^ (n - M - 1 + 1) >= 0). { apply Rle_ge, pow_le; lra. }
-           lra.
-      * rewrite Rmult_1_l. apply H14; solve_R.
-    + exists 1, 2. split; [lra |].
-      intros n H12. rewrite Rmult_1_l.
-      rewrite Rabs_right.
-      2: { apply Rle_ge; apply sum_f_nonneg; try lia; intros k H13.
-           specialize (H3 (⌊b^(n - k)⌋)). pose proof pow_lt a k ltac:(lra); nra. }
-      rewrite Rabs_right; [| apply H3].
-      unfold g.
-      rewrite (sum_f_split 0 0 (n - 1)).
-      2 : { split; solve_R. replace 2 with (INR 2) in H12 by auto. apply INR_ge in H12. lia. }
-      rewrite sum_f_0_0, pow_O, Nat.sub_0_r, Rmult_1_l.
-      assert (H13 : ∑ 1 (n - 1) (λ j : ℕ, a ^ j * f ⌊b ^ (n - j)⌋) >= 0).
-      { apply Rle_ge, sum_f_nonneg.
-        { replace 2 with (INR 2) in H12 by auto. apply INR_ge in H12. lia. }
-        intros k H14.
-        apply Rmult_le_pos; [apply pow_le; lra | apply Rge_le; auto ]. }
-      lra.
-  Admitted.
+    - intros [ε [c [N [Hε [Hc [Hgrowth Hreg]]]]]].
+      apply recurrence_regular_theta with (a := a) (r := λ k, (k-1)%nat).
+      + lra.
+      + intros k. unfold g. apply Rle_ge, sum_f_nonneg; [lia |].
+        intros j Hj. apply Rmult_le_pos; [apply pow_le; lra | apply Rge_le, H3].
+      + destruct (omega_power_eventually_pos f (p+ε) H3 Hgrowth) as [M HM].
+        destruct (powers_eventually_ge b M H2) as [J HJ].
+        exists J. intros k Hk. apply HM, HJ; exact Hk.
+      + intros M. exists (Rmax 2 (M+1)). intros k Hk.
+        assert (Hkn : (1 <= k)%nat) by (apply INR_le; solve_R).
+        split; [lia |]. rewrite minus_INR by lia. simpl. solve_R.
+      + destruct (powers_eventually_ge b N H2) as [J HJ].
+        exists c, (Rmax 2 J). split; [exact Hc |]. intros k Hk.
+        assert (Hkn : (2 <= k)%nat) by (apply INR_le; solve_R).
+        split.
+        * unfold g.
+          rewrite (sum_f_split 0 0 (k-1)); try lia.
+          rewrite sum_f_0_0, pow_O, Nat.sub_0_r, Rmult_1_l.
+          rewrite (sum_f_reindex _ 1 (k-1) 1); try lia.
+          rewrite Nat.sub_diag, Rplus_comm.
+          f_equal. rewrite r_mult_sum_f_i_n_f_l.
+          apply sum_f_equiv; try lia. intros j Hj.
+          replace (k-(j+1))%nat with (k-1-j)%nat by lia.
+          replace (j+1)%nat with (S j) by lia.
+          rewrite <- tech_pow_Rmult. ring.
+        * specialize (Hreg ⌊b^k⌋ ltac:(apply HJ; solve_R)).
+          rewrite floor_INR in Hreg by (apply is_natural_pow; exact H0).
+          destruct k as [|k]; [lia |].
+          rewrite floor_power_succ_div in Hreg by auto.
+          replace (S k - 1)%nat with k by lia. exact Hreg.
+  Qed.
+
 
   Lemma lemma_4_4 :
     let p := log_ b a in
@@ -1539,33 +2723,19 @@ Theorem master_theorem_nat : ∀ (a b : ℝ) (f T : ℕ -> ℝ),
   ((∃ ε c N, ε > 0 /\ 0 < c < 1 /\ (f = Ω(λ n, n^^((log_ b a) + ε))) /\ 
    (∀ n : ℕ, n >= N -> a * f (⌊n/b⌋) <= c * f n)) -> T = Θ(f)).
 Proof.
-  intros a b f T H1 H2 H3 H4 H5 H6 H7.
-  pose proof lemma_4_4 a b f T (λ n, T ⌊b ^ n⌋) H1 H2 H4 H5 (H6 1%nat ltac:(lia)) H7 as H8.
-  specialize (H8 (λ k, eq_refl _) H3).
-  set (p := log_ b a) in *.
+  intros a b f T Ha Hb Hbn Hf HT HTpos Hrec.
+  assert (Hr : forall n : nat, ⌊n/b⌋ = ⌊n/b⌋ \/ ⌊n/b⌋ = ⌈n/b⌉) by auto.
+  assert (Hrec' : exists N, forall n : nat, n >= N -> T n = a*T⌊n/b⌋+f n).
+  { exists b. exact Hrec. }
   split; [| split].
-  - intros H9. destruct H8 as [H10 _].
-    specialize (H10 H9).
-    apply big_theta_iff in H10. destruct H10 as [H11 H12].
-    apply big_theta_iff. split.
-    + admit.
-    + admit.
-  - intros H9. destruct H8 as [_ [H10 _]].
-    specialize (H10 H9).
-    apply big_theta_iff in H10. destruct H10 as [H11 H12].
-    apply big_theta_iff. split.
-    + admit.
-    + admit.
-  - intros H9. destruct H8 as [_ [_ H10]].
-    specialize (H10 H9).
-    apply big_theta_iff in H10. destruct H10 as [H11 H12].
-    apply big_theta_iff. split.
-    + admit.
-    + admit.
-Admitted.
+  - apply master_polynomial_case with (f := f) (a := a) (b := b) (r := λ n, ⌊n/b⌋); auto.
+  - apply master_logarithmic_case with (f := f) (a := a) (b := b) (r := λ n, ⌊n/b⌋); auto.
+  - intros [ε [c [N [Hε [Hc [Hgrowth Hreg]]]]]].
+    apply master_regular_case with (a := a) (b := b) (r := λ n, ⌊n/b⌋)
+      (p := log_ b a+ε); auto; try lra.
+    exists c, N. auto.
+Qed.
 
-(* The same rounded subproblem size is used in the recurrence and regularity
-   condition. Positivity at every positive input covers every possible base case. *)
 Theorem master_theorem : ∀ (a b : ℝ) (f T : ℕ -> ℝ) (r : ℕ -> ℕ),
   a >= 1 -> b > 1 ->
   (∀ n, f n >= 0) ->
@@ -1582,12 +2752,29 @@ Theorem master_theorem : ∀ (a b : ℝ) (f T : ℕ -> ℝ) (r : ℕ -> ℕ),
 Proof.
   intros a b f T r H1 H2 H3 H4 H5 Hr H6.
   split; [| split]; [ | | split; [| split ]].
-  - intros [ε [H8 H9]]. admit.
-  - intros k H8 H9. admit.
-  - intros H8. admit.
-  - intros k H8 H9. admit.
-  - intros [ε [c [N [H8 [H9 [H10 H11]]]]]]. admit.
-Admitted.
+  - intros Hgrowth. apply master_polynomial_case with (f := f) (a := a) (b := b) (r := r); auto.
+    destruct H6 as [N [_ Hrec]]. exists N. exact Hrec.
+  - intros k Hk Hgrowth.
+    apply master_primitive_case with (a := a) (b := b) (f := f) (r := r) (k := k);
+      [exact H1 | exact H2 | exact H3 | exact H4 | exact H5 | exact Hr | | | exact Hgrowth].
+    + destruct H6 as [N [_ Hrec]]. exists N. exact Hrec.
+    + intros s. apply positive_primitive_profile_theta; exact Hk.
+  - intros Hgrowth.
+    apply master_primitive_case with (a := a) (b := b) (f := f) (r := r) (k := -1);
+      [exact H1 | exact H2 | exact H3 | exact H4 | exact H5 | exact Hr | | | exact Hgrowth].
+    + destruct H6 as [N [_ Hrec]]. exists N. exact Hrec.
+    + intros s. apply critical_primitive_profile_theta.
+  - intros k Hk Hgrowth.
+    apply master_primitive_case with (a := a) (b := b) (f := f) (r := r) (k := k);
+      [exact H1 | exact H2 | exact H3 | exact H4 | exact H5 | exact Hr | | | exact Hgrowth].
+    + destruct H6 as [N [_ Hrec]]. exists N. exact Hrec.
+    + intros s. apply negative_primitive_profile_theta; exact Hk.
+  - intros [ε [c [N [H8 [H9 [H10 H11]]]]]].
+    apply master_regular_case with (a := a) (b := b) (r := r)
+      (p := log_ b a + ε); auto; try lra.
+    + destruct H6 as [Nrec [_ Hrec]]. exists Nrec. exact Hrec.
+    + exists c, N. auto.
+Qed.
 
 From Stdlib Require Recdef.
 
@@ -1606,12 +2793,13 @@ Defined.
   
 Lemma H1 : ∀ n, f n ≥ 0.
 Proof.
-  intros n. unfold f. apply Rle_ge.
-  pose proof pos_INR n as H1. 
-  repeat apply Rmult_le_pos; try lra.
-  - pose proof log_nonneg (n^2) as H2. admit.
-  - (* Assuming lg n >= 0 for relevant n *) admit.
-Admitted.
+  intros [|n].
+  - unfold f. simpl. lra.
+  - unfold f. apply Rle_ge. apply Rmult_le_pos.
+    + apply Rmult_le_pos; [lra | apply pow_le; apply pos_INR].
+    + apply Rge_le. unfold lg. apply log_b_nonneg; [lra |].
+      apply Rle_ge, pow_R1_Rle. rewrite S_INR. pose proof pos_INR n; lra.
+Qed.
 
 Lemma H2 : ∀ n, T n ≥ 0.
 Proof.
@@ -1647,13 +2835,29 @@ Qed.
 
 Lemma problem_2a_solution : T = Θ(λ n, n^^2 * (lg n)^^2).
 Proof.
-  pose proof (master_theorem 4 2 f T (λ n, ⌊n/2⌋) ltac:(lra) ltac:(lra) H1 H2 H3 ltac:(intros; left; reflexivity)) as [_ [_ [_ [_ H1]]]].
-  destruct H4 as [N [H2 H3]]. exists N. auto.
-  exists 2%R, 1%R, 1%R.
-  repeat split; try lra.
-  - admit.
-  - admit.
-Admitted.
+  pose proof (master_theorem 4 2 f T (λ n, ⌊n/2⌋)
+    ltac:(lra) ltac:(lra) H1 H2 H3
+    ltac:(intros; left; reflexivity) H4) as [_ [Hcase _]].
+  assert (Hlog : log_ 2 4 = 2).
+  { replace 4 with (2 * 2) by ring.
+    rewrite log_b_mult, log_b_b; lra. }
+  rewrite Hlog in Hcase.
+  specialize (Hcase 1 ltac:(lra)).
+  replace (1 + 1) with 2 in Hcase by ring.
+  apply Hcase.
+  exists 14, 14, 2. split; [lra |]. split; [lra |].
+  intros n Hn.
+  rewrite Rpower_1 by (unfold lg; apply Rge_le, log_b_nonneg; lra).
+  replace (INR n ^^ 2) with (INR n ^ 2).
+  2: { replace 2%R with (INR 2%nat) by (simpl; lra). symmetry. apply Rpower_nat; solve_R. }
+  unfold f.
+  assert (Hlg : lg (INR n ^ 2) = 2 * lg n).
+  { unfold lg. replace (INR n ^ 2) with (INR n * INR n) by ring.
+    rewrite log_b_mult; lra. }
+  rewrite Hlg.
+  replace (7 * n ^ 2 * (2 * lg n)) with (14 * (n ^ 2 * lg n)) by ring.
+  repeat rewrite Rabs_mult. rewrite (Rabs_right 14) by lra. split; lra.
+Qed.
 
 End Problem2a.
 
@@ -1725,9 +2929,15 @@ Proof.
           - pose proof pos_INR n as H8. lra.
           - solve_R.
     }
-    apply big_o_poly_poly. admit.
+    apply big_o_poly_poly.
+    pose proof (log_b_lt 7 ltac:(lra) 5 7 ltac:(lra)) as Hlog.
+    rewrite log_b_b in Hlog by lra. lra.
   - intros n H8. unfold f.
-    admit.
-Admitted.
+    pose proof (floor_spec (INR n / 7) ltac:(lra)) as Hfloor.
+    assert (Hp : INR ⌊INR n / 7⌋ ^ 5 <= (INR n / 7) ^ 5).
+    { apply pow_incr. pose proof pos_INR ⌊INR n / 7⌋. lra. }
+    pose proof (pow_le (INR n) 5 (pos_INR n)) as Hpow.
+    simpl in Hp, Hpow |- *. nra.
+Qed.
 
 End Problem2b.
