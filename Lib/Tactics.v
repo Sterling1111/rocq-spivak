@@ -1654,3 +1654,16 @@ Lemma test_int_rational_1 : ∫ 1 2 (λ x, 1 / x^2) = 1/2.
 Proof. auto_int. Qed.
 
 End Tactic_Tests_Advanced.
+
+Section sigmoid.
+
+  Definition σ := λ x, 1 / (1 + e ^^ (-x)).
+  Definition σ' := λ x, σ x * (1 - σ x).
+
+  Lemma derivative_sigmoid : ⟦ der ⟧ σ = σ'.
+  Proof.
+    unfold σ', σ.
+    auto_diff.
+  Qed.
+
+End sigmoid.

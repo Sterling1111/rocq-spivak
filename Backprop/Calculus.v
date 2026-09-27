@@ -1,4 +1,4 @@
-From Lib Require Export Imports FunctionalMatrix Derivative Exponential.
+From Lib Require Export Imports FunctionalMatrix Derivative Exponential Tactics.
 From Lib Require Import Functions Limit.
 Import FunctionNotations DerivativeNotations.
 Open Scope R_scope.
@@ -99,17 +99,12 @@ Definition sigma (x : R) := / (1 + Exponential.exp (-x)).
 Definition sigma' (x : R) := sigma x * (1 - sigma x).
 Lemma derivative_at_val_sigma x : ⟦ der x ⟧ sigma = sigma' x.
 Proof.
-  assert (He : ⟦ der x ⟧ (fun t => Exponential.exp (-t)) = Exponential.exp (-x) * (-1)).
-  { apply derivative_at_val_comp with (df := -1).
-    - replace (-1) with (0 - 1) by ring.
-      eapply derivative_at_val_ext with (f := fun t => 0 - t); [intro t; ring|]. apply derivative_at_val_minus; [apply derivative_at_val_const|apply derivative_at_val_id].
-    - apply derivative_at_exp. }
-  assert (Hd : ⟦ der x ⟧ (fun t => 1 + Exponential.exp (-t)) = 0 + Exponential.exp (-x) * (-1)) by (apply derivative_at_val_plus; [apply derivative_at_val_const|exact He]).
-  pose proof (Exponential.exp_pos (-x)) as Hpos.
-  unfold derivative_at_val, sigma, sigma'.
-  eapply derivative_at_ext_val with (f := sigma) (a := x) (g' := fun _ => sigma x * (1 - sigma x)).
-  - apply derivative_at_inv with (f' := fun _ => 0 + Exponential.exp (-x) * (-1)); [exact Hd|lra].
-  - cbn. unfold sigma. field. lra.
+  unfold sigma, sigma'.
+  assert (H1 :
+    ⟦ der ⟧ (λ x0 : R, / (1 + exp (-x0))) =
+      (λ x0 : R, sigma x0 * (1 - sigma x0))).
+      { unfold sigma. auto_diff. }
+  exact (H1 x).
 Qed.
 
 Lemma derivative_at_val_sigma_comp f x df : ⟦ der x ⟧ f = df ->
