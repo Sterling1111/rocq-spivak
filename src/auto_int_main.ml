@@ -161,12 +161,20 @@ let find_script () =
   | None ->
       let rec search dir =
         let path = Filename.concat dir "src/auto_int.py" in
-        if Sys.file_exists path then path
+        if Sys.file_exists path then Some path
         else let parent = Filename.dirname dir in
-          if parent = dir then
-            failwith "auto_int: cannot find src/auto_int.py; set AUTO_INT_SCRIPT"
+          if parent = dir then None
           else search parent in
-      search (Sys.getcwd ())
+      match search (Sys.getcwd ()) with
+      | Some path -> path
+      | None ->
+          let path =
+            try Some (Filename.concat (Findlib.package_directory "calculus") "auto_int.py")
+            with Findlib.No_such_package _ -> None in
+          match path with
+          | Some path when Sys.file_exists path -> path
+          | _ -> failwith
+              "auto_int: cannot find auto_int.py in the checkout or installed calculus package; set AUTO_INT_SCRIPT"
 
 (* One untrusted candidate generator per Rocq process. Only text is cached:
    no terms or proofs survive changes to Rocq's environment or undo. *)

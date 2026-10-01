@@ -1144,12 +1144,14 @@ Proof. apply theorem_18_2. Qed.
 
 Lemma derivative_exp' : ⟦ der ⟧ (λ x, e ^^ x) = λ x, e ^^ x.
 Proof.
-  apply derivative_ext with (f1' := exp).
-  - intros x. admit.
-  - apply derivative_eq with (f1 := exp).
-    + intros x. admit.
-    + apply derivative_exp.
-Admitted.
+  assert (H : forall x, e ^^ x = exp x).
+  { intros x. unfold Rpower. destruct (Rlt_dec 0 e) as [H1|H1].
+    - unfold e. rewrite log_exp. f_equal; lra.
+    - pose proof exp_pos 1. unfold e in H1; lra. }
+  apply derivative_ext with (f1' := exp); [intros x; symmetry; apply H|].
+  apply derivative_eq with (f1 := exp); [intros x; symmetry; apply H|].
+  apply derivative_exp.
+Qed.
 
 Lemma e_gt_0 : e > 0.
   pose proof exp_pos 1 as H1.

@@ -110,7 +110,7 @@ Proof.
   split; [apply cert_in_cone | apply checker_correct_value; auto ].
 Qed.
 
-Declare ML Module "simplex_plugin.plugin".
+Declare ML Module "calculus.simplex_plugin".
 
 Lemma eq_to_ge : forall a b : Z, a = b -> a - b >= 0 /\ b - a >= 0.
 Proof.

@@ -1,3 +1,8 @@
+CAMLPKGS += -package findlib,unix,zarith
+
+# Package builds can omit exercise plots and their gnuplot dependency.
+BUILD_PLOTS ?= yes
+ifeq ($(BUILD_PLOTS),yes)
 PLOT_SCRIPTS = \
 	Calculus/Chapter11/Problem3/generate_plots.sh \
 	Calculus/Chapter13/Problem8/generate_plots.sh \
@@ -15,3 +20,9 @@ PLOT_DONES = $(PLOT_SCRIPTS:generate_plots.sh=.plots_done)
 	@touch $@
 
 post-all:: $(PLOT_DONES)
+endif
+
+# Keep the untrusted candidate generator beside the installed OCaml plugins.
+# The generated uninstall target removes the whole calculus findlib package.
+install-extra::
+	install -m 0644 src/auto_int.py "$(COQPLUGININSTALL)/calculus/auto_int.py"

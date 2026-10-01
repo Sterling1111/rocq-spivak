@@ -1,4 +1,4 @@
-DECLARE PLUGIN "simplex_plugin.plugin"
+DECLARE PLUGIN "calculus.simplex_plugin"
 
 {
 open Pp

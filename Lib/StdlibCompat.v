@@ -1,4 +1,6 @@
-From Lib Require Import Imports Limit Derivative Integral Continuity Reals_util Trigonometry Sets Interval Exponential Sequence Series Sums.
+From Lib Require Import Completeness.
+From Lib Require Import Imports Notations Limit Derivative Integral Continuity Reals_util Trigonometry Sets Interval Exponential Sequence Series Sums Partition Sorted_Rlt.
+From Coquelicot Require SF_seq RInt.
 Import LimitNotations DerivativeNotations SetNotations IntervalNotations SequenceNotations SeriesNotations SumNotations.
 
 Open Scope R_scope.
@@ -203,27 +205,339 @@ Proof.
   - subst. apply RiemannInt_P7.
 Qed.
 
+Local Notation length := List.length.
+
+Local Lemma stdlib_nth : forall (A : Type) (l : list A) d i,
+  seq.nth d l i = List.nth i l d.
+Proof. intros A l. induction l as [|x l H1]; intros d [|i]; simpl; auto. Qed.
+
+Local Lemma stdlib_size : forall (A : Type) (l : list A), seq.size l = length l.
+Proof. intros A l. induction l as [|x l H1]; simpl; auto. Qed.
+
+Local Lemma stdlib_head : forall (l : list R), seq.head 0 l = l.[0].
+Proof. intros [|x l]; simpl; [reflexivity|reflexivity]. Qed.
+
+Local Lemma stdlib_last : forall (l : list R) d,
+  l <> [] -> seq.last d l = l.[length l-1].
+Proof.
+  induction l as [|x l H1]; intros d H2; [contradiction|].
+  destruct l as [|y l].
+  - reflexivity.
+  - simpl length. replace (S (S (length l))-1)%nat with (S (length l)) by lia.
+    simpl List.nth. change (seq.last x (y::l) = (y::l).[length l]).
+    rewrite H1 by discriminate. f_equal. simpl length. lia.
+Qed.
+
+Local Lemma stdlib_sorted : forall l, Sorted Rlt l -> SF_seq.sorted Rle l.
+Proof.
+  intros l H1. induction H1 as [|x l H1 H2 H3]; [exact I|].
+  destruct l as [|y l]; [exact I|]. simpl. split; [inversion H3; lra|exact H2].
+Qed.
+
+Local Definition stdlib_partition_seq a b (P : partition a b) (v : list R) : @SF_seq.SF_seq R :=
+  SF_seq.mkSF_seq ((points a b P).[0]) (combine (tl (points a b P)) v).
+
+Local Lemma stdlib_unzip_combine : forall (l v : list R),
+  length l = length v ->
+  seq.unzip1 (combine l v) = l /\ seq.unzip2 (combine l v) = v.
+Proof.
+  induction l as [|x l H1]; intros [|y v] H2; simpl in *; try discriminate; [auto|].
+  destruct (H1 v ltac:(lia)) as [H3 H4]. simpl. rewrite H3, H4. auto.
+Qed.
+
+Local Lemma stdlib_partition_seq_spec : forall a b (P : partition a b) v,
+  length v = (length (points a b P)-1)%nat ->
+  SF_seq.SF_lx (stdlib_partition_seq a b P v) = points a b P /\
+  SF_seq.SF_ly (stdlib_partition_seq a b P v) = v.
+Proof.
+  intros a b P v H1. pose proof partition_length a b P as H2.
+  assert (H3 : length (tl (points a b P)) = length v).
+  { destruct (points a b P); simpl in *; lia. }
+  destruct (stdlib_unzip_combine _ _ H3) as [H4 H5].
+  unfold SF_seq.SF_lx, SF_seq.SF_ly, stdlib_partition_seq. simpl. rewrite H4, H5.
+  split; [destruct (points a b P); simpl in *; [lia|reflexivity]|reflexivity].
+Qed.
+
+Local Definition stdlib_partition_stepfun a b (P : partition a b) (v : list R)
+  (H1 : length v = (length (points a b P)-1)%nat) : StepFun a b.
+Proof.
+  refine (@mkStepFun a b (SF_seq.SF_fun (stdlib_partition_seq a b P v) 0) _).
+  exists (points a b P), v.
+  pose proof SF_seq.ad_SF_compat 0 (stdlib_partition_seq a b P v)
+    ltac:(unfold SF_seq.SF_sorted; rewrite (proj1 (stdlib_partition_seq_spec a b P v H1)); apply stdlib_sorted, partition_P2) as H2.
+  destruct (stdlib_partition_seq_spec a b P v H1) as [H3 H4]. rewrite H3, H4 in H2.
+  rewrite stdlib_head in H2.
+  rewrite stdlib_last, partition_first, partition_last in H2; [exact H2|apply partition_not_empty].
+Defined.
+
+Local Lemma stdlib_partition_stepfun_value : forall a b (P : partition a b) v H1 x,
+  x ∈ [a,b] -> exists i, (i < length v)%nat /\
+    (points a b P).[i] <= x <= (points a b P).[i+1] /\
+    stdlib_partition_stepfun a b P v H1 x = v.[i].
+Proof.
+  intros a b P v H1 x H2. pose proof partition_length a b P as H3.
+  destruct (stdlib_partition_seq_spec a b P v H1) as [H4 H5].
+  assert (H6 : SF_seq.sorted Rle (SF_seq.SF_lx (stdlib_partition_seq a b P v))).
+  { rewrite H4. apply stdlib_sorted, partition_P2. }
+  assert (H7 : seq.head 0 (SF_seq.SF_lx (stdlib_partition_seq a b P v)) <= x <=
+              seq.last 0 (SF_seq.SF_lx (stdlib_partition_seq a b P v))).
+  { rewrite H4, stdlib_head.
+    rewrite stdlib_last, partition_first, partition_last; [solve_R|apply partition_not_empty]. }
+  change (exists i, (i < length v)%nat /\ (points a b P).[i] <= x <= (points a b P).[i+1] /\ SF_seq.SF_fun (stdlib_partition_seq a b P v) 0 x = v.[i]).
+  rewrite (SF_seq.SF_fun_incr _ 0 x H6 H7).
+  destruct (SF_seq.sorted_dec _ 0 x H6 H7) as [[i [[H8 H9] H10]]|H8].
+  - cbn [proj1_sig]. rewrite H4 in H8, H9, H10. rewrite !stdlib_nth in H8, H9. rewrite stdlib_size in H10.
+    rewrite H5, stdlib_nth. exists i. split; [lia|]. split; [replace (i+1)%nat with (S i) by lia; lra|reflexivity].
+  - rewrite H4, !stdlib_nth, stdlib_size in H8.
+    assert (H9 : SF_seq.SF_size (stdlib_partition_seq a b P v) = length v).
+    { unfold SF_seq.SF_size, stdlib_partition_seq. simpl SF_seq.SF_t.
+      rewrite stdlib_size, length_combine. destruct (points a b P); simpl in *; lia. }
+    rewrite H9, H5, stdlib_nth.
+    exists (length v-1)%nat. split; [lia|]. split; [rewrite H1; replace (length (points a b P)-1-1+1)%nat with (length (points a b P)-1)%nat by lia; replace (length (points a b P)-1-1)%nat with (length (points a b P)-2)%nat by lia; exact H8|reflexivity].
+Qed.
+
+Local Lemma stdlib_Int_SF_sum : forall v l,
+  length l = S (length v) ->
+  Int_SF v l = ∑ 0 (length v-1) (fun i => v.[i] * (l.[i+1]-l.[i])).
+Proof.
+  induction v as [|u v H1]; intros l H2.
+  - rewrite sum_f_0_0. simpl. ring.
+  - destruct l as [|x l]; [simpl in H2; lia|].
+    destruct l as [|y l]; [simpl in H2; lia|].
+    replace (length (u::v)-1)%nat with (length v) by (simpl; lia).
+    destruct v as [|w v].
+    + simpl in H2. assert (H3 : l=[]).
+      { apply length_zero_iff_nil. simpl in H2. lia. } subst.
+      rewrite sum_f_0_0. simpl. ring.
+    + rewrite sum_f_Si by (simpl; lia).
+      rewrite (sum_f_reindex _ 1 (length (w::v)) 1) by (simpl; lia).
+      simpl Nat.sub. replace (length v-0)%nat with (length (w::v)-1)%nat by (simpl; lia).
+      change (u*(y-x) + Int_SF (w::v) (y::l) =
+        ∑ 0 (length (w::v)-1) (fun i => (u::w::v).[i+1] * ((x::y::l).[i+1+1]-(x::y::l).[i+1])) + u*(y-x)).
+      rewrite (H1 (y::l)) by (simpl in *; lia).
+      assert (H3 : ∑ 0 (length (w::v)-1) (fun i => (w::v).[i] * ((y::l).[i+1]-(y::l).[i])) =
+        ∑ 0 (length (w::v)-1) (fun i => (u::w::v).[i+1] * ((x::y::l).[i+1+1]-(x::y::l).[i+1]))).
+      { apply sum_f_equiv; [lia|]. intros i H4. repeat rewrite Nat.add_1_r. reflexivity. }
+      rewrite H3. ring.
+Qed.
+
+Local Lemma stdlib_partition_stepfun_integral : forall a b (P : partition a b) v H1,
+  RiemannInt_SF (stdlib_partition_stepfun a b P v H1) =
+  ∑ 0 (length v-1) (fun i => v.[i] * ((points a b P).[i+1]-(points a b P).[i])).
+Proof.
+  intros a b P v H1. pose proof partition_length a b P as H2.
+  unfold RiemannInt_SF. destruct (Rle_dec a b) as [H3|H3]; [|pose proof partition_P1 a b P as H4; lra].
+  change (Int_SF v (points a b P) = ∑ 0 (length v-1) (fun i => v.[i] * ((points a b P).[i+1]-(points a b P).[i]))).
+  apply stdlib_Int_SF_sum. lia.
+Qed.
+
+Local Lemma darboux_to_stdlib_integrable : forall f a b,
+  a <= b -> Integral.integrable_on a b f -> Riemann_integrable f a b.
+Proof.
+  intros f a b H1 H2. destruct (Req_EM_T a b) as [H3|H3]; [subst; apply RiemannInt_P7|].
+  assert (H4 : a < b) by lra.
+  pose proof integrable_imp_bounded f a b H1 H2 as H5.
+  set (bf := mkbounded_function_R a b f H1 H5).
+  intros ε.
+  destruct (constructive_indefinite_description _ (proj1 (theorem_13_2_a a b bf H4) H2 ε (cond_pos ε))) as [P H6].
+  destruct (partition_sublist_elem_has_inf f a b P H5) as [lo [H7 H8]] eqn:H9.
+  destruct (partition_sublist_elem_has_sup f a b P H5) as [hi [H10 H11]] eqn:H12.
+  set (φ := stdlib_partition_stepfun a b P lo H7).
+  set (θ := stdlib_partition_stepfun a b P hi H10).
+  exists φ, (mkStepFun (StepFun_P28 (-1) θ φ)). split.
+  - intros x H13. assert (H14 : x ∈ [a,b]) by solve_R.
+    destruct (stdlib_partition_stepfun_value a b P lo H7 x H14) as [i [H15 [H16 H17]]].
+    destruct (stdlib_partition_stepfun_value a b P hi H10 x H14) as [j [H18 [H19 H20]]].
+    pose proof glb_le_all_In _ _ (f x) (H8 i H15) ltac:(exists x; split; [exact H16|reflexivity]) as H21.
+    pose proof lub_ge_all_In _ _ (f x) (H11 j H18) ltac:(exists x; split; [exact H19|reflexivity]) as H22.
+    change (|f x - φ x| <= θ x + -1 * φ x).
+    unfold φ, θ. rewrite H17, H20. rewrite Rabs_right by lra. lra.
+  - rewrite StepFun_P30.
+    unfold φ, θ. rewrite !stdlib_partition_stepfun_integral.
+    unfold lower_sum, upper_sum, bf in H6. simpl in H6. rewrite H9, H12 in H6. simpl in H6.
+    assert (H13 : L(bf,P) <= U(bf,P)) by apply lower_sum_le_upper_sum.
+    unfold lower_sum, upper_sum, bf in H13. simpl in H13. rewrite H9, H12 in H13. simpl in H13.
+    rewrite Rabs_right by lra. lra.
+Qed.
+
+Local Lemma stdlib_map : forall (A B : Type) (f : A -> B) l,
+  seq.map f l = List.map f l.
+Proof. intros A B f l. induction l as [|x l H1]; simpl; congruence. Qed.
+
+Local Lemma stdlib_partition_seq_size : forall a b (P : partition a b) v,
+  length v = (length (points a b P)-1)%nat ->
+  SF_seq.SF_size (stdlib_partition_seq a b P v) = length v.
+Proof.
+  intros a b P v H1. pose proof partition_length a b P as H2.
+  unfold SF_seq.SF_size, stdlib_partition_seq. simpl SF_seq.SF_t.
+  rewrite stdlib_size, length_combine. destruct (points a b P); simpl in *; lia.
+Qed.
+
+Local Lemma stdlib_partition_seq_pointed : forall a b (P : partition a b) c,
+  is_tagging a b P c -> SF_seq.pointed_subdiv (stdlib_partition_seq a b P c).
+Proof.
+  intros a b P c [H1 H2]. intros i H3.
+  rewrite stdlib_partition_seq_size in H3 by exact H1.
+  destruct (stdlib_partition_seq_spec a b P c H1) as [H4 H5].
+  rewrite H4, H5, !stdlib_nth. replace (S i) with (i+1)%nat by lia. apply H2; exact H3.
+Qed.
+
+Local Lemma stdlib_seq_step_lt : forall l δ,
+  0 < δ ->
+  (forall i, (i < length l-1)%nat -> |l.[i+1]-l.[i]| < δ) -> SF_seq.seq_step l < δ.
+Proof.
+  induction l as [|x l H1]; intros δ H2 H3; [exact H2|].
+  destruct l as [|y l]; [exact H2|].
+  change (Rmax (|y-x|) (SF_seq.seq_step (y::l)) < δ).
+  apply Rmax_lub_lt.
+  - apply (H3 0%nat). simpl; lia.
+  - apply H1; [exact H2|]. intros i H4. specialize (H3 (S i) ltac:(simpl in *; lia)).
+    replace (S i+1)%nat with (S (i+1)) in H3 by lia. exact H3.
+Qed.
+
+Local Lemma stdlib_partition_seq_mesh : forall a b (P : partition a b) c δ,
+  is_tagging a b P c -> 0 < δ -> mesh_lt a b P δ ->
+  SF_seq.seq_step (SF_seq.SF_lx (stdlib_partition_seq a b P c)) < δ.
+Proof.
+  intros a b P c δ [H1 H2] H3 H4.
+  rewrite (proj1 (stdlib_partition_seq_spec a b P c H1)).
+  apply stdlib_seq_step_lt; [exact H3|]. intros i H5.
+  rewrite Rabs_right by (pose proof partition_width_pos a b P i H5 as H6; lra). apply H4; exact H5.
+Qed.
+
+Local Lemma stdlib_partition_riemann_sum : forall a b f (P : partition a b) c,
+  is_tagging a b P c ->
+  @SF_seq.Riemann_sum Hierarchy.R_ModuleSpace f (stdlib_partition_seq a b P c) = riemann_sum a b f P c.
+Proof.
+  intros a b f P c [H1 H2].
+  assert (H3 : SF_seq.SF_sorted Rle (stdlib_partition_seq a b P c)).
+  { unfold SF_seq.SF_sorted. rewrite (proj1 (stdlib_partition_seq_spec a b P c H1)). apply stdlib_sorted, partition_P2. }
+  rewrite (SF_seq.Riemann_sum_compat f _ H3).
+  unfold RiemannInt_SF.
+  change ((if Rle_dec (seq.head 0 (SF_seq.SF_lx (SF_seq.SF_map f (stdlib_partition_seq a b P c))))
+                       (seq.last 0 (SF_seq.SF_lx (SF_seq.SF_map f (stdlib_partition_seq a b P c))))
+    then Int_SF (SF_seq.SF_ly (SF_seq.SF_map f (stdlib_partition_seq a b P c)))
+                (SF_seq.SF_lx (SF_seq.SF_map f (stdlib_partition_seq a b P c)))
+    else -Int_SF (SF_seq.SF_ly (SF_seq.SF_map f (stdlib_partition_seq a b P c)))
+                 (SF_seq.SF_lx (SF_seq.SF_map f (stdlib_partition_seq a b P c)))) = riemann_sum a b f P c).
+  rewrite SF_seq.SF_map_lx, SF_seq.SF_map_ly.
+  destruct (stdlib_partition_seq_spec a b P c H1) as [H4 H5]. rewrite H4, H5, stdlib_map, stdlib_head.
+  rewrite stdlib_last, partition_first, partition_last by apply partition_not_empty.
+  destruct (Rle_dec a b) as [H6|H6]; [|pose proof partition_P1 a b P as H7; lra].
+  rewrite stdlib_Int_SF_sum by (rewrite length_map; pose proof partition_length a b P as H7; lia).
+  unfold riemann_sum. rewrite length_map, H1.
+  apply sum_f_equiv; [lia|]. intros i H7. rewrite map_nth_in_bounds with (d:=0); [reflexivity|].
+  pose proof partition_length a b P as H8. lia.
+Qed.
+
+Local Lemma stdlib_to_is_riemann_integral : forall f a b (pr : Riemann_integrable f a b),
+  a < b -> is_riemann_integral a b f (RiemannInt pr).
+Proof.
+  intros f a b pr H1.
+  pose proof RInt.ex_RInt_Reals_aux_1 f a b pr as H2.
+  intros ε H3. specialize (H2 _ (@Hierarchy.locally_ball Hierarchy.R_UniformSpace (RiemannInt pr) (mkposreal ε H3))).
+  unfold SF_seq.Riemann_fine, Hierarchy.within, Hierarchy.locally_dist in H2.
+  destruct H2 as [δ H2]. exists δ. split; [apply cond_pos|].
+  intros P c H4 H5.
+  assert (H6 : SF_seq.pointed_subdiv (stdlib_partition_seq a b P c) /\
+    SF_seq.SF_h (stdlib_partition_seq a b P c) = Rmin a b /\
+    seq.last (SF_seq.SF_h (stdlib_partition_seq a b P c)) (SF_seq.SF_lx (stdlib_partition_seq a b P c)) = Rmax a b).
+  { split; [apply stdlib_partition_seq_pointed; exact H4|]. split.
+    - unfold stdlib_partition_seq. simpl SF_seq.SF_h. rewrite partition_first. solve_R.
+    - rewrite (proj1 (stdlib_partition_seq_spec a b P c (proj1 H4))).
+      rewrite stdlib_last, partition_last by apply partition_not_empty. solve_R. }
+  specialize (H2 (stdlib_partition_seq a b P c)
+    (stdlib_partition_seq_mesh a b P c δ H4 (cond_pos δ) H5) H6).
+  rewrite Rcomplements.sign_eq_1 in H2 by lra.
+  change (|1 * @SF_seq.Riemann_sum Hierarchy.R_ModuleSpace f (stdlib_partition_seq a b P c) - RiemannInt pr| < ε) in H2. rewrite Rmult_1_l in H2.
+  rewrite stdlib_partition_riemann_sum in H2 by exact H4. exact H2.
+Qed.
+
+Lemma is_riemann_integral_stdlib_compat : forall f a b L,
+  a < b ->
+  (is_riemann_integral a b f L <-> exists pr : Riemann_integrable f a b, L = RiemannInt pr).
+Proof.
+  intros f a b L H1. split.
+  - intros H2.
+    pose proof riemann_integral_implies_darboux_integrable a b f L H1 H2 as H3.
+    exists (darboux_to_stdlib_integrable f a b ltac:(lra) H3).
+    apply is_riemann_integral_unique with (a:=a) (b:=b) (f:=f); [exact H1|exact H2|].
+    apply stdlib_to_is_riemann_integral; exact H1.
+  - intros [pr H2]. rewrite H2. apply stdlib_to_is_riemann_integral; exact H1.
+Qed.
+
+Lemma riemann_integrable_on_stdlib_compat : forall f a b,
+  a <= b ->
+  (riemann_integrable_on a b f <-> inhabited (Riemann_integrable f a b)).
+Proof.
+  intros f a b H1. split.
+  - intros H2. constructor. apply darboux_to_stdlib_integrable; [exact H1|].
+    apply riemann_darboux_integrable_equiv; exact H2.
+  - intros [pr]. destruct (Req_EM_T a b) as [H2|H2]; [left; exact H2|].
+    right. split; [lra|]. exists (RiemannInt pr). apply stdlib_to_is_riemann_integral; lra.
+Qed.
+
 Lemma integrable_on_implies_Riemann_integrable : forall f a b,
-  a <= b -> Integral.integrable_on a b f -> 
+  a <= b -> Integral.integrable_on a b f ->
   {pr : Riemann_integrable f a b | True}.
 Proof.
-Abort.
+  intros f a b H1 H2. exists (darboux_to_stdlib_integrable f a b H1 H2). exact I.
+Qed.
 
 Lemma Riemann_integrable_implies_integrable : forall f a b,
   a <= b -> {pr : Riemann_integrable f a b | True} ->
     a <= b -> Integral.integrable_on a b f.
 Proof.
-Abort.
+  intros f a b H1 [pr H2] H3. apply riemann_darboux_integrable_equiv.
+  apply riemann_integrable_on_stdlib_compat; [exact H1|constructor; exact pr].
+Qed.
+
+Lemma riemann_integral_compat : forall f a b (pr : Riemann_integrable f a b),
+  a <= b -> riemann_integral a b f = RiemannInt pr.
+Proof.
+  intros f a b pr H1. destruct (Req_EM_T a b) as [H2|H2].
+  - subst. rewrite riemann_integral_n_n. symmetry. apply RiemannInt_P9.
+  - assert (H3 : a < b) by lra.
+    apply is_riemann_integral_unique with (a:=a) (b:=b) (f:=f); [exact H3| |].
+    + apply riemann_integral_correct; [exact H3|]. apply riemann_integrable_on_stdlib_compat; [exact H1|constructor; exact pr].
+    + apply stdlib_to_is_riemann_integral; exact H3.
+Qed.
 
 Lemma definite_integral_compat : forall f a b pr,
   a <= b ->
   Integral.definite_integral a b f = RiemannInt (f:=f) (a:=a) (b:=b) pr.
 Proof.
-  intros f a b pr H1.
-  unfold definite_integral. destruct (Rle_dec a b) as [H2 | H2]; try lra.
-  destruct (integrable_dec a b f) as [H3 | H3].
-  - unfold RiemannInt.
-Abort.
+  intros f a b pr H1. rewrite <- riemann_integral_compat by exact H1.
+  symmetry. apply riemann_darboux_integral_equiv.
+Qed.
+
+Lemma darboux_integrable_stdlib_compat : forall f a b,
+  a <= b ->
+  (Integral.integrable_on a b f <-> inhabited (Riemann_integrable f a b)).
+Proof.
+  intros f a b H1. rewrite <- riemann_darboux_integrable_equiv.
+  apply riemann_integrable_on_stdlib_compat; exact H1.
+Qed.
+
+Lemma riemann_integral_compat_general : forall f a b (pr : Riemann_integrable f a b),
+  riemann_integral a b f = RiemannInt pr.
+Proof.
+  intros f a b pr. destruct (Rle_dec a b) as [H1|H1].
+  - apply riemann_integral_compat; exact H1.
+  - rewrite riemann_integral_b_a_neg, (RiemannInt_P8 pr (RiemannInt_P1 pr)).
+    rewrite (riemann_integral_compat f b a (RiemannInt_P1 pr)) by lra. reflexivity.
+Qed.
+
+Lemma definite_integral_compat_general : forall f a b (pr : Riemann_integrable f a b),
+  Integral.definite_integral a b f = RiemannInt pr.
+Proof.
+  intros f a b pr. rewrite <- riemann_integral_compat_general.
+  symmetry. apply riemann_darboux_integral_equiv.
+Qed.
+
+Lemma darboux_integral_compat : forall f a b (pr : Riemann_integrable f a b),
+  darboux_integral a b f = RiemannInt pr.
+Proof. intros f a b pr. apply definite_integral_compat_general. Qed.
 
 Definition trig_diff (x : R) := 
   (Trigonometry.cos x - Rtrigo_def.cos x)^2 + (Trigonometry.sin x - Rtrigo_def.sin x)^2.

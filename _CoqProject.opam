@@ -1,0 +1,47 @@
+# Initial package: calculus tactics and their library dependencies.
+# The development build and exercise selection remain in _CoqProject.
+-R Lib Lib
+-I .
+-I src
+-arg -quiet
+-arg -w -arg "-uniform-inheritance,-ambiguous-paths,-deprecated-dirpath-Coq"
+-docroot calculus
+META.calculus
+
+Lib/Imports.v
+Lib/Reals_util.v
+Lib/Rational.v
+Lib/Complex.v
+Lib/Completeness.v
+Lib/Pigeonhole.v
+Lib/Sums.v
+Lib/Products.v
+Lib/Sets.v
+Lib/Binomial.v
+Lib/Sequence.v
+Lib/Series.v
+Lib/Limit.v
+Lib/Functions.v
+Lib/Continuity.v
+Lib/Derivative.v
+Lib/Sorted_Rlt.v
+Lib/Partition.v
+Lib/Polynomial.v
+Lib/Integral.v
+Lib/Interval.v
+Lib/Notations.v
+Lib/Inverse.v
+Lib/Trigonometry.v
+Lib/Exponential.v
+Lib/Tactics.v
+Lib/StdlibCompat.v
+
+src/auto_int_main.ml
+src/g_auto_int.mlg
+src/auto_int_plugin.mlpack
+
+# Match both plugin entries in META.calculus. The C++ simplex helper and
+# Lib/Psatz.v are not part of this initial package.
+src/simplex_main.ml
+src/g_simplex.mlg
+src/simplex_plugin.mlpack
