@@ -12,10 +12,8 @@ Section section_14_9.
   Definition F := λ x, ∫ a x f.
 
   Lemma lemma_14_9_a : differentiable_at f c -> differentiable_at F c.
-  Proof.
-    intros H4.
-    pose proof differentiable_at_imp_continuous_at f c H4 as H5.
-  Admitted.
+Proof.
+Abort.
 
 End section_14_9.
 

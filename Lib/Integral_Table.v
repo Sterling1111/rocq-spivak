@@ -5,6 +5,22 @@ Import IntervalNotations SetNotations FunctionNotations DerivativeNotations Limi
 
 Section Integral_Table.
 
+Local Lemma Rpower_three_halves : forall t, 0 < t -> t ^^ (3/2) = t * sqrt t.
+Proof.
+  intros t Ht. replace (3/2) with (1+1/2) by lra.
+  rewrite Rpower_plus, Rpower_1, Rpower_sqrt; lra.
+Qed.
+Local Lemma Rpower_five_halves : forall t, 0 < t -> t ^^ (5/2) = t^2 * sqrt t.
+Proof.
+  intros t Ht. replace (5/2) with (1+3/2) by lra.
+  rewrite Rpower_plus, Rpower_1, Rpower_three_halves; try lra; ring.
+Qed.
+Local Lemma sqrt_pow_reduce : forall t n, 0 <= t -> sqrt t ^ (S (S n)) = t * sqrt t ^ n.
+Proof.
+  intros t n Ht. replace (S (S n)) with (2+n)%nat by lia.
+  rewrite pow_add, pow2_sqrt; auto.
+Qed.
+
 Lemma integral_1 : forall n c, 
   n <> -1 -> 
   ∫ (λ x, x ^^ n) (0, ∞) = (λ x, 1 / (n + 1) * x ^^ (n + 1) + c).
@@ -36,10 +52,14 @@ Lemma integral_7 : forall a n c,
   n <> -1 -> 
   ∫ (λ x, (x + a) ^^ n) (-a, ∞) = (λ x, (x + a) ^^ n * (a / (1 + n) + x / (1 + n)) + c).
 Proof.
-  intros a n c H1.
-  auto_int.
-  admit.
-Admitted.
+  intros a n c H1. auto_int.
+  assert (Hx : 0 < x+a) by solve_R.
+  replace (a/(1+n)+x/(1+n)) with ((x+a)/(1+n)) by (field; lra).
+  replace ((x+a)^^n) with ((x+a)^^(n-1)*(x+a)).
+  2: { pose proof (Rpower_plus (x+a) (n-1) 1 Hx) as Hp.
+       rewrite Rpower_1 in Hp by lra. replace (n-1+1) with n in Hp by lra. symmetry; exact Hp. }
+  field; lra.
+Qed.
 
 Lemma integral_8 : forall a n c, 
   n <> -1 -> 
@@ -283,38 +303,63 @@ Lemma integral_25 : forall a c,
 a > 0 -> 
 ∫ (λ x, √(x / (a - x))) (0, a) = (λ x, - √(x) * √(a - x) - a * arctan (√(x) * √(a - x) / (x - a)) + c).
 Proof.
-  auto_int. field_simplify.
-  assert (H1 : √x ^ 4 * √(a - x) ^ 2 - √x ^ 2 * √(a - x) ^ 4 + 2 * √x ^ 2 * √(a - x) ^ 2 * a - √x ^ 2 * a * x + √x ^ 2 * x ^ 2 + √(a - x) ^ 2 * a * x - √(a - x) ^ 2 * x ^ 2 = √x ^ 2 * √(a - x) ^ 2 * (√x ^ 2 - √(a - x) ^ 2 + 2 * a) - a * x * (√x ^ 2 - √(a - x) ^ 2) + x ^ 2 * (√x ^ 2 - √(a - x) ^ 2)) by ring.
-  rewrite H1. clear H1.
-  assert (H1 : 2 * √x ^ 3 * √(a - x) ^ 3 + 2 * √x * √(a - x) * a ^ 2 - 4 * √x * √(a - x) * a * x + 2 * √x * √(a - x) * x ^ 2 = 2 * √x * √(a - x) * (√x ^ 2 * √(a - x) ^ 2 + a ^ 2 - 2 * a * x + x ^ 2)) by ring.
-  rewrite H1. clear H1.
-  repeat rewrite pow2_sqrt; try solve_R.
-  assert (H2 : -2 * (x * (x * 1)) * a + 2 * x * (a * (a * 1)) = 2 * a * x * (a - x)) by ring.
-Admitted.
+  auto_int.
+  rewrite sqrt_div by solve_R.
+  field_simplify_eq; try solve_R.
+  all: repeat rewrite sqrt_pow_reduce by solve_R; simpl; ring.
+Qed.
 
 Lemma integral_26 : forall a c, 
 a > 0 -> 
 ∫ (λ x, √(x / (x + a))) (0, ∞) = (λ x, √(x) * √(x + a) - a * ln (√(x) + √(x + a)) + c).
-Proof. 
-Admitted.
+Proof.
+  intros a c Ha. auto_int.
+  rewrite sqrt_div by solve_R.
+  field_simplify_eq; solve_R.
+Qed.
 
 Lemma integral_27 : forall a b c, 
 a > 0 -> 
 ∫ (λ x, x * √(a * x + b)) (-b/a, ∞) = (λ x, (-4 * b ^ 2 / (15 * a ^ 2) + 2 * b * x / (15 * a) + 2 * x ^ 2 / 5) * √(b + a * x) + c).
 Proof.
-Admitted.
+  intros a b c Ha. auto_int.
+  all: assert (Hdom : 0 < a*x+b) by
+    (assert (Hx : -b/a < x) by solve_R;
+     pose proof Rmult_lt_compat_l a (-b/a) x Ha Hx as Hmul;
+     replace (a*(-b/a)) with (-b) in Hmul by (field; lra); lra).
+  all: replace (b+a*x) with (a*x+b) in * by ring.
+  all: try solve_R.
+  all: field_simplify_eq; solve_R.
+Qed.
 
 Lemma integral_28 : forall a b c, 
 a > 0 -> b > 0 -> 
 ∫ (λ x, √(x) * √(a * x + b)) (0, ∞) = (λ x, (b * √(x) / (4 * a) + x ^^ (3 / 2) / 2) * √(b + a * x) - b ^ 2 * ln (2 * √(a) * √(x) + 2 * √(b + a * x)) / (4 * a ^^ (3 / 2)) + c).
 Proof.
-Admitted.
+  intros a b c Ha Hb. auto_int.
+  all: replace (3/2-1) with (1/2) by lra.
+  all: rewrite ?Rpower_three_halves, ?Rpower_sqrt by solve_R.
+  all: replace (b+a*x) with (a*x+b) in * by ring.
+  all: try lazymatch goal with |- _ = _ => fail | _ => solve [solve_R] end.
+  all: field_simplify_eq.
+  all: try lazymatch goal with |- _ = _ => fail | _ => solve [solve_R] end.
+  all: ring_simplify; repeat rewrite sqrt_pow_reduce by solve_R; simpl; ring.
+Qed.
 
 Lemma integral_29 : forall a b c, 
 a > 0 -> b > 0 -> 
 ∫ (λ x, x ^^ (3 / 2) * √(a * x + b)) (0, ∞) = (λ x, (- b ^ 2 * √(x) / (8 * a ^ 2) + b * x ^^ (3 / 2) / (12 * a) + x ^^ (5 / 2) / 3) * √(b + a * x) + b ^ 3 * ln (2 * √(a) * √(x) + 2 * √(b + a * x)) / (8 * a ^^ (5 / 2)) + c).
 Proof.
-Admitted.
+  intros a b c Ha Hb. auto_int.
+  all: replace (3/2-1) with (1/2) by lra.
+  all: replace (5/2-1) with (3/2) by lra.
+  all: rewrite ?Rpower_five_halves, ?Rpower_three_halves, ?Rpower_sqrt by solve_R.
+  all: replace (b+a*x) with (a*x+b) in * by ring.
+  all: try lazymatch goal with |- _ = _ => fail | _ => solve [solve_R] end.
+  all: field_simplify_eq.
+  all: try lazymatch goal with |- _ = _ => fail | _ => solve [solve_R] end.
+  all: ring_simplify; repeat rewrite sqrt_pow_reduce by solve_R; simpl; ring.
+Qed.
 
 Lemma integral_30_plus : forall a c, 
 ∫ (λ x, √(x ^ 2 + a ^ 2)) = (λ x, 1 / 2 * x * √(x ^ 2 + a ^ 2) + 1 / 2 * a ^ 2 * ln (x + √(x ^ 2 + a ^ 2)) + c).
@@ -647,8 +692,10 @@ Lemma integral_71 : forall c,
 ∫ (λ x, (tan x) ^ 2) (0, π / 2) = (λ x, - x + tan x + c).
 Proof.
   auto_int.
-  unfold tan. pose proof pythagorean_identity x. field_simplify; try solve_denoms.
-Admitted.
+  unfold tan. pose proof pythagorean_identity x.
+  pose proof cos_gt_0_on_open_pi_2 x ltac:(solve_R).
+  field_simplify_eq; solve_R.
+Qed.
 
 Lemma integral_72 : forall c, 
 ∫ (λ x, (tan x) ^ 3) (0, π / 2) = (λ x, ln (cos x) + 1 / 2 * (sec x) ^ 2 + c).

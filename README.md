@@ -102,7 +102,7 @@ For a new opam installation, initialize it and add the Coq package repository:
 ```bash
 opam init -y
 eval "$(opam env)"
-opam repo add coq-released https://coq.inria.fr/opam/released
+opam repo add rocq-released https://rocq-prover.org/opam/released
 ```
 
 Install the proof dependencies in your chosen switch:
@@ -158,6 +158,79 @@ Open the repository root in a Rocq-aware editor so it can read `_CoqProject`. Fo
 opam install vsrocq-language-server
 ```
 
+### Opam package (0.1.0)
+
+[`rocq-spivak.opam`](rocq-spivak.opam) defines version `0.1.0`. Its initial scope is `Lib.Tactics` and its library
+dependencies, selected in [`_CoqProject.opam`](_CoqProject.opam). The package
+provides `auto_limit`, `auto_cont`, `auto_diff`, and `auto_int`; the exercise
+collections, compatibility modules outside this dependency closure, and C++
+simplex helper remain outside this package. The development build still uses
+the original `_CoqProject`. Package builds skip exercise plots and do not require
+gnuplot. Coquelicot brings its own transitive MathComp dependencies.
+
+Python and SymPy are runtime dependencies. The
+[`conf-python3-sympy`](packaging/conf-python3-sympy.opam) checks that `python3`
+can import SymPy and integrate a simple expression. Its `depexts` name the
+system SymPy packages for Debian/Ubuntu, Fedora, and Arch Linux. The conf
+package version `1` is the version of this check, not a SymPy version. It is
+submitted separately. Until both packages are available in their upstream
+repositories, pin it before pinning the main package:
+
+```bash
+opam repo add rocq-released https://rocq-prover.org/opam/released
+opam pin add conf-python3-sympy ./packaging --kind=path
+opam pin add rocq-spivak . --kind=path
+```
+
+Opam 2.1 or later can arrange the declared system dependencies on supported
+distributions, using the system package manager. On other systems, install
+SymPy for the `python3` found on `PATH` first. For example, a virtual environment
+avoids changing the system Python installation:
+
+```bash
+python3 -m venv "$HOME/.venvs/rocq-spivak"
+. "$HOME/.venvs/rocq-spivak/bin/activate"
+python -m pip install sympy
+export AUTO_INT_PYTHON="$(command -v python3)"
+```
+
+Keep that environment active for the conf check. The explicit
+`AUTO_INT_PYTHON` path lets subsequent Rocq sessions use the same interpreter;
+it must continue to have SymPy installed.
+
+After installation, the library can be used from another directory without
+`-R Lib Lib`, `-I src`, or `AUTO_INT_SCRIPT`:
+
+```coq
+From Lib Require Import Imports Tactics Integral.
+Import IntegralNotations.
+Open Scope R_scope.
+
+Example integrate_square : ∫ 0 1 (fun x => x^2) = 1/3.
+Proof. auto_int. Qed.
+```
+
+See [CHANGELOG.md](CHANGELOG.md) for the release scope and
+[packaging/ASSUMPTIONS.md](packaging/ASSUMPTIONS.md) for logical assumptions and
+the OCaml review scope. Dependency bounds remain restricted to the tested Rocq
+and analysis-library versions.
+
+The installed package can be checked from a temporary directory:
+
+```bash
+smoke_dir=$(mktemp -d)
+cp packaging/smoke.v packaging/assumptions.v "$smoke_dir/"
+(cd "$smoke_dir" && rocq compile smoke.v && rocq compile assumptions.v)
+```
+
+Publication uses `conf-python3-sympy.1` in
+[ocaml/opam-repository](https://github.com/ocaml/opam-repository) and
+`rocq-spivak.0.1.0` in
+[rocq-prover/opam](https://github.com/rocq-prover/opam). The main submission
+must wait until its SymPy dependency is available. The release archive must be
+attached to the GitHub release with a recorded checksum, as described in the
+[Rocq packaging guide](https://rocq-prover.org/docs/opam-packaging).
+
 ## Automation
 
 [`Lib/Tactics.v`](Lib/Tactics.v) provides `auto_limit`, `auto_cont`, `auto_diff`, and `auto_int`. [`Lib/Reals_util.v`](Lib/Reals_util.v) provides `solve_R` for real arithmetic, including square roots, absolute values, and casts.
@@ -184,7 +257,7 @@ Proof search and the automation for side conditions are heuristic, so some goals
 | Variable | Purpose |
 | --- | --- |
 | `AUTO_INT_PYTHON` | Python executable; defaults to `python3`. It must have SymPy installed. |
-| `AUTO_INT_SCRIPT` | Path to `src/auto_int.py`; otherwise the plugin searches the current directory and its parents. |
+| `AUTO_INT_SCRIPT` | Worker script path; otherwise the plugin searches the current directory and its parents for `src/auto_int.py`, then the installed `calculus` findlib package. |
 | `AUTO_INT_TIMEOUT` | Request timeout in seconds; defaults to 30. |
 
 ### Arithmetic with the Dedekind-cut `Real` type

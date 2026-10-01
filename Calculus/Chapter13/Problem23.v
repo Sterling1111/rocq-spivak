@@ -47,8 +47,7 @@ Lemma lemma_13_23_c : ∀ a b,
     integrable_on a b f /\ ~ continuous_on f [a, b] /\
     ~ (∃ ξ, ξ ∈ [a, b] /\ ∫ a b f = (b - a) * f ξ).
 Proof.
-
-Admitted.
+Abort.
 
 Lemma lemma_13_23_d : ∀ f g a b,
   a < b ->

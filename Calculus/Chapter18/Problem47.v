@@ -69,9 +69,8 @@ Section section_18_47.
 
     Lemma lemma_18_47_e_i :
       [[ f1 ≪ f2 ≪ f3 ≪ f4 ≪ f5 ≪ f6 ≪ f7 ]] /\ f3 ∼ f8.
-    Proof. 
-    
-    Admitted.
+Proof.
+Abort.
 
   End section_18_47_e_i.
 
@@ -87,9 +86,8 @@ Section section_18_47.
 
     Lemma lemma_18_47_e_ii :
       [[ g1 ≪ g2 ≪ g3 ≪ g4 ≪ g5 ≪ g6 ≪ g7 ]].
-    Proof. 
-
-    Admitted.
+Proof.
+Abort.
     
   End section_18_47_e_ii.
 
@@ -105,9 +103,8 @@ Section section_18_47.
 
     Lemma lemma_18_47_e_iii :
       [[ h1 ≪ h2 ≪ h3 ≪ h4 ≪ h5 ≪ h6 ≪ h7 ]].
-    Proof.
-
-    Admitted.
+Proof.
+Abort.
 
   End section_18_47_e_iii.
 

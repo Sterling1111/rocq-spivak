@@ -2,7 +2,7 @@ From Lib Require Import Imports Notations Reals_util Sets Limit Continuity Deriv
                         Functions Interval Sums Exponential StdlibCompat Binomial.
 Import IntervalNotations SetNotations FunctionNotations DerivativeNotations LimitNotations IntegralNotations SumNotations.
 
-Declare ML Module "auto_int_plugin.plugin".
+Declare ML Module "calculus.auto_int_plugin".
 
 Arguments Rabs : simpl never.
 

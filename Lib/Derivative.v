@@ -4461,7 +4461,33 @@ Lemma lhopital_minf_0_0 : forall f f' g g' L,
   ⟦ lim -∞ ⟧ (fun x => f' x / g' x) = L ->
   ⟦ lim -∞ ⟧ (fun x => f x / g x) = L.
 Proof.
-Admitted.
+  intros f f' g g' L Hf Hg [Mf Hdf] [Mg Hdg] [Mn Hnz] Hlim.
+  assert (Hreflect : forall h K, limit_minf h K -> limit_pinf (fun x => h (-x)) K).
+  { intros h K H ε Hε. destruct (H ε Hε) as [N HN].
+    exists (-N). intros x Hx. apply HN; lra. }
+  assert (Hchain : forall h h' M,
+    (forall x, x < M -> derivative_at h h' x) ->
+    forall x, x > -M -> derivative_at (fun t => h (-t)) (fun t => -h' (-t)) x).
+  { intros h h' M H x Hx.
+    pose proof (derivative_at_comp (fun t => -t) h (fun _ => -1) h' x
+      ltac:(apply derivative_at_neg, derivative_at_id) ltac:(apply H; lra)) as Hc.
+    eapply derivative_at_ext; [|exact Hc].
+    intros t. unfold compose; simpl; ring. }
+  assert (Hquot : forall x, (-f' (-x)) / (-g' (-x)) = f' (-x) / g' (-x)).
+  { intros x. unfold Rdiv. rewrite Rinv_opp. ring. }
+  pose proof (lhopital_pinf_0_0 (fun x => f (-x)) (fun x => -f' (-x))
+    (fun x => g (-x)) (fun x => -g' (-x)) L) as H.
+  assert (Hratio : limit_pinf (fun x => -f' (-x) / -g' (-x)) L).
+  { intros ε Hε. destruct (Hreflect _ _ Hlim ε Hε) as [N HN].
+    exists N. intros x Hx. rewrite Hquot. apply HN; exact Hx. }
+  specialize (H (Hreflect _ _ Hf) (Hreflect _ _ Hg)
+    ltac:(exists (-Mf); apply Hchain; exact Hdf)
+    ltac:(exists (-Mg); apply Hchain; exact Hdg)
+    ltac:(exists (-Mn); intros x Hx; specialize (Hnz (-x) ltac:(lra)); lra) Hratio).
+  intros ε Hε. destruct (H ε Hε) as [N HN]. exists (-N).
+  intros x Hx. specialize (HN (-x) ltac:(lra)).
+  rewrite Ropp_involutive in HN. exact HN.
+Qed.
 
 Lemma nth_derivative_0 : forall f,
   ⟦ der ^ 0 ⟧ f = f.

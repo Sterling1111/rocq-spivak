@@ -953,7 +953,7 @@ Module NonRegular.
   Local Notation "0" := zero.
   Local Notation "1" := one.
 
-  Definition L := fun w : list Σ => exists n, w = [0] ^ n ++ [1] ^ n.
+  Definition L := λ w, ∃ n, w = [0] ^ n ++ [1] ^ n.
 
   Lemma Σ_eq_dec : forall a b : Σ, {a = b} + {a <> b}.
   Proof.

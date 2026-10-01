@@ -33,15 +33,6 @@ Lemma lemma_19_10_iii : ∀ c,
   (λ x, (x + 1) * arctan (√ x) - √ x + c).
 Proof.
   auto_int.
-  unfold Ensembles.In in H.
-  assert (H1 : 0 < √x) by (apply sqrt_lt_R0; lra).
-  assert (H2 : √x * √x = x) by (apply sqrt_sqrt; lra).
-  assert (H3 : 1 + √x * √x <> 0) by nra.
-  assert (H4 : 2 * √x <> 0) by lra.
-  field_simplify; [| split; nra].
-  assert (√x ^ 2 = x) by (simpl; rewrite Rmult_1_r; lra).
-  assert (√x ^ 3 = x * √x) by (simpl; rewrite Rmult_1_r, H2; ring).
-  rewrite H0, H5. field. nra.
 Qed.
 
 Lemma lemma_19_10_iv : ∀ c,
@@ -55,15 +46,14 @@ Lemma lemma_19_10_v : ∀ c,
   ∫ (λ x, √ (x ^ 3 - 2) / x) (2 ^^ (1 / 3), ∞) =
   (λ x, 2 / 3 * √ (x ^ 3 - 2) - 2 * √ 2 / 3 * arctan (√ (x ^ 3 - 2) / √ 2) + c).
 Proof.
-  auto_int.
-Admitted.
+Abort.
 
 Lemma lemma_19_10_vi : ∀ c,
   ∫ (λ x, log (x + √ (x ^ 2 - 1))) (1, ∞) =
   (λ x, x * log (x + √ (x ^ 2 - 1)) - √ (x ^ 2 - 1) + c).
 Proof.
-  auto_int.
-Admitted.
+  auto_int; try solve_R; try (field_simplify; solve_R).
+Qed.
 
 Lemma lemma_19_10_vii : ∀ c,
   ∫ (λ x, log (x + √ x)) (0, ∞) =
@@ -74,8 +64,7 @@ Lemma lemma_19_10_viii : ∀ c,
   ∫ (λ x, 1 / (x - x ^^ (3 / 5))) (1, ∞) =
   (λ x, 5 / 2 * log (x ^^ (2 / 5) - 1) + c).
 Proof.
-  auto_int.
-Admitted.
+Abort.
 
 Lemma lemma_19_10_ix : ∀ c,
   ∫ (λ x, (arcsin x) ^ 2) (-1, 1) =

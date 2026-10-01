@@ -208,6 +208,7 @@ Calculus/Chapter24/Prelude.v
 
 Calculus/Chapter28/Prelude.v
 
+-I .
 -I src
 
 src/auto_int_main.ml

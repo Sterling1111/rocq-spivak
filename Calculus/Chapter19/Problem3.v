@@ -47,13 +47,7 @@ Lemma lemma_19_3_vii : ∀ c,
   ∫ (λ x, 1 / (cos x) ^ 3) (-π / 2, π / 2) =
   (λ x, 1 / 2 * (sin x / (cos x) ^ 2 + log ((1 + sin x) / cos x)) + c).
 Proof.
-  auto_int.
-  - pose proof cos_gt_0 x; solve_R.
-  - apply Rdiv_pos_pos.
-    + admit.
-    + apply cos_gt_0; solve_R.
-  - admit.
-Admitted.
+Abort.
 
 Lemma lemma_19_3_viii : ∀ c,
   ∫ (λ x, cos (log x)) (0, ∞) =
@@ -69,13 +63,13 @@ Proof.
   auto_int.
   solve_R.
   replace (3/2 - 1) with (1/2) by lra.
-  rewrite Rpower_sqrt by lra.
+  rewrite Rpower_sqrt by solve_R.
   replace (x^^(3/2)) with (x * √x).
   2 : {
     replace (3/2) with (1/2 + 1) by lra.
-    rewrite Rpower_plus, Rpower_1, Rpower_sqrt; lra.
+    rewrite Rpower_plus, Rpower_1, Rpower_sqrt; solve_R.
   }
-  lra.
+  field; solve_R.
 Qed.
 
 Lemma lemma_19_3_x : ∀ c,

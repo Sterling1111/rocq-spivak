@@ -11,62 +11,59 @@ Lemma lemma_19_4_ii : ∀ c,
   ∫ (λ x, 1 / √ (1 + x ^ 2)) =
   (λ x, log (x + √ (1 + x ^ 2)) + c).
 Proof.
-  auto_int.
-  
-Admitted.
+  auto_int; try solve_R; try (field_simplify; solve_R).
+Qed.
 
 Lemma lemma_19_4_iii : ∀ c,
   ∫ (λ x, 1 / √ (x ^ 2 - 1)) (1, ∞) =
   (λ x, log (x + √ (x ^ 2 - 1)) + c).
 Proof.
-  auto_int.
-Admitted.
+  auto_int; try solve_R; try (field_simplify; solve_R).
+Qed.
 
 Lemma lemma_19_4_iv : ∀ c,
   ∫ (λ x, 1 / (x * √ (x ^ 2 - 1))) (1, ∞) =
   (λ x, arccos (1 / x) + c).
 Proof.
-  auto_int.
-Admitted.
+Abort.
 
 Lemma lemma_19_4_v : ∀ c,
   ∫ (λ x, 1 / (x * √ (1 - x ^ 2))) (0, 1) =
   (λ x, - log ((1 + √ (1 - x ^ 2)) / x) + c).
 Proof.
-  auto_int.
-Admitted.
+  auto_int; try solve_R; try (field_simplify_eq; solve_R).
+Qed.
 
 Lemma lemma_19_4_vi : ∀ c,
   ∫ (λ x, 1 / (x * √ (1 + x ^ 2))) (0, ∞) =
   (λ x, - log ((1 + √ (1 + x ^ 2)) / x) + c).
 Proof.
-  auto_int.
-Admitted.
+  auto_int; try solve_R; try (field_simplify_eq; solve_R).
+Qed.
 
 Lemma lemma_19_4_vii : ∀ c,
   ∫ (λ x, x ^ 3 * √ (1 - x ^ 2)) (-1, 1) =
   (λ x, 1 / 5 * ((1 - x ^ 2) ^^ (5 / 2)) - 1 / 3 * ((1 - x ^ 2) ^^ (3 / 2)) + c).
 Proof.
-  auto_int.
-Admitted.
+Abort.
 
 Lemma lemma_19_4_viii : ∀ c,
   ∫ (λ x, √ (1 - x ^ 2)) (-1, 1) =
   (λ x, 1 / 2 * x * √ (1 - x ^ 2) + 1 / 2 * arcsin x + c).
 Proof.
-  auto_int.
-Admitted.
+  auto_int; try solve_R; try (field_simplify; solve_R).
+Qed.
 
 Lemma lemma_19_4_ix : ∀ c,
   ∫ (λ x, √ (1 + x ^ 2)) =
   (λ x, 1 / 2 * x * √ (1 + x ^ 2) + 1 / 2 * log (x + √ (1 + x ^ 2)) + c).
 Proof.
-  auto_int.
-Admitted.
+  auto_int; try solve_R; try (field_simplify; solve_R).
+Qed.
 
 Lemma lemma_19_4_x : ∀ c,
   ∫ (λ x, √ (x ^ 2 - 1)) (1, ∞) =
   (λ x, 1 / 2 * x * √ (x ^ 2 - 1) - 1 / 2 * log (x + √ (x ^ 2 - 1)) + c).
 Proof.
-  auto_int.
-Admitted.
+  auto_int; try solve_R; try (field_simplify; solve_R).
+Qed.

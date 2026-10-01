@@ -2790,7 +2790,7 @@ Proof.
   intros n H1 H2.
   apply Nat.div_lt; lia.
 Defined.
-  
+
 Lemma H1 : ∀ n, f n ≥ 0.
 Proof.
   intros [|n].

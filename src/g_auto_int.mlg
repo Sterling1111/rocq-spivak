@@ -1,4 +1,4 @@
-DECLARE PLUGIN "auto_int_plugin.plugin"
+DECLARE PLUGIN "calculus.auto_int_plugin"
 
 {
 open Pp

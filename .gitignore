@@ -17,6 +17,8 @@ __coqdoc__/
 Makefile
 Makefile.conf
 Makefile.d
+Makefile.opam
+Makefile.opam.conf
 
 # Ignore hidden files and directories (except .gitignore itself)
 .*[a-zA-Z_0-9]*
@@ -50,3 +52,4 @@ src/*.cmxa
 src/*.cmxs
 src/*.o
 src/*.a
+META

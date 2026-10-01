@@ -12,7 +12,9 @@ Lemma lemma_19_6_ii : ∀ c,
   (λ x, - 2 / (x - 1) - 3 / (2 * (x - 1) ^ 2) + c).
 Proof.
   auto_int.
-Admitted.
+  replace (x * (x*x) - 3*(x*x) + 3*x - 1) with ((x-1)^3) by ring.
+  apply pow_nonzero; solve_R.
+Qed.
 
 Lemma lemma_19_6_iii : ∀ c,
   ∫ (λ x, (x ^ 3 + 7 * x ^ 2 - 5 * x + 5) / ((x - 1) ^ 2 * (x + 1) ^ 3)) (1, ∞) =
@@ -46,26 +48,22 @@ Lemma lemma_19_6_vii : ∀ c,
   ∫ (λ x, (3 * x ^ 2 + 3 * x + 1) / (x ^ 3 + 2 * x ^ 2 + 2 * x + 1)) (-1, ∞) =
   (λ x, log (x + 1) + log (x ^ 2 + x + 1) - 2 / √ 3 * arctan ((2 * x + 1) / √ 3) + c).
 Proof.
-  auto_int.
-Admitted.
+Abort.
 
 Lemma lemma_19_6_viii : ∀ c,
   ∫ (λ x, 1 / (x ^ 4 + 1)) =
   (λ x, 1 / (4 * √ 2) * log ((x ^ 2 + √ 2 * x + 1) / (x ^ 2 - √ 2 * x + 1)) + 1 / (2 * √ 2) * arctan (√ 2 * x + 1) + 1 / (2 * √ 2) * arctan (√ 2 * x - 1) + c).
 Proof.
-  auto_int.
-Admitted.
+Abort.
 
 Lemma lemma_19_6_ix : ∀ c,
   ∫ (λ x, 2 * x / ((x ^ 2 + x + 1) ^ 2)) =
   (λ x, - (2 * x + 4) / (3 * (x ^ 2 + x + 1)) - 4 / (3 * √ 3) * arctan ((2 * x + 1) / √ 3) + c).
 Proof.
-  auto_int.
-Admitted.
+Abort.
 
 Lemma lemma_19_6_x : ∀ c,
   ∫ (λ x, 3 * x / ((x ^ 2 + x + 1) ^ 3)) =
   (λ x, - (x + 2) / (2 * (x ^ 2 + x + 1) ^ 2) - (2 * x + 1) / (2 * (x ^ 2 + x + 1)) - 2 / √ 3 * arctan ((2 * x + 1) / √ 3) + c).
 Proof.
-  auto_int.
-Admitted.
+Abort.

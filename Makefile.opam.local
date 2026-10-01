@@ -1,0 +1,2 @@
+# rocq makefile uses a different hook filename for Makefile.opam.
+include Makefile.local

@@ -107,3 +107,8 @@ Example real_divide : 6 / 3 = 2.
 Proof.
   real_lra.
 Qed.
+
+Example ths_ma_dqawg : 6.4 / 2 = 3.2.
+Proof.
+  real_lra.
+Qed.

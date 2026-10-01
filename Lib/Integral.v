@@ -1993,6 +1993,123 @@ Proof.
     unfold ε in H20, H21, H22. lra.
 Qed.
 
+Local Lemma product_cell_gap : forall (f g : R -> R) (D : Ensemble R) mf Mf mg Mg mfg Mfg Bf Bg,
+  (exists x, x ∈ D) ->
+  (forall x, x ∈ D -> |f x| <= Bf) ->
+  (forall x, x ∈ D -> |g x| <= Bg) ->
+  is_glb (fun y => exists x, x ∈ D /\ y = f x) mf ->
+  is_lub (fun y => exists x, x ∈ D /\ y = f x) Mf ->
+  is_glb (fun y => exists x, x ∈ D /\ y = g x) mg ->
+  is_lub (fun y => exists x, x ∈ D /\ y = g x) Mg ->
+  is_glb (fun y => exists x, x ∈ D /\ y = f x * g x) mfg ->
+  is_lub (fun y => exists x, x ∈ D /\ y = f x * g x) Mfg ->
+  Mfg - mfg <= Bf * (Mg-mg) + Bg * (Mf-mf).
+Proof.
+  intros f g D mf Mf mg Mg mfg Mfg Bf Bg [z Hz] Hbf Hbg Hlf Huf Hlg Hug Hlp Hup.
+  assert (Hf : forall x, x ∈ D -> mf <= f x <= Mf).
+  { intros x Hx. split; [eapply glb_le_all_In; [exact Hlf|]|eapply lub_ge_all_In; [exact Huf|]]; exists x; auto. }
+  assert (Hg : forall x, x ∈ D -> mg <= g x <= Mg).
+  { intros x Hx. split; [eapply glb_le_all_In; [exact Hlg|]|eapply lub_ge_all_In; [exact Hug|]]; exists x; auto. }
+  assert (HBf : 0 <= Bf) by (pose proof Hbf z Hz; pose proof Rabs_pos (f z); lra).
+  assert (HBg : 0 <= Bg) by (pose proof Hbg z Hz; pose proof Rabs_pos (g z); lra).
+  assert (Hdiff : forall x y, x ∈ D -> y ∈ D ->
+    f x * g x - f y * g y <= Bf * (Mg-mg) + Bg * (Mf-mf)).
+  { intros x y Hx Hy.
+    pose proof Hf x Hx as Hfx. pose proof Hf y Hy as Hfy.
+    pose proof Hg x Hx as Hgx. pose proof Hg y Hy as Hgy.
+    assert (Hfd : |f x - f y| <= Mf-mf) by (apply Rabs_le; lra).
+    assert (Hgd : |g x - g y| <= Mg-mg) by (apply Rabs_le; lra).
+    pose proof Rabs_triang (f x * (g x-g y)) (g y * (f x-f y)) as Htri.
+    rewrite !Rabs_mult in Htri.
+    pose proof Rmult_le_compat _ _ _ _ (Rabs_pos (f x)) (Rabs_pos (g x-g y)) (Hbf x Hx) Hgd as Hfirst.
+    pose proof Rmult_le_compat _ _ _ _ (Rabs_pos (g y)) (Rabs_pos (f x-f y)) (Hbg y Hy) Hfd as Hsecond.
+    replace (f x * (g x-g y) + g y * (f x-f y)) with (f x*g x-f y*g y) in Htri by ring.
+    pose proof Rle_abs (f x*g x-f y*g y). lra. }
+  destruct Hup as [Hup Hleast], Hlp as [Hlp Hgreatest].
+  assert (Hupper : forall y, y ∈ D -> Mfg <= f y*g y + Bf*(Mg-mg)+Bg*(Mf-mf)).
+  { intros y Hy. apply Hleast. intros v [x [Hx ->]]. pose proof Hdiff x y Hx Hy; lra. }
+  specialize (Hgreatest (Mfg-(Bf*(Mg-mg)+Bg*(Mf-mf)))).
+  assert (Hlower : is_lower_bound (fun v => exists x, x ∈ D /\ v=f x*g x) (Mfg-(Bf*(Mg-mg)+Bg*(Mf-mf)))).
+  { intros v [x [Hx ->]]. pose proof Hupper x Hx; lra. }
+  specialize (Hgreatest Hlower); lra.
+Qed.
+
+Lemma upper_lower_sum_mult_bound : forall a b f g bf bg bfg P (Mf Mg : R),
+  (forall x, x ∈ [a,b] -> Rabs (f x) <= Mf) ->
+  (forall x, x ∈ [a,b] -> Rabs (g x) <= Mg) ->
+  (forall x, bounded_f a b bf x = f x) ->
+  (forall x, bounded_f a b bg x = g x) ->
+  (forall x, bounded_f a b bfg x = f x*g x) ->
+  U(bfg,P)-L(bfg,P) <= Mf*(U(bg,P)-L(bg,P))+Mg*(U(bf,P)-L(bf,P)).
+Proof.
+  intros a b f g bf bg bfg P Mf Mg Hf Hg Ebf Ebg Ebfg.
+  unfold upper_sum, lower_sum.
+  destruct (partition_sublist_elem_has_sup _ _ _ _ _) as [uf [Luf Huf]].
+  destruct (partition_sublist_elem_has_inf _ _ _ _ _) as [lf [Llf Hlf]].
+  destruct (partition_sublist_elem_has_sup _ _ _ _ _) as [ug [Lug Hug]].
+  destruct (partition_sublist_elem_has_inf _ _ _ _ _) as [lg [Llg Hlg]].
+  destruct (partition_sublist_elem_has_sup _ _ _ _ _) as [up [Lup Hup]].
+  destruct (partition_sublist_elem_has_inf _ _ _ _ _) as [lp [Llp Hlp]].
+  simpl. rewrite Luf, Llf, Lug, Llg, Lup, Llp.
+  rewrite !sum_f_minus, !r_mult_sum_f_i_n_f_l, sum_f_plus by lia.
+  apply sum_f_congruence_le; [lia|]. intros i Hi.
+  pose proof partition_length a b P as Hlen.
+  pose proof Sorted_Rlt_nth (points a b P) i (i+1) 0 ltac:(destruct P; auto) ltac:(lia) as Hwidth.
+  pose proof partition_in a b P ((points a b P).[i]) _ eq_refl ltac:(apply nth_In; lia) as Hleft.
+  pose proof partition_in a b P ((points a b P).[i+1]) _ eq_refl ltac:(apply nth_In; lia) as Hright.
+  specialize (Huf i ltac:(lia)); specialize (Hlf i ltac:(lia)).
+  specialize (Hug i ltac:(lia)); specialize (Hlg i ltac:(lia)).
+  specialize (Hup i ltac:(lia)); specialize (Hlp i ltac:(lia)).
+  assert (Ef : bounded_f a b bf = f) by (extensionality x; apply Ebf).
+  assert (Eg : bounded_f a b bg = g) by (extensionality x; apply Ebg).
+  assert (Ep : bounded_f a b bfg = (fun x => f x*g x)) by (extensionality x; apply Ebfg).
+  rewrite Ef in *. rewrite Eg in *. rewrite Ep in *.
+  pose proof (product_cell_gap f g [(points a b P).[i],(points a b P).[i+1]]
+    (lp.[i]) (up.[i]) (lg.[i]) (ug.[i]) (lf.[i]) (uf.[i]) Mf Mg
+    ltac:(exists ((points a b P).[i]); solve_R)
+    ltac:(intros x Hx; apply Hf; solve_R)
+    ltac:(intros x Hx; apply Hg; solve_R)
+    Hlp Hup Hlg Hug Hlf Huf) as Hgap.
+  nra.
+Qed.
+
+Local Lemma bounded_on_abs_bound : forall f D, bounded_on f D -> exists C, 0 < C /\ forall x, x ∈ D -> |f x| <= C.
+Proof.
+  intros f D [[m Hm] [M HM]]. exists (|m|+|M|+1). split.
+  - pose proof Rabs_pos m; pose proof Rabs_pos M; lra.
+  - intros x Hx. specialize (Hm (f x) ltac:(exists x; auto)).
+    specialize (HM (f x) ltac:(exists x; auto)).
+    apply Rabs_le. pose proof Rle_abs (-m). rewrite Rabs_Ropp in H.
+    pose proof Rle_abs M. pose proof Rabs_pos m; pose proof Rabs_pos M; lra.
+Qed.
+
+Lemma integrable_mult : forall f g a b,
+  a < b -> integrable_on a b f -> integrable_on a b g -> integrable_on a b (fun x => f x*g x).
+Proof.
+  intros f g a b Hab Hf Hg.
+  pose proof integrable_imp_bounded f a b ltac:(lra) Hf as Bf.
+  pose proof integrable_imp_bounded g a b ltac:(lra) Hg as Bg.
+  destruct (bounded_on_abs_bound f [a,b] Bf) as [Mf [HMf Hbf]].
+  destruct (bounded_on_abs_bound g [a,b] Bg) as [Mg [HMg Hbg]].
+  set (bf := mkbounded_function_R a b f ltac:(lra) Bf).
+  set (bg := mkbounded_function_R a b g ltac:(lra) Bg).
+  set (bp := mkbounded_function_R a b (fun x => f x*g x) ltac:(lra) (bounded_on_mult f g a b Bf Bg)).
+  apply (proj2 (theorem_13_2_a a b bp Hab)). intros ε Hε.
+  set (δ := ε/(Mf+Mg+1)).
+  assert (Hδ : 0 < δ) by (unfold δ; apply Rdiv_lt_0_compat; lra).
+  destruct (proj1 (theorem_13_2_a a b bf Hab) Hf δ Hδ) as [Pf Hpf].
+  destruct (proj1 (theorem_13_2_a a b bg Hab) Hg δ Hδ) as [Pg Hpg].
+  destruct (exists_partition_includes_both a b Pf Pg) as [P [Hrf Hrg]]. exists P.
+  pose proof lemma_13_1_a a b bf P Pf Hrf as Hlf.
+  pose proof lemma_13_1_b a b bf P Pf Hrf as Huf.
+  pose proof lemma_13_1_a a b bg P Pg Hrg as Hlg.
+  pose proof lemma_13_1_b a b bg P Pg Hrg as Hug.
+  pose proof upper_lower_sum_mult_bound a b f g bf bg bp P Mf Mg Hbf Hbg
+    ltac:(intros x; reflexivity) ltac:(intros x; reflexivity) ltac:(intros x; reflexivity) as Hgap.
+  assert (Heq : (Mf+Mg+1)*δ=ε) by (unfold δ; field; lra).
+  nra.
+Qed.
+
 Lemma integrable_mult_nonneg : forall f g a b,
   a < b ->
   (forall x, x ∈ [a, b] -> 0 <= f x) ->
@@ -2000,42 +2117,8 @@ Lemma integrable_mult_nonneg : forall f g a b,
   integrable_on a b f -> integrable_on a b g ->
   integrable_on a b (fun x => f x * g x).
 Proof.
-  intros f g a b H1 H2 H3 H4 H5.
-Admitted.
-
-Lemma upper_lower_sum_mult_bound : forall a b f g bf bg bfg P (Mf Mg : ℝ),
-  (forall x, x ∈ [a, b] -> Rabs (f x) <= Mf) ->
-  (forall x, x ∈ [a, b] -> Rabs (g x) <= Mg) ->
-  (forall x, bf.(bounded_f a b) x = f x) ->
-  (forall x, bg.(bounded_f a b) x = g x) ->
-  (forall x, bfg.(bounded_f a b) x = f x * g x) ->
-  (U(bfg, P) - L(bfg, P) <= Mf * (U(bg, P) - L(bg, P)) + Mg * (U(bf, P) - L(bf, P)))%R.
-Proof.
-Admitted.
-
-Lemma integrable_mult : forall f g a b,
-  a < b -> integrable_on a b f -> integrable_on a b g -> integrable_on a b (fun x => f x * g x).
-Proof.
-  intros f g a b H1 H2 H3.
-  pose proof H2 as H4. pose proof H3 as H5.
-  destruct H2 as [H2 | [bf [supf [inff [H6 [H7 [H8 H9]]]]]]]; [left; lra |].
-  destruct H3 as [H3 | [bg [supg [infg [H10 [H11 [H12 H13]]]]]]]; [left; lra |].
-  assert (H14 : bounded_on (fun x => f x * g x) [a, b]).
-  {
-    apply bounded_on_mult.
-    - destruct bf as [f' H14 H15]. simpl in *. subst f'. exact H15.
-    - destruct bg as [g' H16 H17]. simpl in *. subst g'. exact H17.
-  }
-  assert (H15 : a <= b) by lra.
-  set (bfg := mkbounded_function_R a b (fun x => f x * g x) H15 H14).
-  assert (H16 : integrable_on a b (bounded_f a b bf)). { rewrite H6. exact H4. }
-  assert (H17 : integrable_on a b (bounded_f a b bg)). { rewrite H10. exact H5. }
-  assert (H18 : integrable_on a b (bounded_f a b bfg) <-> (forall ε, ε > 0 -> exists P : partition a b, (U(bfg, P) - L(bfg, P)) < ε)).
-  { apply (theorem_13_2_a a b bfg); auto. }
-  destruct H18 as [_ H18].
-  change (integrable_on a b (bounded_f a b bfg)).
-  apply H18. intros ε H19.
-  Admitted.
+  intros f g a b Hab _ _ Hf Hg. apply integrable_mult; assumption.
+Qed.
 
 Lemma integrable_mult_scalar : forall f a b c,
   a < b -> integrable_on a b f -> integrable_on a b (c * f).
@@ -2355,12 +2438,55 @@ Proof.
   lra.
 Qed.
 
-Theorem theorem_13_4 : ∀ f a b c,
+Local Lemma integrable_on_join : forall f a b c,
+  a < c < b -> integrable_on a c f -> integrable_on c b f -> integrable_on a b f.
+Proof.
+  intros f a b c Hab Hac Hcb.
+  pose proof integrable_imp_bounded f a c ltac:(lra) Hac as Bac.
+  pose proof integrable_imp_bounded f c b ltac:(lra) Hcb as Bcb.
+  assert (B : bounded_on f [a,b]).
+  { destruct Bac as [[m1 Hm1] [M1 HM1]], Bcb as [[m2 Hm2] [M2 HM2]]. split.
+    - exists (Rmin m1 m2). intros y [x [Hx ->]].
+      destruct (Rle_dec x c).
+      + specialize (Hm1 (f x) ltac:(exists x; split; [solve_R|reflexivity])). pose proof Rmin_l m1 m2; lra.
+      + specialize (Hm2 (f x) ltac:(exists x; split; [solve_R|reflexivity])). pose proof Rmin_r m1 m2; lra.
+    - exists (Rmax M1 M2). intros y [x [Hx ->]].
+      destruct (Rle_dec x c).
+      + specialize (HM1 (f x) ltac:(exists x; split; [solve_R|reflexivity])). pose proof Rmax_l M1 M2; lra.
+      + specialize (HM2 (f x) ltac:(exists x; split; [solve_R|reflexivity])). pose proof Rmax_r M1 M2; lra. }
+  set (bf := mkbounded_function_R a b f ltac:(lra) B).
+  set (bl := mkbounded_function_R a c f ltac:(lra) (integrable_imp_bounded f a c ltac:(lra) Hac)).
+  set (br := mkbounded_function_R c b f ltac:(lra) (integrable_imp_bounded f c b ltac:(lra) Hcb)).
+  apply (proj2 (theorem_13_2_a a b bf ltac:(lra))). intros ε Hε.
+  destruct (proj1 (theorem_13_2_a a c bl ltac:(lra)) Hac (ε/2) ltac:(lra)) as [Pl Hl].
+  destruct (proj1 (theorem_13_2_a c b br ltac:(lra)) Hcb (ε/2) ltac:(lra)) as [Pr Hr].
+  destruct (join_partition a b c Pl Pr Hab) as [P [Hp [Hpl Hpr]]]. exists P.
+  pose proof (upper_sum_plus f a b c P Pl Pr bf bl br
+    (firstn (length (points a c Pl)-1) (points a c Pl)) (skipn 1 (points c b Pr)) Hab
+    ltac:(repeat split; try reflexivity; assumption)) as Hu.
+  pose proof (lower_sum_plus f a b c P Pl Pr bf bl br
+    (firstn (length (points a c Pl)-1) (points a c Pl)) (skipn 1 (points c b Pr)) Hab
+    ltac:(repeat split; try reflexivity; assumption)) as Hd.
+  lra.
+Qed.
+
+Theorem theorem_13_4 : forall f a b c,
   a <= c <= b ->
   (integrable_on a b f <-> integrable_on a c f /\ integrable_on c b f) /\
   (integrable_on a b f -> ∫ a b f = ∫ a c f + ∫ c b f).
 Proof.
-Admitted.
+  intros f a b c H. destruct (Req_dec a c) as [->|Hac].
+  - split; [split; [intro Hf; split; [apply integrable_on_n_n|exact Hf]|tauto]|].
+    intros _. rewrite integral_n_n; ring.
+  - destruct (Req_dec c b) as [->|Hcb].
+    + split; [split; [intro Hf; split; [exact Hf|apply integrable_on_n_n]|tauto]|].
+      intros _. rewrite integral_n_n; ring.
+    + assert (Hab : a < c < b) by lra. split.
+      * split.
+        -- intros Hf. split; eapply integrable_on_sub_interval; [|exact Hf| |exact Hf]; lra.
+        -- intros [Hl Hr]. eapply integrable_on_join; eauto.
+      * apply integral_split; exact Hab.
+Qed.
 
 Theorem theorem_13_5 : ∀ f g a b,
   a <= b -> 
@@ -2368,21 +2494,21 @@ Theorem theorem_13_5 : ∀ f g a b,
   integrable_on a b g -> 
   integrable_on a b (f + g) /\ ∫ a b (f + g) = ∫ a b f + ∫ a b g.
 Proof.
-Admitted.
+  intros f g a b Hab Hf Hg. split.
+  - destruct Hab as [Hab|Hab]; [apply integrable_plus; assumption|].
+    subst; apply integrable_on_n_n.
+  - apply integral_plus; assumption.
+Qed.
 
 Theorem theorem_13_6 : ∀ f c a b,
   a <= b -> 
   integrable_on a b f -> 
   integrable_on a b (c * f) /\ ∫ a b (c * f) = c * ∫ a b f.
 Proof.
-Admitted.
-
-Theorem theorem_13_8 : ∀ f a b,
-  a <= b -> 
-  integrable_on a b f -> 
-  continuous_on (λ x, ∫ a x f) [a, b].
-Proof.
-Admitted.
+  intros f c a b Hab Hf. destruct Hab as [Hab|Hab].
+  - split; [apply integrable_mult_scalar|apply integral_mult_scalar]; assumption.
+  - subst. split; [apply integrable_on_n_n|]. repeat rewrite integral_n_n; ring.
+Qed.
 
 Theorem theorem_13_7 : ∀ a b f m M,
   a <= b -> integrable_on a b f -> (∀ x, x ∈ [a, b] -> m <= f x <= M) ->
@@ -2456,6 +2582,49 @@ Proof.
   destruct H7 as [H7 H7']. specialize (H7 r'). unfold Ensembles.In in H7. specialize (H7 ltac:(exists P1; auto)).
   destruct H6 as [H6 H6']. specialize (H6 r'' ltac:(exists P2; auto)).
   specialize (H8 P1). specialize (H9 P2). lra.
+Qed.
+
+Local Lemma integral_accumulation_lipschitz : forall f a b C,
+  a <= b -> integrable_on a b f ->
+  (forall x, x ∈ [a,b] -> -C <= f x <= C) ->
+  forall x y, x ∈ [a,b] -> y ∈ [a,b] ->
+  |(∫ a y f)-(∫ a x f)| <= C*|y-x|.
+Proof.
+  intros f a b C Hab Hf Hb x y Hx Hy.
+  assert (Heq : ∫ a y f = ∫ a x f + ∫ x y f).
+  { apply integral_split'. eapply integrable_on_sub_interval; [|exact Hf]; solve_R. }
+  rewrite Heq. replace (∫ a x f + ∫ x y f - ∫ a x f) with (∫ x y f) by ring.
+  destruct (Rle_dec x y) as [Hxy|Hxy].
+  - pose proof (theorem_13_7 x y f (-C) C Hxy
+      ltac:(eapply integrable_on_sub_interval; [|exact Hf]; solve_R)
+      ltac:(intros z Hz; apply Hb; solve_R)) as Hbound.
+    rewrite (Rabs_pos_eq (y-x)) by lra. apply Rabs_le; nra.
+  - rewrite integral_b_a_neg, Rabs_Ropp, (Rabs_left (y-x)) by lra.
+    pose proof (theorem_13_7 y x f (-C) C ltac:(lra)
+      ltac:(eapply integrable_on_sub_interval; [|exact Hf]; solve_R)
+      ltac:(intros z Hz; apply Hb; solve_R)) as Hbound.
+    apply Rabs_le; nra.
+Qed.
+
+Theorem theorem_13_8 : forall f a b,
+  a <= b -> integrable_on a b f -> continuous_on (fun x => ∫ a x f) [a,b].
+Proof.
+  intros f a b Hab Hf.
+  destruct (integrable_imp_bounded f a b Hab Hf) as [[m Hm] [M HM]].
+  set (C := |m|+|M|).
+  assert (HC : 0 <= C) by (unfold C; pose proof Rabs_pos m; pose proof Rabs_pos M; lra).
+  assert (Hb : forall x, x ∈ [a,b] -> -C <= f x <= C).
+  { intros x Hx. specialize (Hm (f x) ltac:(exists x; auto)).
+    specialize (HM (f x) ltac:(exists x; auto)).
+    pose proof Rle_abs (-m). rewrite Rabs_Ropp in H.
+    pose proof Rle_abs M. unfold C; pose proof Rabs_pos m; pose proof Rabs_pos M; lra. }
+  intros x Hx ε Hε. exists (ε/(C+1)). split.
+  - apply Rdiv_lt_0_compat; lra.
+  - intros y Hy Hdist.
+    pose proof integral_accumulation_lipschitz f a b C Hab Hf Hb x y Hx Hy as Hbound.
+    assert (Heq : (C+1)*(ε/(C+1))=ε) by (field; lra).
+    assert (Hδ : 0 < ε/(C+1)) by (apply Rdiv_lt_0_compat; lra).
+    nra.
 Qed.
 
 Lemma integral_bounds_strong : forall a b f m M,
@@ -3178,4 +3347,671 @@ Proof.
   pose proof integral_subst f g g' F H4 H3 as H9.
   pose proof definite_integral_eval_general (f ∘ g ⋅ g') (F ∘ g) a b H7 H9 as H10.
   rewrite H8, H10. reflexivity.
+Qed.
+
+Open Scope R_scope.
+
+Local Lemma riemann_abs_le_bounds : forall x y, |x| <= y -> -y <= x <= y.
+Proof.
+  intros x y H1. pose proof Rle_abs x as H2. pose proof Rle_abs (-x) as H3.
+  rewrite Rabs_Ropp in H3. lra.
+Qed.
+
+Local Lemma riemann_abs_lt : forall x y, |x| < y <-> -y < x < y.
+Proof. intros x y. unfold Rabs. destruct (Rcase_abs x) as [H1|H1]; split; intros H2; lra. Qed.
+
+Local Lemma riemann_div_mul : forall x y, y <> 0 -> (x/y)*y=x.
+Proof. intros x y H1. field. assumption. Qed.
+
+Lemma partition_width_pos : forall a b (P : partition a b) i,
+  (i < length (points a b P) - 1)%nat ->
+  0 < (points a b P).[i+1] - (points a b P).[i].
+Proof.
+  intros a b P i H1.
+  pose proof Sorted_Rlt_nth _ i (i+1)%nat 0 (partition_P2 a b P) ltac:(lia) as H2. lra.
+Qed.
+
+Lemma partition_cell_in : forall a b (P : partition a b) i x,
+  (i < length (points a b P) - 1)%nat ->
+  (points a b P).[i] <= x <= (points a b P).[i+1] -> x ∈ [a,b].
+Proof.
+  intros a b P i x H1 H2.
+  pose proof partition_P5 a b P _ (@nth_In R i (points a b P) 0 ltac:(lia)) as H3.
+  pose proof partition_P5 a b P _ (@nth_In R (i+1)%nat (points a b P) 0 ltac:(lia)) as H4.
+  unfold Ensembles.In; simpl; lra.
+Qed.
+
+Definition left_tags a b (P : partition a b) := firstn (length (points a b P) - 1) (points a b P).
+
+Lemma left_tags_spec : forall a b (P : partition a b), is_tagging a b P (left_tags a b P).
+Proof.
+  intros a b P. unfold is_tagging, left_tags. rewrite length_firstn, Nat.min_l by lia.
+  split; [lia|]. intros i H1.
+  rewrite nth_firstn. rewrite (proj2 (Nat.ltb_lt _ _) H1). pose proof partition_width_pos a b P i ltac:(lia) as H2. lra.
+Qed.
+
+Lemma riemann_sum_bounds : forall a b (bf : bounded_function_R a b) P c,
+  is_tagging a b P c ->
+  L(bf,P) <= riemann_sum a b (bounded_f a b bf) P c <= U(bf,P).
+Proof.
+  intros a b bf P c [H1 H2]. pose proof partition_length a b P as H3. unfold lower_sum, upper_sum, riemann_sum.
+  destruct (partition_sublist_elem_has_inf _ _ _ _ _) as [lo [H4 H5]].
+  destruct (partition_sublist_elem_has_sup _ _ _ _ _) as [hi [H6 H7]]. simpl.
+  rewrite H4, H6. split; apply sum_f_congruence_le; [lia| |lia|]; intros i H8;
+    apply Rmult_le_compat_r; try (pose proof partition_width_pos a b P i ltac:(lia) as H9; lra).
+  - apply glb_le_all_In with (E := fun y => exists x, x ∈ [(points a b P).[i],(points a b P).[i+1]] /\ y = bounded_f a b bf x).
+    + apply H5; lia.
+    + exists (c.[i]). split; [apply H2; lia|reflexivity].
+  - apply lub_ge_all_In with (E := fun y => exists x, x ∈ [(points a b P).[i],(points a b P).[i+1]] /\ y = bounded_f a b bf x).
+    + apply H7; lia.
+    + exists (c.[i]). split; [apply H2; lia|reflexivity].
+Qed.
+
+Local Definition cell_inf (f : R -> R) x y :=
+  epsilon (inhabits 0) (is_glb (fun z => exists t, t ∈ [x,y] /\ z = f t)).
+Local Definition cell_sup (f : R -> R) x y :=
+  epsilon (inhabits 0) (is_lub (fun z => exists t, t ∈ [x,y] /\ z = f t)).
+Local Definition cell_sum a b (P : partition a b) (h : R -> R -> R) :=
+  ∑ 0 (length (points a b P) - 2)
+    (fun i => h ((points a b P).[i]) ((points a b P).[i+1]) *
+              ((points a b P).[i+1] - (points a b P).[i])).
+
+Lemma cell_inf_spec : forall f a b x y,
+  bounded_on f [a,b] -> a <= x <= y <= b ->
+  is_glb (fun z => exists t, t ∈ [x,y] /\ z = f t) (cell_inf f x y).
+Proof.
+  intros f a b x y H1 H2. unfold cell_inf. apply epsilon_spec.
+  destruct (interval_has_inf x y f ltac:(lra)
+    (bounded_on_sub_interval f a x b y H1 H2)) as [m H3]. eauto.
+Qed.
+Lemma cell_sup_spec : forall f a b x y,
+  bounded_on f [a,b] -> a <= x <= y <= b ->
+  is_lub (fun z => exists t, t ∈ [x,y] /\ z = f t) (cell_sup f x y).
+Proof.
+  intros f a b x y H1 H2. unfold cell_sup. apply epsilon_spec.
+  destruct (interval_has_sup x y f ltac:(lra)
+    (bounded_on_sub_interval f a x b y H1 H2)) as [m H3]. eauto.
+Qed.
+
+Local Lemma lower_sum_cell_sum : forall a b bf P,
+  L(bf,P) = cell_sum a b P (cell_inf (bounded_f a b bf)).
+Proof.
+  intros a b bf P. pose proof partition_length a b P as H1. unfold lower_sum, cell_sum.
+  destruct (partition_sublist_elem_has_inf _ _ _ _ _) as [lo [H2 H3]]. simpl.
+  rewrite H2. replace (length (points a b P) - 1 - 1)%nat with (length (points a b P) - 2)%nat by lia.
+  apply sum_f_equiv; [lia|]. intros i H4. f_equal.
+  apply glb_unique with (E := fun z => exists t, t ∈ [(points a b P).[i],(points a b P).[i+1]] /\ z = bounded_f a b bf t).
+  - apply H3; lia.
+  - apply cell_inf_spec with (a:=a) (b:=b); [apply bounded_function_R_P2|].
+    pose proof partition_cell_in a b P i ((points a b P).[i]) ltac:(lia) ltac:(pose proof partition_width_pos a b P i ltac:(lia) as H5; lra) as H6.
+    pose proof partition_cell_in a b P i ((points a b P).[i+1]) ltac:(lia) ltac:(pose proof partition_width_pos a b P i ltac:(lia) as H7; lra) as H8.
+    pose proof partition_width_pos a b P i ltac:(lia) as H9. solve_R.
+Qed.
+Local Lemma upper_sum_cell_sum : forall a b bf P,
+  U(bf,P) = cell_sum a b P (cell_sup (bounded_f a b bf)).
+Proof.
+  intros a b bf P. pose proof partition_length a b P as H1. unfold upper_sum, cell_sum.
+  destruct (partition_sublist_elem_has_sup _ _ _ _ _) as [hi [H2 H3]]. simpl.
+  rewrite H2. replace (length (points a b P) - 1 - 1)%nat with (length (points a b P) - 2)%nat by lia.
+  apply sum_f_equiv; [lia|]. intros i H4. f_equal.
+  apply lub_unique with (E := fun z => exists t, t ∈ [(points a b P).[i],(points a b P).[i+1]] /\ z = bounded_f a b bf t).
+  - apply H3; lia.
+  - apply cell_sup_spec with (a:=a) (b:=b); [apply bounded_function_R_P2|].
+    pose proof partition_cell_in a b P i ((points a b P).[i]) ltac:(lia) ltac:(pose proof partition_width_pos a b P i ltac:(lia) as H5; lra) as H6.
+    pose proof partition_cell_in a b P i ((points a b P).[i+1]) ltac:(lia) ltac:(pose proof partition_width_pos a b P i ltac:(lia) as H7; lra) as H8.
+    pose proof partition_width_pos a b P i ltac:(lia) as H9. solve_R.
+Qed.
+
+Local Lemma sum_insert_difference : forall n k (f g : nat -> R),
+  (k < n)%nat ->
+  (forall i, (i < k)%nat -> f i = g i) ->
+  (forall i, (k < i < n)%nat -> f i = g (S i)) ->
+  ∑ 0 n g - ∑ 0 (n-1) f = g k + g (S k) - f k.
+Proof.
+  induction n as [|n H1]; intros k f g H2 H3 H4; [lia|].
+  replace (S n - 1)%nat with n by lia.
+  destruct (Nat.eq_dec k n) as [->|H5].
+  - destruct n as [|n].
+    + rewrite (sum_f_i_Sn_f g 0 0) by lia. repeat rewrite sum_f_0_0. lra.
+    + rewrite (sum_f_i_Sn_f g 0 (S n)), (sum_f_i_Sn_f g 0 n), (sum_f_i_Sn_f f 0 n) by lia.
+      assert (∑ 0 n f = ∑ 0 n g) as H6.
+      { apply sum_f_equiv; [lia|]. intros i H7. apply H3; lia. } rewrite H6. lra.
+  - rewrite (sum_f_i_Sn_f g 0 n) by lia.
+    destruct n as [|n]; [lia|]. rewrite (sum_f_i_Sn_f f 0 n) by lia.
+    pose proof H1 k f g ltac:(lia) H3 ltac:(intros i H8; apply H4; lia) as H6.
+    replace (S n - 1)%nat with n in H6 by lia.
+    rewrite (H4 (S n)) by lia. lra.
+Qed.
+
+Lemma mesh_lt_insert : forall a b r (P Q : partition a b) δ,
+  ~List.In r (points a b P) -> points a b Q = insert_Sorted_Rlt r (points a b P) ->
+  mesh_lt a b P δ -> mesh_lt a b Q δ.
+Proof.
+  intros a b r P Q δ H1 H2 H3.
+  destruct (partition_insert_spec a b r P Q H1 H2) as [k [H4 [H5 [H6 [H7 [H8 H9]]]]]].
+  assert (H10 : length (points a b Q) = S (length (points a b P))) by (rewrite H2; apply insert_Sorted_Rlt_length).
+  intros i H11. destruct (lt_dec i k) as [H12|H12].
+  - rewrite (H7 i), (H7 (i+1)%nat) by lia. apply H3; lia.
+  - destruct (Nat.eq_dec i k) as [->|H13].
+    + rewrite (H7 k) by lia. rewrite H8. specialize (H3 k H4). lra.
+    + destruct (Nat.eq_dec i (k+1)%nat) as [->|H14].
+      * rewrite H8, (H9 (k+1)%nat) by lia. specialize (H3 k H4). lra.
+      * replace i with ((i-1)%nat+1)%nat at 2 by lia.
+        rewrite (H9 (i-1)%nat), (H9 i) by lia.
+        replace i with ((i-1)%nat+1)%nat at 1 by lia. apply H3; lia.
+Qed.
+
+Local Lemma cell_sum_insert_bound : forall a b r (P Q : partition a b) h m M δ,
+  m <= M ->
+  (forall x y, a <= x <= y <= b -> m <= h x y <= M) ->
+  ~List.In r (points a b P) -> points a b Q = insert_Sorted_Rlt r (points a b P) ->
+  mesh_lt a b P δ ->
+  |cell_sum a b Q h - cell_sum a b P h| <= (M-m)*δ.
+Proof.
+  intros a b r P Q h m M δ H1 H2 H3 H4 H5.
+  destruct (partition_insert_spec a b r P Q H3 H4) as [k [H6 [H7 [H8 [H9 [H10 H11]]]]]].
+  assert (H12 : length (points a b Q) = S (length (points a b P))) by (rewrite H4; apply insert_Sorted_Rlt_length).
+  unfold cell_sum. rewrite H12.
+  replace (S (length (points a b P)) - 2)%nat with (length (points a b P)-1)%nat by (pose proof partition_length a b P as H13; lia).
+  replace (length (points a b P)-2)%nat with ((length (points a b P)-1)%nat-1)%nat by lia.
+  rewrite (sum_insert_difference (length (points a b P)-1)%nat k); [|exact H6| |].
+  2: { intros i H14. rewrite (H9 i), (H9 (i+1)%nat) by lia. reflexivity. }
+  2: { intros i H14. replace (S i) with (i+1)%nat by lia.
+       rewrite (H11 i), (H11 (i+1)%nat) by lia. reflexivity. }
+  replace (S k) with (k+1)%nat by lia.
+  rewrite (H9 k), H10, (H11 (k+1)%nat) by lia.
+  pose proof partition_P5 a b P _ (@nth_In R k (points a b P) 0 ltac:(lia)) as H15.
+  pose proof partition_P5 a b P _ (@nth_In R (k+1)%nat (points a b P) 0 ltac:(lia)) as H16.
+  pose proof H2 ((points a b P).[k]) r ltac:(lra) as H17.
+  pose proof H2 r ((points a b P).[k+1]) ltac:(lra) as H18.
+  pose proof H2 ((points a b P).[k]) ((points a b P).[k+1]) ltac:(lra) as H19.
+  specialize (H5 k H6). apply Rabs_le. split; nra.
+Qed.
+
+Local Lemma cell_extrema_bounds : forall a b (bf : bounded_function_R a b) m M,
+  (forall x, x ∈ [a,b] -> m <= bounded_f a b bf x <= M) ->
+  forall x y, a <= x <= y <= b ->
+  m <= cell_inf (bounded_f a b bf) x y <= M /\
+  m <= cell_sup (bounded_f a b bf) x y <= M.
+Proof.
+  intros a b bf m M H1 x y H2.
+  pose proof cell_inf_spec _ a b x y (bounded_function_R_P2 a b bf) H2 as [H3 H4].
+  pose proof cell_sup_spec _ a b x y (bounded_function_R_P2 a b bf) H2 as [H5 H6].
+  assert (H7 : (fun z => exists t, t ∈ [x,y] /\ z = bounded_f a b bf t) (bounded_f a b bf x)).
+  { exists x. split; [solve_R|reflexivity]. }
+  pose proof H1 x ltac:(solve_R) as H8.
+  split; split.
+  - apply Rge_le, H4. intros z [t [H9 ->]]. apply Rle_ge. apply H1; solve_R.
+  - specialize (H3 _ H7). lra.
+  - specialize (H5 _ H7). lra.
+  - apply H6. intros z [t [H9 ->]]. apply H1; solve_R.
+Qed.
+
+Lemma fine_common_refinement : forall a b (bf : bounded_function_R a b) m M δ l (P : partition a b),
+  m <= M -> 0 < δ ->
+  (forall x, x ∈ [a,b] -> m <= bounded_f a b bf x <= M) ->
+  (forall x, List.In x l -> a <= x <= b) -> mesh_lt a b P δ ->
+  exists Q : partition a b,
+    List.incl (points a b P) (points a b Q) /\ List.incl l (points a b Q) /\
+    mesh_lt a b Q δ /\
+    |L(bf,Q) - L(bf,P)| <= INR (length l) * (M-m)*δ /\
+    |U(bf,Q) - U(bf,P)| <= INR (length l) * (M-m)*δ.
+Proof.
+  intros a b bf m M δ l. induction l as [|r l H1]; intros P H2 H3 H4 H5 H6.
+  - exists P. split; [intros x H7; exact H7|]. split; [intros x H7; contradiction|].
+    split; [exact H6|]. simpl. split; rewrite Rminus_diag, Rabs_R0; ring_simplify; lra.
+  - assert (H8 : forall x, List.In x l -> a <= x <= b) by (intros x H9; apply H5; right; assumption).
+    destruct (in_dec Req_EM_T r (points a b P)) as [H10|H11].
+    + destruct (H1 P H2 H3 H4 H8 H6) as [Q [H12 [H13 [H14 [H15 H16]]]]].
+      exists Q. split; [exact H12|]. split.
+      * intros x [<-|H7]; [apply H12; exact H10|apply H13; exact H7].
+      * split; [exact H14|]. simpl length. rewrite S_INR. split; nra.
+    + assert (H17 : a < r < b).
+      { pose proof H5 r (or_introl eq_refl) as H18.
+        assert (H19 : r <> a) by (intro H20; subst; apply H11, partition_P3).
+        assert (H21 : r <> b) by (intro H22; subst; apply H11, partition_P4). lra. }
+      destruct (exists_partition_insert a b r P H17 H11) as [P' H23].
+      assert (H24 : mesh_lt a b P' δ) by (eapply mesh_lt_insert; eauto).
+      destruct (H1 P' H2 H3 H4 H8 H24) as [Q [H25 [H13 [H14 [H15 H16]]]]].
+      assert (H26 : List.incl (points a b P) (points a b P')).
+      { intros x H7. rewrite H23. apply In_l_In_insert_Sorted_Rlt; exact H7. }
+      assert (H27 : List.In r (points a b P')).
+      { rewrite H23. apply insert_Sorted_Rlt_in. }
+      pose proof cell_sum_insert_bound a b r P P' (cell_inf (bounded_f a b bf)) m M δ H2
+        ltac:(intros x y H28; exact (proj1 (cell_extrema_bounds a b bf m M H4 x y H28))) H11 H23 H6 as H29.
+      pose proof cell_sum_insert_bound a b r P P' (cell_sup (bounded_f a b bf)) m M δ H2
+        ltac:(intros x y H28; exact (proj2 (cell_extrema_bounds a b bf m M H4 x y H28))) H11 H23 H6 as H30.
+      rewrite <- !lower_sum_cell_sum in H29. rewrite <- !upper_sum_cell_sum in H30.
+      exists Q. split.
+      * intros x H7. apply H25, H26; exact H7.
+      * split.
+        -- intros x [<-|H7]; [apply H25; exact H27|apply H13; exact H7].
+        -- split; [exact H14|]. simpl length. rewrite S_INR.
+           pose proof Rabs_triang (L(bf,Q)-L(bf,P')) (L(bf,P')-L(bf,P)) as H31.
+           pose proof Rabs_triang (U(bf,Q)-U(bf,P')) (U(bf,P')-U(bf,P)) as H32.
+           replace (L(bf,Q)-L(bf,P')+(L(bf,P')-L(bf,P))) with (L(bf,Q)-L(bf,P)) in H31 by ring.
+           replace (U(bf,Q)-U(bf,P')+(U(bf,P')-U(bf,P))) with (U(bf,Q)-U(bf,P)) in H32 by ring.
+           split; nra.
+Qed.
+
+Theorem darboux_integrable_is_riemann_integral : forall a b f,
+  a < b -> integrable_on a b f -> is_riemann_integral a b f (definite_integral a b f).
+Proof.
+  intros a b f H1 H2.
+  pose proof integrable_imp_bounded f a b ltac:(lra) H2 as H3.
+  set (bf := mkbounded_function_R a b f ltac:(lra) H3).
+  destruct H3 as [[m H4] [M H5]].
+  assert (H6 : forall x, x ∈ [a,b] -> m <= bounded_f a b bf x <= M).
+  { intros x H7. split; [apply Rge_le, H4|apply H5]; exists x; auto. }
+  assert (H8 : m <= M).
+  { pose proof H6 a ltac:(solve_R) as H9. lra. }
+  intros ε H10.
+  destruct (proj1 (theorem_13_2_a a b bf H1) H2 (ε/2) ltac:(lra)) as [Q H11].
+  set (C := INR (length (points a b Q)) * (M-m)).
+  assert (H12 : 0 <= C) by (unfold C; pose proof pos_INR (length (points a b Q)) as H13; nra).
+  exists (ε / (4*(C+1))). split; [apply Rdiv_lt_0_compat; lra|].
+  intros P c H14 H15.
+  destruct (fine_common_refinement a b bf m M (ε/(4*(C+1))) (points a b Q) P
+    H8 ltac:(apply Rdiv_lt_0_compat; lra) H6 (partition_P5 a b Q) H15)
+    as [T [H16 [H17 [H18 [H19 H20]]]]].
+  fold C in H19, H20.
+  pose proof lemma_13_1_a a b bf T Q H17 as H21.
+  pose proof lemma_13_1_b a b bf T Q H17 as H22.
+  pose proof integral_bound a b bf Q H1 H2 as H23.
+  pose proof riemann_sum_bounds a b bf P c H14 as H24.
+  apply riemann_abs_le_bounds in H19. apply riemann_abs_le_bounds in H20.
+  assert (H25 : C * (ε/(4*(C+1))) < ε/2).
+  { apply (Rmult_lt_reg_r (4*(C+1))); [lra|]. field_simplify; nra. }
+  change (|riemann_sum a b (bounded_f a b bf) P c - definite_integral a b (bounded_f a b bf)| < ε).
+  apply riemann_abs_lt. split; lra.
+Qed.
+
+Definition tags_from a b (P : partition a b) (t : nat -> R) :=
+  map t (seq 0 (length (points a b P)-1)).
+
+Lemma tags_from_spec : forall a b (P : partition a b) t,
+  (forall i, (i < length (points a b P)-1)%nat ->
+    (points a b P).[i] <= t i <= (points a b P).[i+1]) ->
+  is_tagging a b P (tags_from a b P t).
+Proof.
+  intros a b P t H1. unfold is_tagging, tags_from.
+  rewrite length_map, length_seq. split; [reflexivity|]. intros i H2.
+  rewrite map_nth_in_bounds with (d:=0%nat) by (rewrite length_seq; lia).
+  rewrite seq_nth by lia. simpl. apply H1; exact H2.
+Qed.
+
+Lemma riemann_sum_tags_from : forall a b f (P : partition a b) t,
+  riemann_sum a b f P (tags_from a b P t) =
+  ∑ 0 (length (points a b P)-2)
+    (fun i => f (t i) * ((points a b P).[i+1] - (points a b P).[i])).
+Proof.
+  intros a b f P t. pose proof partition_length a b P as H1.
+  unfold riemann_sum, tags_from.
+  replace (length (points a b P)-1-1)%nat with (length (points a b P)-2)%nat by lia.
+  apply sum_f_equiv; [lia|]. intros i H2.
+  rewrite map_nth_in_bounds with (d:=0%nat) by (rewrite length_seq; lia).
+  rewrite seq_nth by lia. reflexivity.
+Qed.
+
+Local Lemma sum_single_difference : forall n k (f g : nat -> R),
+  (k <= n)%nat -> (forall i, (i <= n)%nat -> i <> k -> f i = g i) ->
+  ∑ 0 n f - ∑ 0 n g = f k - g k.
+Proof.
+  induction n as [|n H1]; intros k f g H2 H3.
+  - assert (H4 : (k=0)%nat) by lia. subst. repeat rewrite sum_f_0_0. reflexivity.
+  - rewrite !sum_f_i_Sn_f by lia. destruct (Nat.eq_dec k (S n)) as [->|H5].
+    + assert (∑ 0 n f = ∑ 0 n g) as H6 by (apply sum_f_equiv; [lia|]; intros i H7; apply H3; lia). rewrite H6. lra.
+    + rewrite (H3 (S n)) by lia. pose proof H1 k f g ltac:(lia) ltac:(intros i H7; apply H3; lia) as H8. lra.
+Qed.
+
+Local Lemma list_cell_cover : forall (l : list R) x,
+  (2 <= length l)%nat -> l.[0] <= x <= l.[length l-1] ->
+  exists i, (i < length l-1)%nat /\ l.[i] <= x <= l.[i+1].
+Proof.
+  induction l as [|h l H1]; intros x H2 H3; [simpl in H2; lia|].
+  destruct l as [|h' l]; [simpl in H2; lia|].
+  destruct (Rle_dec x h') as [H4|H5].
+  - exists 0%nat. simpl in *. repeat split; try lia; lra.
+  - destruct l as [|h'' l].
+    + simpl in H3. lra.
+    + assert (H6 : (h::h'::h''::l).[length (h::h'::h''::l)-1] =
+        (h'::h''::l).[length (h'::h''::l)-1]).
+      { simpl length. replace (S (S (S (length l)))-1)%nat with (S (S (length l))) by lia.
+        replace (S (S (length l))-1)%nat with (S (length l)) by lia. reflexivity. }
+      rewrite H6 in H3.
+      destruct (H1 x ltac:(simpl; lia) ltac:(simpl in *; lra)) as [i [H7 H8]].
+      exists (S i). split; [simpl in *; lia|].
+      replace (S i+1)%nat with (S (i+1)) by lia. exact H8.
+Qed.
+
+Lemma partition_covers : forall a b (P : partition a b) x,
+  x ∈ [a,b] -> exists i, (i < length (points a b P)-1)%nat /\
+  (points a b P).[i] <= x <= (points a b P).[i+1].
+Proof.
+  intros a b P x H1. apply list_cell_cover; [apply partition_length|].
+  rewrite partition_first, partition_last. solve_R.
+Qed.
+
+Theorem riemann_integral_bounded : forall a b f L,
+  a < b -> is_riemann_integral a b f L -> bounded_on f [a,b].
+Proof.
+  intros a b f L H1 H2.
+  destruct (H2 1 ltac:(lra)) as [δ [H3 H4]].
+  destruct (exists_partition_delta_lt a b δ H1 H3) as [P H5].
+  pose proof partition_length a b P as H6.
+  set (t := fun i => (points a b P).[i]).
+  assert (H7 : is_tagging a b P (tags_from a b P t)).
+  { apply tags_from_spec. intros i H8. unfold t. pose proof partition_width_pos a b P i H8 as H9. lra. }
+  pose proof H4 P _ H7 H5 as H10.
+  set (B := fun i => |f (t i)| + 2 / ((points a b P).[i+1] - (points a b P).[i])).
+  destruct (exists_max_of_sequence_on_interval B 0 (length (points a b P)-2) ltac:(lia)) as [j [H11 H12]].
+  assert (H13 : forall x, x ∈ [a,b] -> |f x| <= B j).
+  { intros x H14. destruct (partition_covers a b P x H14) as [i [H8 H15]].
+    set (u := fun k => if Nat.eq_dec k i then x else t k).
+    assert (H16 : is_tagging a b P (tags_from a b P u)).
+    { apply tags_from_spec. intros k H17. unfold u. destruct (Nat.eq_dec k i) as [->|H18]; [exact H15|].
+      unfold t. pose proof partition_width_pos a b P k H17 as H19. lra. }
+    pose proof H4 P _ H16 H5 as H20.
+    rewrite riemann_sum_tags_from in H10, H20.
+    pose proof sum_single_difference (length (points a b P)-2) i
+      (fun k => f (u k) * ((points a b P).[k+1]-(points a b P).[k]))
+      (fun k => f (t k) * ((points a b P).[k+1]-(points a b P).[k])) ltac:(lia)
+      ltac:(intros k H17 H18; unfold u; destruct (Nat.eq_dec k i) as [H21|H21]; congruence) as H22.
+    assert (H23 : u i = x) by (unfold u; destruct (Nat.eq_dec i i) as [H21|H21]; congruence).
+    cbn beta in H22. rewrite H23 in H22. apply riemann_abs_lt in H10. apply riemann_abs_lt in H20.
+    assert (H24 : |f x - f (t i)| * ((points a b P).[i+1]-(points a b P).[i]) < 2).
+    { rewrite <- Rabs_right with (r:= (points a b P).[i+1]-(points a b P).[i]) at 1
+        by (pose proof partition_width_pos a b P i H8 as H25; lra).
+      rewrite <- Rabs_mult. apply riemann_abs_lt. split; nra. }
+    pose proof partition_width_pos a b P i H8 as H26.
+    assert (H27 : |f x - f (t i)| < 2 / ((points a b P).[i+1]-(points a b P).[i])).
+    { apply (Rmult_lt_reg_r ((points a b P).[i+1]-(points a b P).[i])); [exact H26|]. rewrite riemann_div_mul by lra. exact H24. }
+    pose proof Rabs_triang (f x - f (t i)) (f (t i)) as H28.
+    replace (f x - f (t i) + f (t i)) with (f x) in H28 by ring.
+    pose proof H12 i ltac:(lia) as H29. unfold B in *. lra. }
+  split; [exists (-B j)|exists (B j)]; intros y [x [H14 ->]];
+    specialize (H13 x H14); apply riemann_abs_le_bounds in H13; lra.
+Qed.
+
+Local Lemma glb_approximation : forall E m η,
+  is_glb E m -> 0 < η -> exists z, z ∈ E /\ m <= z < m+η.
+Proof.
+  intros E m η [H1 H2] H3. apply NNPP. intro H4.
+  assert (H5 : is_lower_bound E (m+η)).
+  { intros z H6. specialize (H1 z H6). apply Rle_ge, Rnot_lt_le. intro H7.
+    apply H4. exists z. split; [exact H6|lra]. }
+  specialize (H2 _ H5). lra.
+Qed.
+
+Local Lemma cell_sum_approximation : forall a b f (P : partition a b) h η,
+  0 < η ->
+  (forall i, (i < length (points a b P)-1)%nat ->
+    exists x, (points a b P).[i] <= x <= (points a b P).[i+1] /\
+      |f x - h ((points a b P).[i]) ((points a b P).[i+1])| < η) ->
+  exists c, is_tagging a b P c /\
+    |riemann_sum a b f P c - cell_sum a b P h| <= η*(b-a).
+Proof.
+  intros a b f P h η H1 H2. pose proof partition_length a b P as H3.
+  set (t := fun i => epsilon (inhabits 0) (fun x =>
+    (points a b P).[i] <= x <= (points a b P).[i+1] /\
+    |f x - h ((points a b P).[i]) ((points a b P).[i+1])| < η)).
+  assert (H4 : forall i, (i < length (points a b P)-1)%nat ->
+    (points a b P).[i] <= t i <= (points a b P).[i+1] /\
+    |f (t i) - h ((points a b P).[i]) ((points a b P).[i+1])| < η).
+  { intros i H5. unfold t. apply epsilon_spec, H2; exact H5. }
+  exists (tags_from a b P t). split.
+  - apply tags_from_spec. intros i H5. apply H4; exact H5.
+  - rewrite riemann_sum_tags_from. unfold cell_sum. rewrite sum_f_minus by lia.
+    assert (H6 : ∑ 0 (length (points a b P)-2)
+      (fun i => f (t i)*((points a b P).[i+1]-(points a b P).[i]) -
+                h ((points a b P).[i]) ((points a b P).[i+1])*((points a b P).[i+1]-(points a b P).[i]))
+      <= ∑ 0 (length (points a b P)-2) (fun i => η*((points a b P).[i+1]-(points a b P).[i]))).
+    { apply sum_f_congruence_le; [lia|]. intros i H5.
+      pose proof H4 i ltac:(lia) as [_ H7]. apply riemann_abs_lt in H7.
+      pose proof partition_width_pos a b P i ltac:(lia) as H8. nra. }
+    assert (H9 : ∑ 0 (length (points a b P)-2) (fun i => -η*((points a b P).[i+1]-(points a b P).[i])) <=
+      ∑ 0 (length (points a b P)-2)
+      (fun i => f (t i)*((points a b P).[i+1]-(points a b P).[i]) -
+                h ((points a b P).[i]) ((points a b P).[i+1])*((points a b P).[i+1]-(points a b P).[i]))).
+    { apply sum_f_congruence_le; [lia|]. intros i H5.
+      pose proof H4 i ltac:(lia) as [_ H7]. apply riemann_abs_lt in H7.
+      pose proof partition_width_pos a b P i ltac:(lia) as H10. nra. }
+    rewrite <- r_mult_sum_f_i_n_f_l, partition_telescope in H6, H9.
+    apply Rabs_le. split; lra.
+Qed.
+
+Lemma lower_sum_approximated_by_tags : forall a b (bf : bounded_function_R a b) P ε,
+  0 < ε -> exists c, is_tagging a b P c /\
+    |riemann_sum a b (bounded_f a b bf) P c - L(bf,P)| <= ε.
+Proof.
+  intros a b bf P ε H1. pose proof partition_P1 a b P as H2.
+  rewrite lower_sum_cell_sum.
+  assert (H3 : 0 < ε/(b-a)) by (apply Rdiv_lt_0_compat; lra).
+  destruct (cell_sum_approximation a b (bounded_f a b bf) P (cell_inf (bounded_f a b bf)) (ε/(b-a)) H3)
+    as [c [H4 H5]].
+  - intros i H6.
+    pose proof partition_cell_in a b P i ((points a b P).[i]) H6
+      ltac:(pose proof partition_width_pos a b P i H6 as H7; lra) as H8.
+    pose proof partition_cell_in a b P i ((points a b P).[i+1]) H6
+      ltac:(pose proof partition_width_pos a b P i H6 as H9; lra) as H10.
+    pose proof cell_inf_spec _ a b ((points a b P).[i]) ((points a b P).[i+1])
+      (bounded_function_R_P2 a b bf) ltac:(pose proof partition_width_pos a b P i H6 as H11; solve_R) as H12.
+    destruct (glb_approximation _ _ _ H12 H3) as [z [[x [H13 ->]] H14]].
+    exists x. split; [exact H13|apply riemann_abs_lt; lra].
+  - exists c. rewrite riemann_div_mul in H5 by lra. auto.
+Qed.
+
+Lemma upper_sum_approximated_by_tags : forall a b (bf : bounded_function_R a b) P ε,
+  0 < ε -> exists c, is_tagging a b P c /\
+    |riemann_sum a b (bounded_f a b bf) P c - U(bf,P)| <= ε.
+Proof.
+  intros a b bf P ε H1. pose proof partition_P1 a b P as H2.
+  rewrite upper_sum_cell_sum.
+  assert (H3 : 0 < ε/(b-a)) by (apply Rdiv_lt_0_compat; lra).
+  destruct (cell_sum_approximation a b (bounded_f a b bf) P (cell_sup (bounded_f a b bf)) (ε/(b-a)) H3)
+    as [c [H4 H5]].
+  - intros i H6.
+    pose proof partition_cell_in a b P i ((points a b P).[i]) H6
+      ltac:(pose proof partition_width_pos a b P i H6 as H7; lra) as H8.
+    pose proof partition_cell_in a b P i ((points a b P).[i+1]) H6
+      ltac:(pose proof partition_width_pos a b P i H6 as H9; lra) as H10.
+    pose proof cell_sup_spec _ a b ((points a b P).[i]) ((points a b P).[i+1])
+      (bounded_function_R_P2 a b bf) ltac:(pose proof partition_width_pos a b P i H6 as H11; solve_R) as H12.
+    destruct (exists_point_within_delta _ _ (ε/(b-a)) H12 ltac:(lra)) as [z [[x [H13 ->]] H14]].
+    exists x. split; [exact H13|apply riemann_abs_lt; lra].
+  - exists c. rewrite riemann_div_mul in H5 by lra. auto.
+Qed.
+
+Theorem riemann_integral_implies_darboux_integrable : forall a b f L,
+  a < b -> is_riemann_integral a b f L -> integrable_on a b f.
+Proof.
+  intros a b f L H1 H2.
+  pose proof riemann_integral_bounded a b f L H1 H2 as H3.
+  set (bf := mkbounded_function_R a b f ltac:(lra) H3).
+  apply (proj2 (theorem_13_2_a a b bf H1)). intros ε H4.
+  destruct (H2 (ε/4) ltac:(lra)) as [δ [H5 H6]].
+  destruct (exists_partition_delta_lt a b δ H1 H5) as [P H7]. exists P.
+  destruct (lower_sum_approximated_by_tags a b bf P (ε/4) ltac:(lra)) as [cl [H8 H9]].
+  destruct (upper_sum_approximated_by_tags a b bf P (ε/4) ltac:(lra)) as [cu [H10 H11]].
+  pose proof H6 P cl H8 H7 as H12. pose proof H6 P cu H10 H7 as H13.
+  change (|riemann_sum a b (bounded_f a b bf) P cl - L| < ε/4) in H12.
+  change (|riemann_sum a b (bounded_f a b bf) P cu - L| < ε/4) in H13.
+  apply riemann_abs_lt in H12, H13. apply riemann_abs_le_bounds in H9, H11. lra.
+Qed.
+
+Theorem is_riemann_integral_unique : forall a b f L1 L2,
+  a < b -> is_riemann_integral a b f L1 -> is_riemann_integral a b f L2 -> L1=L2.
+Proof.
+  intros a b f L1 L2 H1 H2 H3. apply NNPP. intro H4.
+  assert (H5 : 0 < |L1-L2|/2).
+  { pose proof Rabs_pos_lt (L1-L2) ltac:(lra) as H6. lra. }
+  destruct (H2 (|L1-L2|/2) H5) as [δ1 [H7 H8]].
+  destruct (H3 (|L1-L2|/2) H5) as [δ2 [H9 H10]].
+  destruct (exists_partition_delta_lt a b (Rmin δ1 δ2) H1 ltac:(apply Rmin_pos; lra)) as [P H11].
+  assert (H12 : mesh_lt a b P δ1).
+  { intros i H13. specialize (H11 i H13). pose proof Rmin_l δ1 δ2 as H14. lra. }
+  assert (H15 : mesh_lt a b P δ2).
+  { intros i H13. specialize (H11 i H13). pose proof Rmin_r δ1 δ2 as H16. lra. }
+  pose proof H8 P _ (left_tags_spec a b P) H12 as H17.
+  pose proof H10 P _ (left_tags_spec a b P) H15 as H18.
+  apply riemann_abs_lt in H17, H18.
+  destruct (Rle_dec 0 (L1-L2)) as [H19|H19]; [rewrite Rabs_right in * by lra|rewrite Rabs_left in * by lra]; lra.
+Qed.
+
+Theorem riemann_darboux_integrable_equiv : forall a b f,
+  riemann_integrable_on a b f <-> integrable_on a b f.
+Proof.
+  intros a b f. split.
+  - intros [H1|[H2 [L H3]]]; [left; exact H1|].
+    eapply riemann_integral_implies_darboux_integrable; eauto.
+  - intro H4. destruct H4 as [H1|[bf [sup [inf [H5 H6]]]]].
+    + left; exact H1.
+    + pose proof bounded_function_R_P1 a b bf as H2.
+      destruct (Rlt_dec a b) as [H7|H8]; [right|left; lra].
+      split; [exact H7|]. exists (definite_integral a b f).
+      apply darboux_integrable_is_riemann_integral; [exact H7|].
+      right. exists bf, sup, inf. auto.
+Qed.
+
+Theorem is_riemann_integral_iff_darboux : forall a b f L,
+  a < b ->
+  (is_riemann_integral a b f L <-> integrable_on a b f /\ L = darboux_integral a b f).
+Proof.
+  intros a b f L H1. split.
+  - intro H2. pose proof riemann_integral_implies_darboux_integrable a b f L H1 H2 as H3.
+    split; [exact H3|]. unfold darboux_integral.
+    eapply is_riemann_integral_unique; [exact H1|exact H2|].
+    apply darboux_integrable_is_riemann_integral; assumption.
+  - intros [H3 ->]. unfold darboux_integral. apply darboux_integrable_is_riemann_integral; assumption.
+Qed.
+
+Lemma riemann_integral_val_spec : forall a b f,
+  riemann_integral_or_zero a b f (riemann_integral_val a b f).
+Proof.
+  intros a b f. unfold riemann_integral_val. apply epsilon_spec.
+  destruct (classic (exists L, is_riemann_integral a b f L)) as [[L H1]|H2].
+  - exists L. left; exact H1.
+  - exists 0. right; auto.
+Qed.
+
+Lemma riemann_integral_val_correct : forall a b f L,
+  a < b -> is_riemann_integral a b f L -> riemann_integral_val a b f = L.
+Proof.
+  intros a b f L H1 H2.
+  destruct (riemann_integral_val_spec a b f) as [H3|[H4 _]].
+  - eapply is_riemann_integral_unique; eauto.
+  - exfalso. apply H4. eauto.
+Qed.
+
+Lemma riemann_integral_val_nonintegrable : forall a b f,
+  ~(exists L, is_riemann_integral a b f L) -> riemann_integral_val a b f = 0.
+Proof.
+  intros a b f H1. destruct (riemann_integral_val_spec a b f) as [H2|[_ H3]]; [exfalso; eauto|exact H3].
+Qed.
+
+Lemma riemann_integral_n_n : forall a f, riemann_integral a a f = 0.
+Proof.
+  intros a f. unfold riemann_integral. destruct (Rle_dec a a) as [H1|H1]; destruct (Rlt_dec a a) as [H2|H2]; try lra.
+Qed.
+
+Lemma riemann_integral_b_a_neg : forall a b f,
+  riemann_integral a b f = -riemann_integral b a f.
+Proof.
+  intros a b f. unfold riemann_integral.
+  destruct (Rle_dec a b) as [H1|H1]; destruct (Rle_dec b a) as [H2|H2]; destruct (Rlt_dec a b) as [H3|H3]; destruct (Rlt_dec b a) as [H4|H4]; try lra.
+Qed.
+
+Theorem riemann_darboux_integral_equiv : forall a b f,
+  riemann_integral a b f = darboux_integral a b f.
+Proof.
+  assert (H1 : forall a b f, a < b -> riemann_integral a b f = definite_integral a b f).
+  { intros a b f H2. unfold riemann_integral.
+    destruct (Rle_dec a b) as [H3|H3]; destruct (Rlt_dec a b) as [H4|H4]; try lra.
+    destruct (integrable_dec a b f) as [H5|H6].
+    - apply riemann_integral_val_correct; [exact H2|]. apply darboux_integrable_is_riemann_integral; assumption.
+    - rewrite riemann_integral_val_nonintegrable.
+      + unfold definite_integral. destruct (Rle_dec a b) as [H7|H7]; destruct (integrable_dec a b f) as [H8|H8]; try tauto; lra.
+      + intros [L H9]. apply H6. eapply riemann_integral_implies_darboux_integrable; eauto. }
+  intros a b f. unfold darboux_integral.
+  destruct (Rtotal_order a b) as [H2|[->|H10]].
+  - apply H1; exact H2.
+  - rewrite riemann_integral_n_n, integral_n_n. reflexivity.
+  - rewrite riemann_integral_b_a_neg, integral_b_a_neg. rewrite H1 by assumption. reflexivity.
+Qed.
+
+Corollary continuous_on_riemann_integrable : forall a b f,
+  a <= b -> continuous_on f [a,b] -> riemann_integrable_on a b f.
+Proof.
+  intros a b f H1 H2. apply riemann_darboux_integrable_equiv.
+  apply theorem_13_3; assumption.
+Qed.
+
+Corollary riemann_integral_plus : forall a b f g,
+  a <= b -> riemann_integrable_on a b f -> riemann_integrable_on a b g ->
+  riemann_integral a b (fun x => f x+g x) = riemann_integral a b f + riemann_integral a b g.
+Proof.
+  intros a b f g H1 H2 H3. rewrite !riemann_darboux_integral_equiv. unfold darboux_integral.
+  apply integral_plus; [lra|apply riemann_darboux_integrable_equiv; exact H2|apply riemann_darboux_integrable_equiv; exact H3].
+Qed.
+
+Corollary riemann_integral_correct : forall a b f,
+  a < b -> riemann_integrable_on a b f ->
+  is_riemann_integral a b f (riemann_integral a b f).
+Proof.
+  intros a b f H1 H2. rewrite riemann_darboux_integral_equiv. unfold darboux_integral.
+  apply darboux_integrable_is_riemann_integral; [exact H1|].
+  apply riemann_darboux_integrable_equiv; exact H2.
+Qed.
+
+Corollary riemann_integrable_on_plus : forall a b f g,
+  a <= b -> riemann_integrable_on a b f -> riemann_integrable_on a b g ->
+  riemann_integrable_on a b (fun x => f x+g x).
+Proof.
+  intros a b f g H1 H2 H3. apply riemann_darboux_integrable_equiv.
+  destruct H1 as [H1|H4].
+  - apply integrable_plus; [exact H1|apply riemann_darboux_integrable_equiv; exact H2|apply riemann_darboux_integrable_equiv; exact H3].
+  - subst. apply integrable_on_n_n.
+Qed.
+
+Corollary riemann_integrable_on_mult_scalar : forall a b f c,
+  a <= b -> riemann_integrable_on a b f ->
+  riemann_integrable_on a b (fun x => c*f x).
+Proof.
+  intros a b f c H1 H2. apply riemann_darboux_integrable_equiv.
+  destruct H1 as [H1|H3].
+  - apply integrable_mult_scalar; [exact H1|apply riemann_darboux_integrable_equiv; exact H2].
+  - subst. apply integrable_on_n_n.
+Qed.
+
+Corollary riemann_integral_mult_scalar : forall a b f c,
+  a < b -> riemann_integrable_on a b f ->
+  riemann_integral a b (fun x => c*f x) = c * riemann_integral a b f.
+Proof.
+  intros a b f c H1 H2. rewrite !riemann_darboux_integral_equiv. unfold darboux_integral.
+  apply integral_mult_scalar; [exact H1|apply riemann_darboux_integrable_equiv; exact H2].
+Qed.
+
+Corollary riemann_integrable_on_ext : forall a b f g,
+  a <= b -> (forall x, x ∈ [a,b] -> f x = g x) ->
+  riemann_integrable_on a b f -> riemann_integrable_on a b g.
+Proof.
+  intros a b f g H1 H2 H3. apply riemann_darboux_integrable_equiv.
+  apply integrable_on_ext with (f:=f); [exact H1|exact H2|].
+  apply riemann_darboux_integrable_equiv; exact H3.
+Qed.
+
+Corollary riemann_integral_ext : forall a b f g,
+  a <= b -> (forall x, x ∈ [a,b] -> f x = g x) ->
+  riemann_integral a b f = riemann_integral a b g.
+Proof.
+  intros a b f g H1 H2. rewrite !riemann_darboux_integral_equiv. unfold darboux_integral.
+  apply integral_ext; assumption.
+Qed.
+
+Corollary riemann_integral_split : forall a b c f,
+  a < c < b -> riemann_integrable_on a b f ->
+  riemann_integral a b f = riemann_integral a c f + riemann_integral c b f.
+Proof.
+  intros a b c f H1 H2. rewrite !riemann_darboux_integral_equiv. unfold darboux_integral.
+  apply integral_split; [exact H1|apply riemann_darboux_integrable_equiv; exact H2].
 Qed.
