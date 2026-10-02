@@ -331,7 +331,4 @@ Proof.
   apply (no_integer_between 0 (∫ 0 1 (λ x : ℝ, π * a ^ n * f n x * sin (π * x))) ltac:(lra)); auto.
 Qed.
 
-Print Assumptions theorem_16_1.
-Print Assumptions π_bounds.
-
 Close Scope rational_scope.

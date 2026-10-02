@@ -1,191 +1,497 @@
+<div align="center">
+
 # rocq-spivak
 
-A formalization of Michael Spivak’s *Calculus* in the Rocq Prover (formerly Coq), with a reusable mathematics library and chapter-by-chapter exercise proofs.
+**Spivak’s calculus, formalized in Rocq.**
 
-The project develops textbook-style definitions of limits, continuity, derivatives, integrals, sequences, series, and transcendental functions on top of the standard library’s real numbers. It also includes supporting algebra, combinatorics, complex analysis, and companion exercises in `ATTAM/`.
+From epsilon–delta limits to automated integrals and verified backpropagation.
 
-**Work in progress:** some files contain unfinished proofs or placeholder statements. The default build covers the files listed in [`_CoqProject`](_CoqProject), which is a subset of the source tree. A successful build does not establish that every exercise is complete: Rocq accepts statements closed with `Admitted` as assumptions.
+[Examples](#a-taste-of-the-library) · [Automation](#automation) · [Compatibility](#compatibility) · [Theorems](#theorems-worth-exploring) · [Build](#build-and-install)
 
-## Exercise progress
+</div>
 
-As of September 13, 2026, **624 problems have substantive formal statements**, and **323 of those have completed proofs**. The remaining **301 stated problems** have unfinished proofs or placeholder parts.
+---
 
-Counts cover `Calculus/Chapter*/Problem*.v`, including appendix problems, with each file counted once regardless of its number of subparts. A problem counts as stated when it contains at least one non-placeholder lemma or theorem statement, including statements followed by `Abort` or `Admitted`. Statements whose conclusion is just `True` are excluded. Of the 647 problem files, 23 contain only placeholders, imports, definitions, or plots and do not count as stated problems. The shared library and `ATTAM/` are outside these counts.
+**rocq-spivak is a calculus textbook you can explore as code.** It formalizes
+Michael Spivak’s *Calculus* in [Rocq](https://rocq-prover.org/) (formerly Coq),
+with definitions, theorems, and exercise proofs written in notation close to
+the mathematics on the page. Rocq checks each completed proof.
 
-A problem counts as completed when its statements have proofs closed with `Qed` or `Defined`, with no placeholder statements, `Admitted`, `Abort`, `admit`, or local axiom/parameter declarations in the file. Comments are ignored. These are source-level counts of the parts currently present; they do not certify coverage of every textbook subpart or the absence of assumptions in imported dependencies.
+The project has two parts: a reusable library of analysis and automation in
+[`Lib/`](Lib/), and a growing collection of textbook exercises in
+[`Calculus/`](Calculus/). Beyond calculus, the source tree explores exact linear
+algebra, complex numbers, algorithmic recurrences, and neural-network gradients.
 
-| Chapter | Problems with statements | Completed problems |
-| --- | ---: | ---: |
-| 1 | 25 | 24 |
-| 2 | 26 | 26 |
-| 3 | 28 | 25 |
-| 5 | 36 | 31 |
-| 6 | 16 | 15 |
-| 7 | 18 | 16 |
-| 8 | 20 | 14 |
-| 9 | 30 | 30 |
-| 10 | 31 | 19 |
-| 11 (including appendix) | 44 | 39 |
-| 12 | 14 | 11 |
-| 13 (including appendix) | 45 | 9 |
-| 14 | 30 | 11 |
-| 15 | 30 | 20 |
-| 18 | 44 | 9 |
-| 19 (including appendix) | 62 | 5 |
-| 20 | 28 | 5 |
-| 21 | 8 | 0 |
-| 22 | 33 | 13 |
-| 23 | 30 | 0 |
-| 24 | 25 | 0 |
-| 28 | 1 | 1 |
-| **Total** | **624** | **323** |
+### What’s inside
 
-## Explore the mathematics
-
-| Topic | Starting points |
+| Start with… | Explore… |
 | --- | --- |
-| Real numbers, sets, and completeness | [Real.v](Lib/Real.v), [Reals_util.v](Lib/Reals_util.v), [Sets.v](Lib/Sets.v), [Completeness.v](Lib/Completeness.v) |
-| Limits and continuity | [Limit.v](Lib/Limit.v), [Continuity.v](Lib/Continuity.v) |
-| Derivatives, Rolle’s theorem, and the mean value theorem | [Derivative.v](Lib/Derivative.v) |
-| Partitions, integration, and the fundamental theorem of calculus | [Partition.v](Lib/Partition.v), [Integral.v](Lib/Integral.v) |
-| Sequences, series, and Taylor’s theorem | [Sequence.v](Lib/Sequence.v), [Series.v](Lib/Series.v), [Taylor.v](Lib/Taylor.v) |
-| Trigonometric and exponential functions | [Trigonometry.v](Lib/Trigonometry.v), [Exponential.v](Lib/Exponential.v) |
-| Complex numbers and complex analysis | [Complex.v](Lib/Complex.v), [ComplexFunctions.v](Lib/ComplexFunctions.v) |
-| Vectors and matrices, as lists and coordinate functions | [Guide](Lib/LinearAlgebra.md), [FunctionalVector.v](Lib/FunctionalVector.v), [FunctionalMatrix.v](Lib/FunctionalMatrix.v), [examples](Lib/VectorMatrixExamples.v) |
-| Vector functions and planetary motion | [Vector calculus](Lib/VectorCalculus.v), [Chapter 4 examples](Calculus/Chapter4/VectorFunctions.v), [PlanetaryMotion.v](Calculus/Chapter17/PlanetaryMotion.v), [Chapter 17 guide](Calculus/Chapter17/README.md) |
-| Exact rational REF and RREF, with correctness proofs over rationals and reals | [Guide](Lib/RowReduction.md), [RowReduction.v](Lib/RowReduction.v), [tests and examples](Lib/RowReductionTests.v) |
-| Backpropagation: four fundamental equations and one training step | [Guide](Backprop/README.md), [NeuralNet](Backprop/NeuralNet.v), [proofs](Backprop/Correctness.v), [decreasing the loss](Backprop/Descent.v) |
-| Exercise proofs | [Calculus/](Calculus/), [ATTAM/](ATTAM/) |
+| **Foundations** | [Real numbers as Dedekind cuts](Lib/Real.v), [sets](Lib/Sets.v), and [completeness](Lib/Completeness.v) |
+| **Calculus** | [Limits](Lib/Limit.v), [continuity](Lib/Continuity.v), [derivatives](Lib/Derivative.v), and [integrals](Lib/Integral.v) |
+| **Infinite processes** | [Sequences](Lib/Sequence.v), [series](Lib/Series.v), and [Taylor’s theorem](Lib/Taylor.v) |
+| **Algebra and geometry** | [Complex numbers](Lib/Complex.v), [vectors and matrices](Lib/VectorMatrixExamples.v), and [exact row reduction](Lib/RowReduction.v) |
+| **Applications** | [Asymptotic analysis](Lib/Asymptotics.v) and [backpropagation](Backprop/README.md) |
 
-The notation follows the textbook where practical. For example, the two parts of the fundamental theorem of calculus are stated in `Lib/Integral.v` as:
+The exercise collection is a work in progress, with unfinished proofs and
+placeholder statements. The opam package covers a smaller calculus library;
+its [scope and assumptions audit](packaging/ASSUMPTIONS.md) explains what is
+included and the classical foundations it uses.
+
+## A taste of the library
+
+### Limits, continuity, and derivatives
+
+Mix transcendental functions, differentiate a sigmoid, or jump straight to a
+tenth derivative. Each example closes with a single tactic; the imports and
+notation setup make the block ready to copy into a `.v` file.
+
+```coq
+From Lib Require Import Imports Tactics Limit Continuity Derivative
+                        Trigonometry Exponential.
+Import LimitNotations DerivativeNotations.
+Open Scope R_scope.
+
+Example transcendental_limit :
+  ⟦ lim 0 ⟧ (fun x => (sin x + cos x) / exp x) = 1.
+Proof. auto_limit. Qed.
+
+Example continuous_composition :
+  continuous (fun x => exp (sin (x^2 + 1)) / (x^2 + 1)).
+Proof. auto_cont. Qed.
+
+Example sigmoid_gradient :
+  ⟦ der ⟧ (fun x => 1 / (1 + e ^^ (-x))) =
+  (fun x => (1 / (1 + e ^^ (-x))) * (1 - 1 / (1 + e ^^ (-x)))).
+Proof. auto_diff. Qed.
+
+Example tenth_derivative :
+  ⟦ der ^ 10 ⟧ (fun x => e ^^ x) = (fun x => e ^^ x).
+Proof. auto_diff. Qed.
+```
+
+### Definite integrals
+
+Integration by parts, logarithms, and inverse trigonometric substitutions all
+use the same interface. SymPy finds a candidate; Rocq checks the proof.
+
+```coq
+From Lib Require Import Imports Tactics Integral Trigonometry Exponential.
+Import IntegralNotations.
+Open Scope R_scope.
+
+Example integration_by_parts : ∫ 0 1 (fun x => x * exp x) = 1.
+Proof. auto_int. Qed.
+
+Example logarithmic_area : ∫ 1 2 (fun x => log x) = 2 * log 2 - 1.
+Proof. auto_int. Qed.
+
+Example arcsine_area : ∫ 0 (1/2) (fun x => 1 / sqrt (1 - x^2)) = π / 6.
+Proof. auto_int. Qed.
+
+Example recover_pi : ∫ 0 1 (fun x => 1 / (x^2 + 1)) = π / 4.
+Proof. auto_int. Qed.
+```
+
+The same tactic checks antiderivatives. Here the notation says that the
+function on the right differentiates to the integrand:
+
+```coq
+From Lib Require Import Imports Tactics Integral Trigonometry.
+Import IntegralNotations.
+Open Scope R_scope.
+
+Example reverse_chain_rule :
+  ∫ (fun x => sin x ^ 5 * cos x) = (fun x => sin x ^ 6 / 6).
+Proof. auto_int. Qed.
+```
+
+<details>
+<summary><strong>Beyond calculus: exact row reduction</strong></summary>
+
+The development library also computes with rational matrices. This example
+reduces an augmented matrix to RREF with exact fractions:
+
+```coq
+From Lib Require Import Imports RowReduction.
+Import VectorNotations MatrixNotations.
+Local Open Scope Qc_scope.
+Local Open Scope V_Scope.
+Local Open Scope M_Scope.
+
+Example reduce_matrix :
+  matrix_rref (⟨⟨2, 1, 3⟩, ⟨0, 3, 1⟩⟩ : matrix Qc 2 3) =
+  ⟨⟨1, 0, 4/3⟩, ⟨0, 1, 1/3⟩⟩.
+Proof. qc_mat_compute. Qed.
+```
+
+[RowReduction.v](Lib/RowReduction.v) proves correctness of the reduction,
+including preservation of row equivalence and the resulting REF/RREF shape.
+See [more examples](Lib/RowReductionTests.v), including results transported to
+real matrices. This module is part of the source build, outside the initial
+calculus package.
+
+</details>
+
+## Automation
+
+The main entry point is [`Lib/Tactics.v`](Lib/Tactics.v).
+
+| Tactic | What it proves |
+| --- | --- |
+| `auto_limit` | Limits of supported expressions |
+| `auto_cont` | Continuity, including compositions and interval domains |
+| `auto_diff` | Derivative identities using symbolic differentiation |
+| `auto_int` | Integral identities using checked antiderivatives |
+| `solve_R` | Real arithmetic involving roots, absolute values, and casts |
+
+The tactics turn expressions into syntax trees, compute with them, and apply
+proved correctness lemmas. For differentiation, this connects a symbolic
+derivative to its mathematical meaning. For integration, SymPy proposes an
+antiderivative. `auto_int` proves the derivative, continuity, and endpoint
+obligations, and Rocq’s kernel checks the resulting proof against the library’s
+logical assumptions:
+
+```mermaid
+flowchart LR
+    A[Integral] --> B[SymPy candidate]
+    B --> C[Prove derivative and side conditions]
+    C --> D[Rocq kernel check]
+```
+
+Cached candidates go through the same proof checking. Tactics can leave domain
+conditions or algebraic goals for you to finish. `solve_R` leaves a goal
+unchanged when it cannot solve it; `solve [solve_R]` fails instead.
+
+<details>
+<summary><strong>Configure the SymPy worker</strong></summary>
+
+| Environment variable | Purpose |
+| --- | --- |
+| `AUTO_INT_PYTHON` | Python executable; defaults to `python3`. It must have SymPy installed. |
+| `AUTO_INT_SCRIPT` | Optional path to `auto_int.py`. Otherwise the plugin searches for `src/auto_int.py` in the current directory and its parents, then in the installed `calculus` findlib package. |
+| `AUTO_INT_TIMEOUT` | Request timeout in seconds; defaults to `30`. |
+
+</details>
+
+<details>
+<summary><strong>Vectors, matrices, and Dedekind-cut reals</strong></summary>
+
+The source tree includes `auto_vec` / `solve_vec` and `auto_mat` / `solve_mat`
+for vector and matrix equalities. Both list and coordinate-function
+representations are supported; see [the examples](Lib/VectorMatrixExamples.v).
+Use `vec_simpl` / `mat_simpl` to expose coordinate goals.
+
+[`RealTactics.v`](Lib/RealTactics.v) provides arithmetic automation for the
+separate Dedekind-cut `Real` type defined in [`Real.v`](Lib/Real.v):
+
+```coq
+From Lib Require Import RealTactics.
+Open Scope Real_scope.
+
+Example exact_decimal_sum : 1.23 + 2.56 = 3.79.
+Proof. real_lra. Qed.
+
+Example square_nonnegative : forall x : Real, 0 <= x^2.
+Proof. real_nra. Qed.
+
+Example cancel_fraction : forall x : Real, x <> 0 -> x / x = 1.
+Proof. solve_real. Qed.
+```
+
+Decimal literals are exact rational values. `real_lra`, `real_nra`,
+`real_field`, and `solve_real` transport goals through a proved correspondence
+with standard reals. Use `real_to_R` to expose that translation for a manual
+proof. Nonlinear automation is incomplete, and division can require nonzero
+hypotheses.
+
+</details>
+
+## Compatibility
+
+The main calculus library uses Rocq’s standard real type `R`, with its own
+textbook-style definitions and notation. Compatibility lemmas let you move
+between those definitions and existing analysis libraries.
+
+| Library | Available bridges |
+| --- | --- |
+| **Rocq Stdlib** | [Limits, continuity, derivatives, Riemann integrals, sequences, series, and transcendental functions](Lib/StdlibCompat.v) |
+| **Coquelicot** | [Limits, derivatives, continuity, sequences, and series](Lib/CoquelicotCompat.v). Integral bridges are unfinished (`Abort`). |
+| **MathComp** | [An exploratory compatibility file](Lib/MathCompCompat.v); its bridge development is currently commented out. |
+
+For example, prove a standard-library continuity statement using this project’s
+automation:
+
+```coq
+From Lib Require Import Imports Tactics StdlibCompat.
+Open Scope R_scope.
+
+Example stdlib_continuity : forall a : R,
+  continuity_pt (fun x => x^2 + 1) a.
+Proof.
+  intro a. apply continuous_compat. auto_cont.
+Qed.
+```
+
+`StdlibCompat` is included in the calculus package. `CoquelicotCompat`, the
+linear algebra modules, `RealTactics`, Taylor’s theorem, asymptotics, and
+backpropagation are available through the source build.
+
+**Platform support:** the package was validated on Ubuntu 24.04. Its dependency
+bounds match the tested Rocq and analysis-library versions. Native Windows is
+currently excluded by the SymPy dependency package. See the
+[validation record](packaging/VALIDATION.md) for the tested environment.
+
+## Theorems worth exploring
+
+Each result below pairs its informal meaning with its formal Rocq statement.
+The statements are excerpts from the linked source files, with proofs omitted.
+
+### The fundamental theorem of calculus
+
+**Informal — [`FTC1`](Lib/Integral.v):** If $a<b$ and $f$ is continuous on
+$[a,b]$, the accumulated area $F(x)=\int_a^x f(t)\,dt$ has derivative $f(x)$
+on that interval, using one-sided derivatives at its endpoints.
+
+**Formal:**
 
 ```coq
 Theorem FTC1 : ∀ f a b,
   a < b -> continuous_on f [a, b] ->
   ⟦ der ⟧ (λ x, ∫ a x f) [a, b] = f.
+```
 
+**Informal — [`FTC2`](Lib/Integral.v):** If $a<b$, $f$ is continuous on
+$[a,b]$, and $g'=f$ there, the definite integral is the change in $g$:
+
+$$
+\int_a^b f(x)\,dx = g(b)-g(a).
+$$
+
+**Formal:**
+
+```coq
 Theorem FTC2 : ∀ a b f g,
   a < b -> continuous_on f [a, b] ->
   ⟦ der ⟧ g [a, b] = f -> ∫ a b f = g b - g a.
 ```
 
-Exercise files use paths such as `Calculus/Chapter10/Problem1.v`. Each chapter has a `Prelude.v` that collects its imports and notation; individual results generally use names such as `lemma_10_1_i`.
+The development includes partitions, Darboux sums, Riemann integration, and a
+proof that the two integral constructions agree. [`Derivative.v`](Lib/Derivative.v)
+contains Rolle’s theorem and the mean value theorem used along the way.
 
-## Build
+### Taylor’s theorem, with concrete bounds
 
-Run commands from the repository root with your opam environment active.
+**Informal — [`Taylors_Theorem`](Lib/Taylor.v):** If $a<x$ and $f$ is
+$(n+1)$ times differentiable on an open interval extending past both $a$ and
+$x$, its degree-$n$ Taylor polynomial $P_n$ about $a$ has an exact remainder
+at some $t\in(a,x)$:
 
-### Dependencies
+$$
+f(x)-P_n(x)=\frac{f^{(n+1)}(t)}{(n+1)!}(x-a)^{n+1}.
+$$
 
-The development environment uses the following versions:
+**Formal:** `R(n, a, f)` is the Taylor remainder, and `⟦ Der ^ k t ⟧ f`
+is the value of the $k$th derivative at $t$.
 
-| Package | Version |
+```coq
+Theorem Taylors_Theorem : forall n a x f,
+  a < x ->
+  (exists δ, δ > 0 /\ nth_differentiable_on (S n) f (a - δ, x + δ)) ->
+  exists t, t ∈ (a, x) /\
+    R(n, a, f) x = (⟦ Der ^ (n + 1) t ⟧ f) / ((n + 1)!) * (x - a) ^ (n + 1).
+```
+
+**Informal — [`e_bounds` and `π_bounds`](Lib/Taylor.v):** Taylor estimates
+give certified decimal bounds on both constants:
+
+$$
+2.7182 < e < 2.7183
+\qquad\text{and}\qquad
+3.141591 < \pi < 3.141596.
+$$
+
+**Formal:** These decimal literals are exact rational numbers, so these are
+inequalities over the reals.
+
+```coq
+Lemma e_bounds : 2.7182 < e < 2.7183.
+Theorem π_bounds : 3.141591 < π < 3.141596.
+```
+
+### A master theorem for recurrences
+
+**Informal — [`master_theorem`](Lib/Asymptotics.v):** Suppose $a\ge1$, $b>1$,
+$f$ and $T$ are nonnegative, and $T(n)>0$ for $n\ge1$. Eventually,
+$T(n)=aT(r(n))+f(n)$, where $r(n)$ rounds $n/b$ down or up. Write
+$p=\log_b a$. The growth of the work $f(n)$ determines the total cost:
+
+| Work per recursive call | Total cost $T(n)$ |
 | --- | --- |
-| `rocq-core` | 9.1.1 |
-| `rocq-stdlib` | 9.1.0 |
-| `coq-interval` | 4.11.4 |
-| `coq-coquelicot` | 3.4.4 |
-| `coq-flocq` | 4.2.2 |
-| `coq-mathcomp-ssreflect` / `rocq-mathcomp-ssreflect` | 2.5.0 |
+| $f(n)=O(n^{p-\varepsilon})$ for some $\varepsilon>0$ | $\Theta(n^p)$ |
+| $f(n)=\Theta(n^p(\log n)^k)$, $k>-1$ | $\Theta(n^p(\log n)^{k+1})$ |
+| $f(n)=\Theta(n^p/\log n)$ | $\Theta(n^p\log\log n)$ |
+| $f(n)=\Theta(n^p(\log n)^k)$, $k<-1$ | $\Theta(n^p)$ |
+| $f(n)=\Omega(n^{p+\varepsilon})$ for some $\varepsilon>0$, with $a f(r(n))\le c f(n)$ eventually for some $0<c<1$ | $\Theta(f(n))$ |
 
-On Debian or Ubuntu, install the system tools and Python dependency:
+**Formal:** `^^` denotes real exponentiation; `Ο`, `Ω`, and `Θ` are the
+library's asymptotic bounds. All five cases appear in one statement:
+
+```coq
+Theorem master_theorem : ∀ (a b : ℝ) (f T : ℕ -> ℝ) (r : ℕ -> ℕ),
+  a >= 1 -> b > 1 ->
+  (∀ n, f n >= 0) ->
+  (∀ n, T n >= 0) ->
+  (∀ n, (1 <= n)%nat -> T n > 0) ->
+  (∀ n : ℕ, r n = ⌊n/b⌋ \/ r n = ⌈n/b⌉) ->
+  (∃ N, N >= b /\ (∀ n : ℕ, n >= N -> T n = a * T (r n) + f n)) ->
+  ((∃ ε, ε > 0 /\ f = Ο(λ n, n^^((log_ b a) - ε))) ->
+    T = Θ(λ n, n^^(log_ b a))) /\
+  (∀ k, k > -1 -> f = Θ(λ n, n^^(log_ b a) * (lg n)^^k) ->
+    T = Θ(λ n, n^^(log_ b a) * (lg n)^^(k + 1))) /\
+  (f = Θ(λ n, n^^(log_ b a) * (lg n)^^(-1)) ->
+    T = Θ(λ n, n^^(log_ b a) * lg (lg n))) /\
+  (∀ k, k < -1 -> f = Θ(λ n, n^^(log_ b a) * (lg n)^^k) ->
+    T = Θ(λ n, n^^(log_ b a))) /\
+  ((∃ ε c N, ε > 0 /\ 0 < c < 1 /\ f = Ω(λ n, n^^((log_ b a) + ε)) /\
+    (∀ n : ℕ, n >= N -> a * f (r n) <= c * f n)) -> T = Θ(f)).
+```
+
+The file ends with worked asymptotic examples.
+
+### Why a gradient step decreases the loss
+
+**Informal — [`one_step_decreases_error`](Backprop/Descent.v):** For a sigmoid
+network with squared-error loss $C$ and a fixed input and target, let
+$g=\nabla C(\theta)$. If $g\ne0$, there is a threshold $\eta_0>0$ such that
+every learning rate $0<\eta<\eta_0$ gives
+
+$$
+C(\theta-\eta g) < C(\theta)-\frac{\eta}{2}\lVert g\rVert^2.
+$$
+
+**Formal:** `train_once` updates the weights and biases using backpropagation;
+`gradient_norm_sq` is the squared norm of that gradient.
+
+```coq
+Theorem one_step_decreases_error n (s : Architecture n) (net : NeuralNet s) a target :
+  0 < gradient_norm_sq s (parameters net) a target ->
+  exists eta0, 0 < eta0 /\ forall eta, 0 < eta < eta0 ->
+    C s (parameters (train_once net a target eta)) a target <
+    C s (parameters net) a target -
+      eta * gradient_norm_sq s (parameters net) a target / 2.
+```
+
+The proof establishes the existence of a suitable learning-rate threshold;
+it does not compute a numerical threshold or guarantee decrease for every rate.
+The [backpropagation development](Backprop/README.md) also proves the four
+standard backpropagation equations.
+[Examples](Backprop/Examples.v) work through a single neuron and a network with
+a hidden layer.
+
+## Build and install
+
+The following setup uses Debian/Ubuntu. Run the project commands from the
+repository root.
+
+### 1. Get the source and tools
 
 ```bash
 sudo apt-get update
-sudo apt-get install -y opam build-essential pkg-config python3 python3-sympy gnuplot
+sudo apt-get install -y git opam build-essential pkg-config python3 python3-sympy
+
+git clone https://github.com/Sterling1111/spivak-rocq.git
+cd spivak-rocq
 ```
 
-SymPy supplies candidate antiderivatives for `auto_int`. Gnuplot renders the plots generated by selected exercises.
-
-For a new opam installation, initialize it and add the Coq package repository:
+For a new opam setup, initialize it and create a switch:
 
 ```bash
-opam init -y
+opam init --bare -y
+opam switch create rocq-spivak 4.14.1
 eval "$(opam env)"
 opam repo add rocq-released https://rocq-prover.org/opam/released
 ```
 
-Install the proof dependencies in your chosen switch:
+If you already have a suitable switch, activate it and add the repository if
+needed. The development environment uses OCaml 4.14.1 and Rocq 9.1.1.
+
+### 2. Choose what to build
+
+| Build | Includes | Use it to… |
+| --- | --- | --- |
+| **Calculus package** | Calculus tactics, their dependencies, and Stdlib bridges | Import the library from your own Rocq projects |
+| **Source build** | Development modules and exercises listed in `_CoqProject` | Explore the wider library and work on proofs |
+
+**Install the calculus package**
+
+```bash
+opam pin add conf-python3-sympy ./packaging --kind=path -y
+opam pin add rocq-spivak . --kind=path -y
+```
+
+These local pins work without waiting for upstream package publication. Opam
+installs the dependencies and builds the files in
+[`_CoqProject.opam`](_CoqProject.opam). The calculus examples above then work
+from any directory, without source-tree flags or an `AUTO_INT_SCRIPT` override.
+Exercise collections and modules outside that manifest are not installed.
+
+**Build the development library and selected exercises**
 
 ```bash
 opam install -y \
   rocq-core.9.1.1 rocq-stdlib.9.1.0 \
   coq-interval.4.11.4 coq-coquelicot.3.4.4 coq-flocq.4.2.2 \
-  coq-mathcomp-ssreflect.2.5.0 rocq-mathcomp-ssreflect.2.5.0
+  coq-mathcomp-ssreflect.2.5.0 rocq-mathcomp-ssreflect.2.5.0 \
+  ocamlfind zarith
 eval "$(opam env)"
+
+rocq makefile -f _CoqProject -o Makefile
+make -j2 BUILD_PLOTS=no
 ```
 
-### Compile
+[`_CoqProject`](_CoqProject) selects the files for this build. Adjust `-j2` to
+suit your machine. To generate exercise plots as well, install `gnuplot` and
+run `make -j2` with the default plot rules in [`Makefile.local`](Makefile.local).
+
+### 3. Try a proof
+
+Save the [definite-integral example block](#definite-integrals), including its
+imports, as `Example.v`. With the package installed:
 
 ```bash
-rocq makefile -f _CoqProject -o Makefile
-make -j2
+rocq compile Example.v
 ```
 
-Adjust the job count to suit your machine. The generated Makefile builds the Rocq sources and OCaml tactic plugins; [`Makefile.local`](Makefile.local) adds plot generation after the main build.
+With a source build, run this from the repository root instead:
 
-To rebuild a particular exercise that is listed in `_CoqProject`:
+```bash
+rocq compile -R Lib Lib -I . -I src Example.v
+```
+
+<details>
+<summary><strong>Build individual exercises</strong></summary>
+
+To rebuild an exercise already in the manifest:
 
 ```bash
 make Calculus/Chapter1/Problem1.vo
 ```
 
-For a file outside that list, first build its dependencies, then compile it with the project’s logical paths:
+For a file outside the manifest, first build its dependencies, then compile it
+with the project’s logical paths:
 
 ```bash
-rocq compile -R Lib Lib -R Calculus Calculus -R ATTAM ATTAM -I src \
-  Calculus/Chapter19/Problem25.v
+rocq compile -R Lib Lib -R Calculus Calculus -R ATTAM ATTAM \
+  -R Backprop Backprop -I . -I src Calculus/Chapter19/Problem25.v
 ```
 
-Use `make clean` to remove build artifacts. If you add a source file to the default build, update `_CoqProject` and regenerate the Makefile.
+</details>
 
-### Optional simplex solver
+<details>
+<summary><strong>SymPy on other systems</strong></summary>
 
-The custom `psatz` tactic in [`Lib/Psatz.v`](Lib/Psatz.v) uses a C++ helper. Build it before using that tactic:
-
-```bash
-sudo apt-get install -y libeigen3-dev libboost-all-dev
-g++ -O3 $(pkg-config --cflags eigen3) src/simplex.cpp -o src/simplex_solver
-```
-
-`Lib/Psatz.v` is not currently listed in the default build. Run proofs using its helper from the repository root, where the plugin expects `src/simplex_solver`.
-
-### Editor support
-
-Open the repository root in a Rocq-aware editor so it can read `_CoqProject`. For VS Code with VsRocq, install the language server in the same opam switch:
-
-```bash
-opam install vsrocq-language-server
-```
-
-### Opam package (0.1.0)
-
-[`rocq-spivak.opam`](rocq-spivak.opam) defines version `0.1.0`. Its initial scope is `Lib.Tactics` and its library
-dependencies, selected in [`_CoqProject.opam`](_CoqProject.opam). The package
-provides `auto_limit`, `auto_cont`, `auto_diff`, and `auto_int`; the exercise
-collections, compatibility modules outside this dependency closure, and C++
-simplex helper remain outside this package. The development build still uses
-the original `_CoqProject`. Package builds skip exercise plots and do not require
-gnuplot. Coquelicot brings its own transitive MathComp dependencies.
-
-Python and SymPy are runtime dependencies. The
-[`conf-python3-sympy`](packaging/conf-python3-sympy.opam) checks that `python3`
-can import SymPy and integrate a simple expression. Its `depexts` name the
-system SymPy packages for Debian/Ubuntu, Fedora, and Arch Linux. The conf
-package version `1` is the version of this check, not a SymPy version. It is
-submitted separately. Until both packages are available in their upstream
-repositories, pin it before pinning the main package:
-
-```bash
-opam repo add rocq-released https://rocq-prover.org/opam/released
-opam pin add conf-python3-sympy ./packaging --kind=path
-opam pin add rocq-spivak . --kind=path
-```
-
-Opam 2.1 or later can arrange the declared system dependencies on supported
-distributions, using the system package manager. On other systems, install
-SymPy for the `python3` found on `PATH` first. For example, a virtual environment
-avoids changing the system Python installation:
+Install SymPy for the `python3` found on `PATH`. If a system package is
+unavailable, a virtual environment is one option:
 
 ```bash
 python3 -m venv "$HOME/.venvs/rocq-spivak"
@@ -194,28 +500,23 @@ python -m pip install sympy
 export AUTO_INT_PYTHON="$(command -v python3)"
 ```
 
-Keep that environment active for the conf check. The explicit
-`AUTO_INT_PYTHON` path lets subsequent Rocq sessions use the same interpreter;
-it must continue to have SymPy installed.
+Keep the environment active when installing the conf package: its check invokes
+`python3` directly. `AUTO_INT_PYTHON` selects the interpreter used by subsequent
+`auto_int` sessions.
 
-After installation, the library can be used from another directory without
-`-R Lib Lib`, `-I src`, or `AUTO_INT_SCRIPT`:
+</details>
 
-```coq
-From Lib Require Import Imports Tactics Integral.
-Import IntegralNotations.
-Open Scope R_scope.
+<details>
+<summary><strong>Editor setup and package smoke tests</strong></summary>
 
-Example integrate_square : ∫ 0 1 (fun x => x^2) = 1/3.
-Proof. auto_int. Qed.
+For VS Code with VsRocq, install the language server in the same opam switch,
+then open the repository root so the editor can read `_CoqProject`:
+
+```bash
+opam install vsrocq-language-server
 ```
 
-See [CHANGELOG.md](CHANGELOG.md) for the release scope and
-[packaging/ASSUMPTIONS.md](packaging/ASSUMPTIONS.md) for logical assumptions and
-the OCaml review scope. Dependency bounds remain restricted to the tested Rocq
-and analysis-library versions.
-
-The installed package can be checked from a temporary directory:
+After installing the package, check it outside the source tree:
 
 ```bash
 smoke_dir=$(mktemp -d)
@@ -223,103 +524,49 @@ cp packaging/smoke.v packaging/assumptions.v "$smoke_dir/"
 (cd "$smoke_dir" && rocq compile smoke.v && rocq compile assumptions.v)
 ```
 
-Publication uses `conf-python3-sympy.1` in
-[ocaml/opam-repository](https://github.com/ocaml/opam-repository) and
-`rocq-spivak.0.1.0` in
-[rocq-prover/opam](https://github.com/rocq-prover/opam). The main submission
-must wait until its SymPy dependency is available. The release archive must be
-attached to the GitHub release with a recorded checksum, as described in the
-[Rocq packaging guide](https://rocq-prover.org/docs/opam-packaging).
+The smoke test proves four integrals and checks that an incorrect result is
+rejected. The assumptions file reports the logical foundations of selected
+public results. See [the audit](packaging/ASSUMPTIONS.md), including the scope
+of the pending independent OCaml plugin review.
 
-## Automation
+</details>
 
-[`Lib/Tactics.v`](Lib/Tactics.v) provides `auto_limit`, `auto_cont`, `auto_diff`, and `auto_int`. [`Lib/Reals_util.v`](Lib/Reals_util.v) provides `solve_R` for real arithmetic, including square roots, absolute values, and casts.
+<details>
+<summary><strong>Optional C++ simplex helper</strong></summary>
 
-After building the library, this example illustrates the imports and notation needed for a limit proof:
+The custom `psatz` tactic in [`Lib/Psatz.v`](Lib/Psatz.v) uses an additional
+helper:
 
-```coq
-From Lib Require Import Imports Tactics Limit.
-Import LimitNotations.
-Open Scope R_scope.
-
-Goal ⟦ lim 3 ⟧ (λ x, (x^3 - 8) / (x - 2)) = 19.
-Proof. auto_limit. Qed.
+```bash
+sudo apt-get install -y libeigen3-dev libboost-all-dev
+g++ -O3 $(pkg-config --cflags eigen3) src/simplex.cpp -o src/simplex_solver
 ```
 
-The calculus tactics combine proof by reflection with Ltac automation: they reify supported expressions into an `expr` syntax tree, compute over that representation, and apply proved correctness lemmas such as `derive_correct` and `cont_correct`. For example, `auto_diff` computes a symbolic derivative with `derive_expr` and uses its correctness theorem to reduce the goal to domain conditions and algebraic equalities. Rocq’s kernel checks the resulting proofs.
+`Lib/Psatz.v` is outside the default build and the initial calculus package.
+Run proofs that use this helper from the repository root.
 
-For vector and matrix equality, `auto_vec` / `solve_vec` and `auto_mat` / `solve_mat` handle concrete entries and symbolic algebra. Import `FunctionalMatrix` to use them with both list and functional representations. See the [linear algebra guide](Lib/LinearAlgebra.md#equality-solvers) for examples, supported rules, and the `vec_simpl` / `mat_simpl` tactics for exposing coordinate goals.
+</details>
 
-Proof search and the automation for side conditions are heuristic, so some goals may require subsequent proof steps. `solve_R` closes goals it can solve and otherwise leaves them unchanged; use `solve [solve_R]` when complete success is required.
+## Find your way around
 
-`auto_int` asks a persistent Python/SymPy worker for an antiderivative, then checks the required continuity, derivative, and endpoint obligations in Rocq. Cached candidates still go through proof checking. The worker can be configured with:
-
-| Variable | Purpose |
+| Path | Start here for… |
 | --- | --- |
-| `AUTO_INT_PYTHON` | Python executable; defaults to `python3`. It must have SymPy installed. |
-| `AUTO_INT_SCRIPT` | Worker script path; otherwise the plugin searches the current directory and its parents for `src/auto_int.py`, then the installed `calculus` findlib package. |
-| `AUTO_INT_TIMEOUT` | Request timeout in seconds; defaults to 30. |
+| [`Lib/`](Lib/) | Analysis definitions, theorems, tactics, and compatibility lemmas |
+| [`Calculus/`](Calculus/) | Spivak exercises, organized by chapter and problem |
+| [`ATTAM/`](ATTAM/) | Companion exercise developments |
+| [`Backprop/`](Backprop/) | Neural networks, gradient proofs, and worked examples |
+| [`src/`](src/) | OCaml tactic plugins, the SymPy worker, and the simplex helper |
+| [`packaging/`](packaging/) | Package validation, smoke tests, and the assumptions audit |
 
-### Arithmetic with the Dedekind-cut `Real` type
+Exercise files follow paths such as `Calculus/Chapter10/Problem1.v`.
+Each chapter has a `Prelude.v` collecting imports and notation; results commonly
+use names such as `lemma_10_1_i`.
 
-[`Lib/RealTactics.v`](Lib/RealTactics.v) provides arithmetic automation for the
-custom `Real` type from `Lib/Real.v`. Import it and open `Real_scope` to use
-integer and decimal numerals, fractions, and natural-number powers:
+Contributions to unfinished exercises, the library, and automation are welcome.
+Follow the surrounding conventions and compile changed files with their
+dependencies. Add new files to `_CoqProject` when they belong in the default
+build, then regenerate the Makefile. `make clean` removes build artifacts.
 
-```coq
-From Lib Require Import RealTactics.
-Open Scope Real_scope.
+---
 
-Example decimal_sum : 1.23 + 2.56 = 3.79.
-Proof. real_lra. Qed.
-
-Example linear_bound : forall x : Real, 2 * x + 3 < 7 -> x < 2.
-Proof. real_lra. Qed.
-
-Example square_nonnegative : forall x : Real, 0 <= x ^ 2.
-Proof. real_nra. Qed.
-
-Example cancel_fraction : forall x : Real, x <> 0 -> x / x = 1.
-Proof. solve_real. Qed.
-```
-
-Use `real_lra` for linear arithmetic, `real_nra` for polynomial arithmetic,
-`real_field` for rational identities, and `solve_real` to also try automation
-for absolute values and reciprocals. These tactics translate the goal and
-hypotheses through the proved `cut_value` correspondence and produce proofs
-checked by Rocq. They fail without changing the goal if they cannot solve it.
-Use `real_to_R` to expose the translated goal for further manual tactics.
-The existing `ring` and `field` tactics also remain available.
-
-Decimal literals are exact: `1.23` embeds the rational `123/100`, with no
-floating-point rounding. Scientific notation such as `1.23e-2` is also supported.
-The literals `0` and `1` still use the original `Rzero` and `Rone` definitions.
-`Real_of_Q (1#2)%Q` embeds an exact rational; `(1 / 2)%Real` uses the custom
-field operations. This is symbolic proof automation, not a decimal evaluator
-for arbitrary cuts, whose definitions use classical choice. Nonlinear proof
-search is incomplete, and division identities can require nonzero hypotheses.
-
-## Compatibility with other libraries
-
-- [`Lib/StdlibCompat.v`](Lib/StdlibCompat.v) connects the project’s definitions to standard-library limits, continuity, derivatives, sequences, series, and transcendental functions.
-- [`Lib/CoquelicotCompat.v`](Lib/CoquelicotCompat.v) provides bridges to Coquelicot’s limits, derivatives, continuity, sequences, and series.
-- [`Lib/MathCompCompat.v`](Lib/MathCompCompat.v) contains a commented-out MathComp compatibility development. Its bridge lemmas are currently inactive.
-
-## Repository layout
-
-```text
-Lib/          Shared definitions, theorems, notation, and tactics
-Calculus/     Spivak exercises organized by chapter and problem
-ATTAM/        Companion exercise developments
-src/          OCaml plugins, SymPy worker, and C++ simplex helper
-_CoqProject   Logical paths, compiler options, and default build inputs
-Makefile.local  Additional build rules for plots
-```
-
-## Contributing
-
-Contributions are welcome: complete unfinished proofs, formalize exercises, improve the shared library, or extend the automation. Follow the surrounding chapter’s naming and import conventions, and compile each changed file with its dependencies. Include new files in `_CoqProject` when they should be part of the default build.
-
-## License
-
-[MIT](LICENSE).
+[MIT License](LICENSE) · [Changelog](CHANGELOG.md)

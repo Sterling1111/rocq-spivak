@@ -15,6 +15,7 @@ Proof.
   intros t Ht. replace (5/2) with (1+3/2) by lra.
   rewrite Rpower_plus, Rpower_1, Rpower_three_halves; try lra; ring.
 Qed.
+
 Local Lemma sqrt_pow_reduce : forall t n, 0 <= t -> sqrt t ^ (S (S n)) = t * sqrt t ^ n.
 Proof.
   intros t n Ht. replace (S (S n)) with (2+n)%nat by lia.
