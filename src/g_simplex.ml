@@ -8,7 +8,7 @@ module Tacentries = Ltac_plugin.Tacentries
 
 # 10 "src/g_simplex.ml"
 
-let () = Tacentries.tactic_extend "calculus.simplex_plugin" "call_simplex_plugin" ~level:0
+let () = Tacentries.tactic_extend "calculus.simplex_plugin" "call_simplex_plugin" ~level:0 
          [(Tacentries.TyML (Tacentries.TyIdent ("call_simplex_plugin", 
                             Tacentries.TyArg (Extend.TUentry (Genarg.get_arg_tag wit_ident), 
                             Tacentries.TyArg (Extend.TUentry (Genarg.get_arg_tag wit_constr), 

@@ -18,7 +18,7 @@ find "$FOLDER" -type f ! -name 'generate_plots.sh' -delete
 
 rm -f "$VO_FILE"
 coq_log="$(mktemp)"
-if ! coqc -w "-deprecated-dirpath-Coq,-deprecated-since-9.0" -R Lib Lib -R Calculus Calculus -R ATTAM ATTAM -I src "$COQ_FILE" >"$coq_log" 2>&1; then
+if ! coqc -w "-deprecated-dirpath-Coq,-deprecated-since-9.0" -R Lib Lib -R Calculus Calculus -R ATTAM ATTAM -I . -I src "$COQ_FILE" >"$coq_log" 2>&1; then
     cat "$coq_log" >&2
     rm -f "$coq_log"
     exit 1
