@@ -29,3 +29,39 @@ not part of this release commit.
 
 Other operating systems and dependency combinations have not been tested.
 Independent review of the OCaml plugins by a Rocq developer remains pending.
+
+## Coquelicot compatibility (2026-10-03)
+
+The Coquelicot bridge is packaged with Rocq 9.1.1, Stdlib 9.1.0, Coquelicot
+3.4.4, and Interval 4.11.4. The package has no direct MathComp dependency or
+local adapter repository requirement. Coquelicot and Interval may still
+select MathComp transitively through their own package metadata.
+
+Reproduce the source and package-manifest checks with:
+
+```sh
+rocq makefile -f _CoqProject -o Makefile
+make -j2 BUILD_PLOTS=no check-compat
+rocq makefile -f _CoqProject.opam -o Makefile.opam
+make -f Makefile.opam -j2 BUILD_PLOTS=no all
+make -f Makefile.opam BUILD_PLOTS=no check-compat
+rocqchk -silent -R Lib Lib -norec Lib.CoquelicotCompat
+opam lint rocq-spivak.opam
+```
+
+The compatibility target checks transport in both directions, arbitrary
+integral orientation, equal endpoints, sequences, series, both Coquelicot
+import orders, and calculus tactics. It also checks that a required
+integrability premise cannot be skipped. It is enabled for opam builds with
+`--with-test`; the regression module is not installed.
+
+The kernel check rechecks the Coquelicot bridge against its compiled
+dependencies; it does not recursively re-audit external libraries.
+
+After removing the MathComp compatibility modules, the package-manifest
+build, source and package compatibility targets, kernel check, and opam
+lint all passed. A fresh staged installation under `/tmp` also passed
+`packaging/compat_smoke.v` and `packaging/smoke.v` from outside the checkout,
+using only staged library/plugin paths and no source load paths or
+candidate-generator overrides. This checks the installed package, rather
+than a fresh dependency installation.

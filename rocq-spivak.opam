@@ -5,8 +5,8 @@ description: """
 A reusable calculus library for Rocq, with auto_limit, auto_cont, auto_diff and
 auto_int. SymPy generates candidate antiderivatives; Rocq checks their derivatives
 and the obligations of the fundamental theorem of calculus. This initial package
-includes the dependencies of Lib.Tactics, rather than the textbook exercises or
-the optional simplex solver.
+includes the dependencies of Lib.Tactics and bridges to Stdlib and Coquelicot
+over Stdlib reals.
 """
 maintainer: "https://github.com/Sterling1111/spivak-rocq/issues"
 authors: "Sterling Jeppson"
@@ -29,6 +29,7 @@ depends: [
 build: [
   ["rocq" "makefile" "-f" "_CoqProject.opam" "-o" "Makefile.opam"]
   [make "-f" "Makefile.opam" "-j%{jobs}%" "BUILD_PLOTS=no"]
+  [make "-f" "Makefile.opam" "check-compat" "BUILD_PLOTS=no"] {with-test}
 ]
 install: [
   [make "-f" "Makefile.opam" "install"

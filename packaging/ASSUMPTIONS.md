@@ -25,6 +25,11 @@ the checkout after installation to reproduce the public-result audit. It also
 checks `riemann_darboux_integral_equiv`. This audit samples key public results;
 it does not assert that every declaration has exactly the same assumptions.
 
+`packaging/compat_smoke.v` also audits `is_RInt_coquelicot_compat` and
+`is_riemann_integral_coquelicot_compat`. The Coquelicot compatibility module
+adds no axioms, parameters, admitted proofs, or aborted proofs. Its checked
+bridges reuse the underlying libraries' real-number and classical assumptions.
+
 `Lib/Series.v` declares `dist_to_nearest_integer : R -> R` as a parameter for
 an aborted Weierstrass example. It has no axiomatized properties and does not
 occur in the assumptions of the audited results. `Lib/Polynomial.v` contains

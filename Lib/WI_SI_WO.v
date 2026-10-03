@@ -91,21 +91,35 @@ Proof.
   apply lemma_2_11. apply induction_imp_induction_nat.
 Qed.
 
-Ltac strong_induction_nat n :=
-  intros;
+(** Generalize the context so that recursive calls can change parameters and
+    dependent hypotheses. Keep the induction variable and any terms needed by
+    the induction principle; [revert] also keeps their dependencies in scope.
+    In particular, do not use [revert dependent], which could revert [x] itself. *)
+Ltac induction_revert_except x keep :=
   repeat match goal with
-         | [ H : _ |- _ ] =>
-           lazymatch H with
-           | n => fail (* Do not revert n *)
-           | _ => revert H
-           end
-         end;
-  (* Apply strong induction on n *)
-  apply strong_induction_N with (n := n);
-  (* Clear n from context *)
-  clear n;
-  (* Introduce n and IH *)
-  intros n IH.
+  | H : _ |- _ =>
+      let protected := constr:((x, keep)) in
+      lazymatch protected with
+      | context[H] => fail
+      | _ => revert H
+      end
+  end.
+
+Ltac induction_prepare x :=
+  first [is_var x | intros until x];
+  intros.
+
+Ltac strong_induction_nat_named x IH :=
+  induction_prepare x;
+  (* A local definition must become a variable before abstracting over it. *)
+  try clearbody x;
+  induction_revert_except x tt;
+  apply strong_induction_N with (n := x);
+  clear x;
+  intros x IH.
+
+Ltac strong_induction_nat n :=
+  let IH := fresh "IH" in strong_induction_nat_named n IH.
 
 Close Scope nat_scope.
 
@@ -177,28 +191,124 @@ Proof.
   - apply H1. intros k Hk. apply H3. lia.
 Qed.
 
-Ltac strong_induction_Z_pos z :=
-  intros;
-  let H2 := fresh "H" in
-  assert (H2 : 0 <= z) by nia;
-  repeat match goal with
-         | [ H : _ |- _ ] =>
-           lazymatch H with
-           | H2 => fail
-           | z => fail
-           | _ => revert H
-           end
-         end;
-  apply strong_induction_Z with (n := z); try lia;
-  clear H2; clear z; intros z IH H1.
+(** Strong induction over integers bounded below, including negative bounds. *)
+Lemma strong_induction_Z_from : forall (lower : Z) (P : Z -> Prop),
+  (forall m, lower <= m ->
+    (forall k, lower <= k < m -> P k) -> P m) ->
+  forall n, lower <= n -> P n.
+Proof.
+  intros lower P Hstep n Hn.
+  assert (H : forall d : nat, forall m, m - lower = Z.of_nat d -> P m).
+  {
+    intro d. apply strong_induction_N with (n := d). intros j IH m Hm.
+    apply Hstep; [lia |]. intros k Hk.
+    apply (IH (Z.to_nat (k - lower))).
+    - apply Nat2Z.inj_lt. rewrite Z2Nat.id by lia. lia.
+    - rewrite Z2Nat.id by lia. reflexivity.
+  }
+  apply (H (Z.to_nat (n - lower))). rewrite Z2Nat.id by lia. reflexivity.
+Qed.
 
-Ltac strong_induction T :=
-match type of T with
-| ℕ => strong_induction_nat T
-| Z => strong_induction_Z_pos T
-| nat => strong_induction_nat T
-| _ => strong_induction_nat T
-end.
+(** Induct over any type using a natural-number measure (e.g. list length).
+    Recursive calls may use any value with a strictly smaller measure. *)
+Lemma strong_induction_measure : forall (A : Type) (measure : A -> nat)
+  (P : A -> Prop),
+  (forall x, (forall y, (measure y < measure x)%nat -> P y) -> P x) ->
+  forall x, P x.
+Proof.
+  intros A measure P Hstep x.
+  assert (H : forall n, forall y, measure y = n -> P y).
+  {
+    intro n. apply strong_induction_N with (n := n). intros k IH y Hy.
+    apply Hstep. intros z Hz.
+    apply (IH (measure z)); [lia | reflexivity].
+  }
+  apply (H (measure x)). reflexivity.
+Qed.
+
+Ltac strong_induction_Z_pos_named z IH :=
+  induction_prepare z;
+  let Hnonneg := fresh "Hnonneg" in
+  assert (Hnonneg : 0 <= z) by
+    first [lia | nia | fail "strong_induction: cannot prove a nonnegative integer; use 'from lower' for another lower bound"];
+  try clearbody z;
+  induction_revert_except z Hnonneg;
+  pattern z;
+  lazymatch goal with
+  | |- ?P _ => refine (strong_induction_Z_from 0 P _ z Hnonneg)
+  end;
+  clear Hnonneg; clear z;
+  let Hz := fresh IH "_lower" in intros z Hz IH;
+  (* Preserve the original integer tactic's introduction of the first
+     generalized premise, but also accept goals with no such premise. *)
+  let H1 := fresh "H1" in
+  lazymatch goal with
+  | |- forall _ : _, _ => intro H1
+  | _ => idtac
+  end.
+
+Ltac strong_induction_Z_pos z :=
+  let IH := fresh "IH" in strong_induction_Z_pos_named z IH.
+
+Ltac strong_induction_named x IH :=
+  first [is_var x | intros until x];
+  let T := type of x in
+  let T := eval hnf in T in
+  lazymatch T with
+  | nat => strong_induction_nat_named x IH
+  | Z => strong_induction_Z_pos_named x IH
+  | _ => fail "strong_induction expects nat or Z; use 'using measure' for other types"
+  end.
+
+Ltac strong_induction x :=
+  let IH := fresh "IH" in strong_induction_named x IH.
+
+Ltac strong_induction_from_named z lower IH :=
+  induction_prepare z;
+  (* Snapshot the bound before generalizing hypotheses, and leave an explicit
+     obligation when arithmetic cannot establish it automatically. *)
+  let Hbound := fresh "Hbound" in
+  assert (Hbound : lower <= z);
+  [ first [lia | nia | idtac]
+  | try clearbody z;
+    induction_revert_except z (lower, Hbound);
+    pattern z;
+    lazymatch goal with
+    | |- ?P _ => refine (strong_induction_Z_from lower P _ z Hbound)
+    end;
+    clear Hbound; clear z;
+    let Hz := fresh IH "_lower" in intros z Hz IH ].
+
+Ltac strong_induction_measure_named target measure IH :=
+  induction_prepare target;
+  try clearbody target;
+  induction_revert_except target measure;
+  apply (strong_induction_measure _ measure) with (x := target);
+  clear target; intros target IH.
+
+(** Usage:
+      strong_induction n [as IH]              -- nat or nonnegative Z
+      strong_induction z from lower [as IH]   -- Z, with lower <= z
+      strong_induction xs using length [as IH] -- any nat-valued measure
+
+    The variable may still be quantified in the goal. Generalized parameters
+    and premises remain quantified in the step goal (the legacy Z form
+    introduces its first premise). Integer steps retain their lower bound.
+    Unproved bounds in the [from] form are left as separate goals. The default
+    IH name is fresh; measures and lower bounds must be independent of the
+    induction variable. *)
+Tactic Notation "strong_induction" ident(x) :=
+  let IH := fresh "IH" in strong_induction_named x IH.
+Tactic Notation "strong_induction" ident(x) "as" ident(IH) :=
+  strong_induction_named x IH.
+Tactic Notation "strong_induction" ident(x) "from" constr(lower) "as" ident(IH) :=
+  strong_induction_from_named x lower IH.
+Tactic Notation "strong_induction" ident(x) "from" constr(lower) :=
+  let IH := fresh "IH" in strong_induction_from_named x lower IH.
+Tactic Notation "strong_induction" ident(x) "using" constr(measure) "as" ident(IH) :=
+  strong_induction_measure_named x measure IH.
+Tactic Notation "strong_induction" ident(x) "using" constr(measure) :=
+  let IH := fresh "IH" in strong_induction_measure_named x measure IH.
 
 Lemma well_ordering_principle_contrapositive_Z : forall E : Z -> Prop,
   (forall n : Z, E n -> n >= 0) ->

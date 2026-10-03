@@ -23,6 +23,7 @@ Lib/Pigeonhole.v
 Lib/Sums.v
 Lib/Products.v
 Lib/WI_SI_WO.v
+Lib/WI_SI_WOTests.v
 Lib/QRT.v
 Lib/Fibonacci.v
 Lib/Field.v
@@ -65,7 +66,7 @@ Lib/Asymptotics.v
 Lib/PolySimp.v
 Lib/StdlibCompat.v
 Lib/CoquelicotCompat.v
-Lib/MathCompCompat.v
+Lib/CoquelicotCompatTests.v
 Lib/ComplexLimit.v
 Lib/ComplexContinuity.v
 Lib/ComplexDerivative.v

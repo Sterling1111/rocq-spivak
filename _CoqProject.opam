@@ -1,4 +1,4 @@
-# Initial package: calculus tactics and their library dependencies.
+# Calculus tactics, library dependencies, and compatibility bridges.
 # The development build and exercise selection remain in _CoqProject.
 -R Lib Lib
 -I .
@@ -35,6 +35,7 @@ Lib/Trigonometry.v
 Lib/Exponential.v
 Lib/Tactics.v
 Lib/StdlibCompat.v
+Lib/CoquelicotCompat.v
 
 src/auto_int_main.ml
 src/g_auto_int.mlg

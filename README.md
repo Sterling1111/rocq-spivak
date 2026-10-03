@@ -215,8 +215,7 @@ between those definitions and existing analysis libraries.
 | Library | Available bridges |
 | --- | --- |
 | **Rocq Stdlib** | [Limits, continuity, derivatives, Riemann integrals, sequences, series, and transcendental functions](Lib/StdlibCompat.v) |
-| **Coquelicot** | [Limits, derivatives, continuity, sequences, and series](Lib/CoquelicotCompat.v). Integral bridges are unfinished (`Abort`). |
-| **MathComp** | [An exploratory compatibility file](Lib/MathCompCompat.v); its bridge development is currently commented out. |
+| **Coquelicot** | [Limits, derivatives, continuity, sequences, series, integrability, and integral values](Lib/CoquelicotCompat.v), including existence and value-operator bridges. |
 
 For example, prove a standard-library continuity statement using this project’s
 automation:
@@ -232,9 +231,40 @@ Proof.
 Qed.
 ```
 
-`StdlibCompat` is included in the calculus package. `CoquelicotCompat`, the
-linear algebra modules, `RealTactics`, Taylor’s theorem, asymptotics, and
-backpropagation are available through the source build.
+`StdlibCompat` and `CoquelicotCompat` are included in the calculus package.
+The linear algebra modules, `RealTactics`, Taylor’s theorem, asymptotics,
+and backpropagation are available through the source build.
+
+The compatibility modules do not export the external libraries' notations.
+Import `Coquelicot` explicitly when using its APIs.
+Use qualified names and `%R` for real arithmetic when mixing notations.
+
+For example, transport an integral value in either orientation:
+
+```coq
+From Coquelicot Require Import Coquelicot.
+From Lib Require Import Imports Integral CoquelicotCompat.
+Open Scope R_scope.
+
+Example transport_integral (f : R -> R) (a b L : R) :
+  is_RInt f a b L -> definite_integral a b f = L.
+Proof. intro H. exact (proj2 (proj1 (is_RInt_coquelicot_compat f a b L) H)). Qed.
+```
+
+The bridge conditions preserve the libraries' different conventions:
+
+- `integrable_coquelicot_compat` permits `a <= b`, including equal endpoints.
+  `integrable_coquelicot_compat_general` uses `Rmin a b` and `Rmax a b` for
+  arbitrary orientation. Value equalities with `RInt` require integrability.
+- `is_riemann_integral_coquelicot_compat` requires `a < b`: the project's
+  tagged-partition predicate is vacuous at equal endpoints. Use
+  `is_RInt_coquelicot_compat` for a value specification at arbitrary endpoints.
+- Existence of a real limit corresponds to `ex_finite_lim` or
+  `ex_finite_lim_seq`, since Coquelicot also supports infinite limits.
+
+Run `make BUILD_PLOTS=no check-compat` after generating the Makefile to check
+both Coquelicot import orders, boundary cases, and calculus tactics.
+Package builds also run these checks with opam's `--with-test` option.
 
 **Platform support:** the package was validated on Ubuntu 24.04. Its dependency
 bounds match the tested Rocq and analysis-library versions. Native Windows is
@@ -419,7 +449,7 @@ needed. The development environment uses OCaml 4.14.1 and Rocq 9.1.1.
 
 | Build | Includes | Use it to… |
 | --- | --- | --- |
-| **Calculus package** | Calculus tactics, their dependencies, and Stdlib bridges | Import the library from your own Rocq projects |
+| **Calculus package** | Calculus tactics, Stdlib bridges, and Coquelicot bridges | Import the library from your own Rocq projects |
 | **Source build** | Development modules and exercises listed in `_CoqProject` | Explore the wider library and work on proofs |
 
 **Install the calculus package**
@@ -441,7 +471,6 @@ Exercise collections and modules outside that manifest are not installed.
 opam install -y \
   rocq-core.9.1.1 rocq-stdlib.9.1.0 \
   coq-interval.4.11.4 coq-coquelicot.3.4.4 coq-flocq.4.2.2 \
-  coq-mathcomp-ssreflect.2.5.0 rocq-mathcomp-ssreflect.2.5.0 \
   ocamlfind zarith
 eval "$(opam env)"
 
