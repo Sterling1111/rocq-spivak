@@ -10,7 +10,7 @@ Notation In := List.In.
 Lemma lemma_15_3_a : forall n,
   n >= 14 -> exists x y, n = 3 * x + 8 * y.
 Proof.
-  intros n H1. strong_induction n. intros H1.
+  intros n. strong_induction n. intros H1.
   assert (n = 14 \/ n = 15 \/ n = 16 \/ n > 16) as [H2 | [H2 | [H2 | H2]]] by lia.
   - exists 2, 1. lia.
   - exists 5, 0. lia.

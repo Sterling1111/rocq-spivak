@@ -471,7 +471,7 @@ Proof.
     }
     assert (H7 : ∀ j : nat, (2 <= j <= m + 1)%nat -> ∃ l : list R, length l = m /\ Forall rational l /\ ∀ (n : ℕ), (n >= 1)%nat -> choose (m + 1) j * sum_f 1 n (λ i : nat, i ^ (m + 1 - j)) = sum_f 0 (m - 1) (λ i : nat, nth i l 0 * n ^ (i + 1))).
     {
-      intros j H8. specialize (H6 j). apply H6 in H8 as [l [H9 [H10 H11]]]. exists (map (Rmult (choose (m + 1) j)) l). repeat split. rewrite map_length. apply H9.
+      intros j H8. specialize (H6 j). apply H6 in H8 as [l [H9 [H10 H11]]]. exists (map (Rmult (choose (m + 1) j)) l). repeat split. rewrite length_map. apply H9.
       apply Forall_forall. intros x H12. rewrite Forall_forall in H10. apply in_map_iff in H12 as [x' [H13 H14]]. rewrite <- H13. apply H10 in H14. pose proof (choose_rational (m + 1) j) as H15. apply mult_rational; auto.
       intros n H12. specialize (H11 n H12). rewrite H11. 
       replace ((λ i : nat, nth i (map (Rmult (choose (m + 1) j)) l) 0 * n ^ (i + 1))) with ((λ i : nat, choose (m + 1) j * (nth i l 0) * n ^ (i + 1))).
@@ -482,7 +482,7 @@ Proof.
     { apply add_lists_sum_f; [lia |]. apply test_lemma3; auto. }
     assert (H9 : ∃ l : list R, length l = m /\ Forall rational l /\ ∀ (n : ℕ), (n >= 1)%nat -> sum_f 2 (m + 1) (λ j : nat, choose (m + 1) j * sum_f 1 n (λ i : nat, i ^ (m + 1 - j))) / (m + 1)%nat = sum_f 0 (m - 1) (λ i : nat, nth i l 0 * n ^ (i + 1))).
     {
-      destruct H8 as [l1 [H10 [H11 H12]]]. exists (map (Rmult (/ (m + 1)%nat)) l1). repeat split. rewrite map_length. apply H10.
+      destruct H8 as [l1 [H10 [H11 H12]]]. exists (map (Rmult (/ (m + 1)%nat)) l1). repeat split. rewrite length_map. apply H10.
       apply Forall_forall. intros x H13. rewrite Forall_forall in H11. apply in_map_iff in H13 as [x' [H14 H15]]. rewrite <- H14. apply H11 in H15. apply mult_rational; auto. exists (1%Z), (Z.of_nat (m + 1)). rewrite INR_IZR_INZ. lra.
       intros n H13. specialize (H12 n H13).
       replace ((λ i : nat, nth i (map (Rmult (/ (m + 1)%nat)) l1) 0 * n ^ (i + 1))) with (λ i : nat, (/ (m + 1)%nat) * (nth i l1 0) * n ^(i+1)).
@@ -491,7 +491,7 @@ Proof.
     }
     assert (H10 : ∃ l : list R, length l = m /\ Forall rational l /\ ∀ (n : ℕ), (n >= 1)%nat -> - sum_f 2 (m + 1) (λ j : nat, choose (m + 1) j * sum_f 1 n (λ i : nat, i ^ (m + 1 - j))) / (m + 1)%nat = sum_f 0 (m - 1) (λ i : nat, nth i l 0 * n ^ (i + 1))).
     {
-      destruct H9 as [l1 [H11 [H12 H13]]]. exists (map (Rmult (-1)) l1). repeat split. rewrite map_length. apply H11.
+      destruct H9 as [l1 [H11 [H12 H13]]]. exists (map (Rmult (-1)) l1). repeat split. rewrite length_map. apply H11.
       apply Forall_forall. intros x H14. rewrite Forall_forall in H12. apply in_map_iff in H14 as [x' [H15 H16]]. rewrite <- H15. apply H12 in H16. apply mult_rational; auto. exists (1%Z), ((-1)%Z). lra.
       intros n H14. specialize (H13 n H14).
       replace ((λ i : nat, nth i (map (Rmult (-1)) l1) 0 * n ^ (i + 1))) with (λ i : nat, (-1) * (nth i l1 0) * n ^(i+1)).
@@ -505,7 +505,7 @@ Proof.
     { exists (build_list_for_lemma_2_7 m m). repeat split. apply build_list_for_lemma_2_7_length. apply build_list_for_lemma_2_7_rational. intros n H12. apply build_list_for_lemma_2_7_sum; lia. }
     assert (H12 : ∃ l : list R, length l = m /\ Forall rational l /\ ∀ (n : ℕ), (n >= 1)%nat -> sum_f 1 m (λ i : nat, choose (m + 1) i * n ^ i) / (m + 1)%nat = sum_f 0 (m - 1) (λ i : nat, nth i l 0 * n ^ (i + 1))).
     { 
-      destruct H11 as [l [H13 [H14 H15]]]. exists (map (Rmult (/ (m + 1)%nat)) l). repeat split. rewrite map_length. apply H13.
+      destruct H11 as [l [H13 [H14 H15]]]. exists (map (Rmult (/ (m + 1)%nat)) l). repeat split. rewrite length_map. apply H13.
       apply Forall_forall. intros x H16. rewrite Forall_forall in H14. apply in_map_iff in H16 as [x' [H17 H18]]. rewrite <- H17. apply H14 in H18. apply mult_rational; auto. exists (1%Z), (Z.of_nat (m + 1)). rewrite INR_IZR_INZ. lra.
       intros n H16. specialize (H15 n H16).
       replace ((λ i : nat, nth i (map (Rmult (/ (m + 1)%nat)) l) 0 * n ^ (i + 1))) with (λ i : nat, (/ (m + 1)%nat) * (nth i l 0) * n ^(i+1)).

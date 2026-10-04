@@ -391,7 +391,6 @@ Theorem new :
     x > y -> y > z -> z > w -> x >= w + 3.
 Proof.
   psatz.
-  Show Proof.
 Qed.
 
 Lemma test_dense : forall a b c : Z,

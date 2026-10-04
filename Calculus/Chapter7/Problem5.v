@@ -3,7 +3,8 @@ From Calculus.Chapter7 Require Import Prelude.
 Lemma lemma_7_5 : ∀ f a b,
   a < b -> continuous_on f [a, b] -> (∀ x, rational (f x)) -> ∃ c, ∀ x, x ∈ [a, b] -> f x = c.
 Proof.
-  intros f a b H1 H2 H3. pose proof classic (∃ c : ℝ, ∀ x : ℝ, x ∈ [a, b] → f x = c) as [H4 | H4]; auto.
+  intros f a b H1 H2 H3.
+  pose proof classic (∃ c : ℝ, ∀ x : ℝ, x ∈ [a, b] → f x = c) as [H4 | H4]; auto.
   assert (H5 : ∀ c, ∃ x, x ∈ [a, b] /\ f x ≠ c).
   {
     intros c. apply not_all_not_ex. intros H5. apply H4. exists c.
