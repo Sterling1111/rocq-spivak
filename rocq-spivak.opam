@@ -1,5 +1,5 @@
 opam-version: "2.0"
-version: "0.1.0"
+version: "0.1.1"
 synopsis: "Spivak-style real calculus with checked differentiation and integration tactics"
 description: """
 A reusable calculus library for Rocq, with auto_limit, auto_cont, auto_diff and
@@ -41,5 +41,5 @@ tags: [
   "keyword:tactics"
   "category:Mathematics/Real Calculus and Topology"
   "logpath:Lib"
-  "date:2026-09-30"
+  "date:2026-10-03"
 ]

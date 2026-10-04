@@ -455,12 +455,13 @@ needed. The development environment uses OCaml 4.14.1 and Rocq 9.1.1.
 **Install the calculus package**
 
 ```bash
-opam pin add conf-python3-sympy ./packaging --kind=path -y
-opam pin add rocq-spivak . --kind=path -y
+opam update
+opam pin add rocq-spivak . --kind=path --with-test -y
 ```
 
-These local pins work without waiting for upstream package publication. Opam
-installs the dependencies and builds the files in
+This local pin works while the `rocq-spivak` submission is under review. The
+SymPy dependency is available from the default opam repository. Opam installs
+the dependencies and builds the files in
 [`_CoqProject.opam`](_CoqProject.opam). The calculus examples above then work
 from any directory, without source-tree flags or an `AUTO_INT_SCRIPT` override.
 Exercise collections and modules outside that manifest are not installed.
