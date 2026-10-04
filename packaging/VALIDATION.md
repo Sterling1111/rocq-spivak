@@ -1,5 +1,84 @@
 # Package validation
 
+## 0.1.2 full-project release archive (2026-10-03)
+
+Release commit: `662449ec458e1a87d3bd70a657c5c90b5736c06d` (tag `0.1.2`).
+
+Archive:
+<https://github.com/Sterling1111/rocq-spivak/releases/download/0.1.2/rocq-spivak-0.1.2.tar.gz>
+
+SHA-256: `35b85600371fbe58b9c25cb2e872725649c10b26323ae41ed798db098c19b1c2`.
+
+Both manifests contain every remaining Rocq source in the four project
+namespaces: 63 in `Lib`, 677 in `Calculus`, 19 in `ATTAM`, and 6 in `Backprop`
+(765 total). The intentionally removed Chapter4 `Prelude.v` and
+`VectorFunctions.v` are excluded. Chapter17 imports its shared library
+dependencies directly. A manifest check guards against future omissions.
+
+The archive contains exactly the 837 files listed in `packaging/source-files`.
+It contains no compiled Rocq libraries or prebuilt simplex executable. The
+C++ helper is built from source using Eigen and Boost. The package also installs
+the complete source snapshot, including optional scripts and existing assets,
+under `share/rocq-spivak`; plot generation and Python training are not build
+requirements.
+
+A full staged build passed after repairing stale exercise scripts, including a
+complete proof of the irrationality of `log_ 10 2` in Chapter18 Problem49.
+Existing unfinished exercises ending in `Abort` remain unfinished and create
+no theorem. No `Admitted` terminators were introduced. The simplex plugin now
+matches expression constructors by identity and discovers the installed helper
+through findlib; its smoke test imports the library without importing its
+internal expression module.
+
+The exact archive installed successfully with `--with-test` on Ubuntu 24.04
+using opam 2.1.5 and OCaml 4.14.1. This reused the isolated opam root and switch
+created for the 0.1.1 validation, after removing 0.1.1. Dependencies had been
+built independently from public package definitions; none were copied from
+the development switch. The additional C++ configuration dependencies were
+installed in that switch. Rocq/Stdlib, Coquelicot, Interval, Flocq, Zarith, and
+SymPy versions are the same as in the 0.1.1 test below.
+
+```sh
+opam install rocq-spivak.0.1.2 --with-test --keep-build-dir -y -j8
+```
+
+The build compiled all 765 project modules, including the compatibility and
+induction regression suites. The package smoke target also passed. All 765
+compiled modules were present after installation, and all 837 installed
+source files matched the archive byte-for-byte. Opam's installed-file record
+includes every source snapshot file and the simplex helper.
+
+Copies of `smoke.v`, `compat_smoke.v`, `assumptions.v`, and `full_smoke.v`
+compiled outside the checkout with `COQPATH`, `ROCQPATH`, `OCAMLPATH`,
+`AUTO_INT_SCRIPT`, and `AUTO_INT_PYTHON` unset and no source load-path flags.
+The expanded smoke test imports modules from all four namespaces and proves
+examples using Dedekind-cut arithmetic and the installed simplex helper. The
+existing integration smoke test checks installed SymPy discovery and rejects
+an incorrect integral result.
+
+The following kernel recheck passed from that external test directory:
+
+```sh
+rocqchk -silent -norec Lib.CoquelicotCompat -norec Lib.Taylor \
+  -norec Lib.PI_irrational -norec Lib.WI_SI_WO -norec Lib.QRT \
+  -norec Lib.RealTactics -norec Lib.Psatz \
+  -norec Calculus.Chapter18.Problem49 -norec full_smoke
+```
+
+Each `-norec` checks the named module against its compiled dependencies; this
+does not recursively re-audit every external library.
+
+Both source and repository opam definitions pass lint. The submitted package
+also passes `opam lint --check-upstream`. An anonymous download of the published
+release archive matched the tested archive byte-for-byte.
+
+The repository submission adds SymPy, Eigen, and Boost to its CI system-package
+setup. The preceding 0.1.1 CI attempt stopped before compilation because its
+unattended container declined installation of `python3-sympy`.
+
+Other operating systems and OCaml versions have not been tested locally.
+Independent Rocq-developer review of the plugins remains pending.
+
 ## 0.1.1 release archive (2026-10-03)
 
 Release commit: `eb919658a3ed72fe8057c37879a3c24928e034b9` (tag `0.1.1`).
