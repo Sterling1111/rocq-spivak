@@ -1,4 +1,57 @@
-# 0.1.0 validation
+# Package validation
+
+## 0.1.1 release archive (2026-10-03)
+
+Release commit: `eb919658a3ed72fe8057c37879a3c24928e034b9` (tag `0.1.1`).
+
+Archive:
+<https://github.com/Sterling1111/rocq-spivak/releases/download/0.1.1/rocq-spivak-0.1.1.tar.gz>
+
+SHA-256: `c522d5853782be8b866c623476b4b7d03c60d7f87ac68240001d432abb2e8922`.
+
+The archive was generated with `git archive` from the release tag and installed
+on Ubuntu 24.04.4 with opam 2.1.5 in a newly initialized temporary opam root and
+an `ocaml-system.4.14.1` switch. All dependencies were downloaded and built from
+the default and Rocq released repositories; no installed libraries were copied
+from the development switch, and no dependency packages were pinned.
+In particular, `conf-python3-sympy.1` came from the default repository after
+<https://github.com/ocaml/opam-repository/pull/30844> merged.
+
+The installed versions were Rocq 9.1.1, Stdlib 9.1.0, Coquelicot 3.4.4,
+Interval 4.11.4, Flocq 4.2.2, Zarith 1.14, and SymPy 1.14.0. MathComp 2.4.0
+was selected transitively. The system already had Python and SymPy installed.
+
+A temporary opam repository supplied the package definition with a `file://`
+URL and the checksum above. This command passed, including the compatibility
+regression target:
+
+```sh
+opam install rocq-spivak.0.1.1 --with-test --keep-build-dir -y -j8
+```
+
+After installation, copies of `packaging/smoke.v`, `packaging/compat_smoke.v`,
+and `packaging/assumptions.v` compiled from a separate directory, with
+`COQPATH`, `ROCQPATH`, `OCAMLPATH`, `AUTO_INT_SCRIPT`, and `AUTO_INT_PYTHON`
+unset. No source-tree load paths were supplied. This verifies the installed
+plugins and SymPy worker, both compatibility import orders across the test
+suite, and rejection of an incorrect integral value. The installed findlib
+package reports version `0.1.1`.
+
+`rocqchk -silent -norec Lib.CoquelicotCompat` also passed against the installed
+dependencies. The assumptions output remains consistent with `ASSUMPTIONS.md`.
+
+The tested archive was uploaded unchanged as the release asset. An anonymous
+download from the public URL was byte-for-byte identical (`cmp`) and had the
+same SHA-256. The final repository definition uses that URL and checksum and
+passes `opam lint --check-upstream`; the source definition also passes lint.
+The repository definition uses GitHub's current canonical repository name,
+`Sterling1111/rocq-spivak`; the older source-metadata URLs redirect there.
+
+Other operating systems and dependency combinations have not been tested.
+Independent review of the OCaml plugins remains pending and is requested in
+the package submission.
+
+## 0.1.0 validation
 
 The release was tested on Ubuntu 24.04 with opam 2.1.5 in a newly initialized
 opam root and a separate `release-test` switch using `ocaml-system.4.14.1`.
