@@ -28,9 +28,14 @@ Proof.
     ltac:(auto_diff)
     ltac:(apply FTC1_global; auto_cont) as H4.
 
+  cbv beta in H4.
+  replace (λ u : ℝ, F u * (-2 * (x - u)))
+    with (λ u : ℝ, -2 * (F u * (x - u))) in H4
+    by (extensionality u; ring).
   rewrite integral_mult_scalar' in H4; [| exact H3].
+  rewrite (lemma_14_9 F x H2) in H4.
 
-  unfold F in H4.
+  unfold F in *.
   rewrite integral_n_n in H4.
-  lra.
+  ring_simplify in H4. lra.
 Qed.

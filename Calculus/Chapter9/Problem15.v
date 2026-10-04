@@ -19,7 +19,7 @@ Proof.
     apply In_Union_def in H4.
     pose proof (H1 x) as H5.
     rewrite Rabs_div.
-    apply Rmult_le_reg_r with (r := |x|); try solve [solve_R].
+    apply Rmult_le_reg_r with (r := |x|); try solve [solve_R];
     field_simplify; solve_R.
   }
   solve_R.

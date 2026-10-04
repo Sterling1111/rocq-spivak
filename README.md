@@ -33,9 +33,10 @@ algebra, complex numbers, algorithmic recurrences, and neural-network gradients.
 | **Applications** | [Asymptotic analysis](Lib/Asymptotics.v) and [backpropagation](Backprop/README.md) |
 
 The exercise collection is a work in progress, with unfinished proofs and
-placeholder statements. The opam package covers a smaller calculus library;
-its [scope and assumptions audit](packaging/ASSUMPTIONS.md) explains what is
-included and the classical foundations it uses.
+placeholder statements. The opam package includes all Rocq modules in `Lib`,
+`Calculus`, `ATTAM`, and `Backprop`, including unfinished exercises. A proof
+ending in `Abort` creates no theorem. The [assumptions audit](packaging/ASSUMPTIONS.md)
+documents the classical foundations and the results that were inspected.
 
 ## A taste of the library
 
@@ -127,8 +128,7 @@ Proof. qc_mat_compute. Qed.
 [RowReduction.v](Lib/RowReduction.v) proves correctness of the reduction,
 including preservation of row equivalence and the resulting REF/RREF shape.
 See [more examples](Lib/RowReductionTests.v), including results transported to
-real matrices. This module is part of the source build, outside the initial
-calculus package.
+real matrices. These modules and their examples are included in the opam package.
 
 </details>
 
@@ -231,7 +231,7 @@ Proof.
 Qed.
 ```
 
-`StdlibCompat` and `CoquelicotCompat` are included in the calculus package.
+`StdlibCompat` and `CoquelicotCompat` are included in the package.
 The linear algebra modules, `RealTactics`, Taylor’s theorem, asymptotics,
 and backpropagation are available through the source build.
 
@@ -427,10 +427,10 @@ repository root.
 
 ```bash
 sudo apt-get update
-sudo apt-get install -y git opam build-essential pkg-config python3 python3-sympy
+sudo apt-get install -y git opam build-essential pkg-config python3 python3-sympy libeigen3-dev libboost-dev
 
-git clone https://github.com/Sterling1111/spivak-rocq.git
-cd spivak-rocq
+git clone https://github.com/Sterling1111/rocq-spivak.git
+cd rocq-spivak
 ```
 
 For a new opam setup, initialize it and create a switch:
@@ -445,28 +445,29 @@ opam repo add rocq-released https://rocq-prover.org/opam/released
 If you already have a suitable switch, activate it and add the repository if
 needed. The development environment uses OCaml 4.14.1 and Rocq 9.1.1.
 
-### 2. Choose what to build
+### 2. Install or build the full project
 
-| Build | Includes | Use it to… |
-| --- | --- | --- |
-| **Calculus package** | Calculus tactics, Stdlib bridges, and Coquelicot bridges | Import the library from your own Rocq projects |
-| **Source build** | Development modules and exercises listed in `_CoqProject` | Explore the wider library and work on proofs |
-
-**Install the calculus package**
+**Install with opam**
 
 ```bash
 opam update
 opam pin add rocq-spivak . --kind=path --with-test -y
 ```
 
-This local pin works while the `rocq-spivak` submission is under review. The
-SymPy dependency is available from the default opam repository. Opam installs
-the dependencies and builds the files in
-[`_CoqProject.opam`](_CoqProject.opam). The calculus examples above then work
-from any directory, without source-tree flags or an `AUTO_INT_SCRIPT` override.
-Exercise collections and modules outside that manifest are not installed.
+This local pin works while the `rocq-spivak` submission is under review. Opam
+builds and installs all Rocq sources in `Lib`, `Calculus`, `ATTAM`, and `Backprop`.
+Both [`_CoqProject`](_CoqProject) and [`_CoqProject.opam`](_CoqProject.opam) cover
+the same modules; `packaging/check-manifest.py` checks that neither omits a source.
+The installed modules can be imported from any directory.
 
-**Build the development library and selected exercises**
+The complete source snapshot, including exercises, Python scripts, plotting
+scripts, images, and documentation, is also installed under
+`$(opam var share)/rocq-spivak`. Copy that directory to start an editable textbook
+checkout. Unfinished exercises remain available as sources and do not contribute
+unproved theorems. Plot generation and Python training scripts are optional
+activities with the additional tools described below.
+
+**Build directly from source**
 
 ```bash
 opam install -y \
@@ -562,18 +563,17 @@ of the pending independent OCaml plugin review.
 </details>
 
 <details>
-<summary><strong>Optional C++ simplex helper</strong></summary>
+<summary><strong>C++ simplex helper</strong></summary>
 
 The custom `psatz` tactic in [`Lib/Psatz.v`](Lib/Psatz.v) uses an additional
-helper:
+helper built from `src/simplex.cpp`. Package builds install it beside the OCaml
+plugins, where it is found through findlib. The source build finds it in `src/`.
+Building it requires a C++ compiler, pkg-config, Eigen3, and Boost headers;
+opam declares these build dependencies. On Debian/Ubuntu:
 
 ```bash
-sudo apt-get install -y libeigen3-dev libboost-all-dev
-g++ -O3 $(pkg-config --cflags eigen3) src/simplex.cpp -o src/simplex_solver
+sudo apt-get install -y g++ pkg-config libeigen3-dev libboost-dev
 ```
-
-`Lib/Psatz.v` is outside the default build and the initial calculus package.
-Run proofs that use this helper from the repository root.
 
 </details>
 

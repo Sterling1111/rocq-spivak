@@ -7,7 +7,7 @@ Proof.
   intros f H1 H2.
   extensionality x.
   destruct (Rtotal_order 0 x) as [H3 | [H3 | H3]].
-  - pose proof theorem_13_8 f 0 x ltac:(lra) ltac:(apply H1) as H4. 
+  - pose proof theorem_13_8 f 0 x ltac:(lra) ltac:(apply H1; lra) as H4.
 
     assert (H5 : f 0 = 0).
     { rewrite H2. apply integral_n_n. }
@@ -39,14 +39,14 @@ Proof.
     pose proof exp_pos (- x) as H12.
     nra.
   - subst. rewrite H2, integral_n_n. reflexivity.
-  - pose proof theorem_13_8 f x 0 ltac:(lra) ltac:(apply H1) as H4.
+  - pose proof theorem_13_8 f x 0 ltac:(lra) ltac:(apply H1; lra) as H4.
     assert (H5 : f 0 = 0).
     { rewrite H2. apply integral_n_n. }
     assert (H6 : continuous_on f [x, 0]).
-    { 
+    {
       replace f with (λ y, ∫ 0 y f) by (extensionality y; auto).
       replace (λ y : ℝ, ∫ 0 y f) with ((λ _ : ℝ, ∫ 0 x f) + (λ y : ℝ, ∫ x y f))%function.
-      2 : { extensionality y. rewrite (integral_split' f 0 y x); auto. }
+      2 : { extensionality y. rewrite (integral_split' f 0 y x); auto; apply H1; solve_R. }
       apply continuous_on_plus; auto_cont.
     }
     assert (H7 : ⟦ der ⟧ f [x, 0] = f).

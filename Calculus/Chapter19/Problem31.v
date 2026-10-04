@@ -1,4 +1,4 @@
-From Calculus.Chapter19 Require Import Prelude.
+From Calculus.Chapter19 Require Import Prelude Problem29.
 
 Definition polar_length_19 (f : R -> R) (a b L : R) :=
   has_length_19 (λ θ, f θ*cos θ) (λ θ, f θ*sin θ) a b L.

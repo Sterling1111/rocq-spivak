@@ -46,7 +46,7 @@ Proof.
   intros a H1. apply limit_eq with (f1 := λ h, 1 / (√(a + h) + √a)).
   - exists (a/2). split; try lra. intros h [H2 H3]. assert (√a > 0 /\ √(a + h) > 0) as [H4 H5] by (split; apply sqrt_lt_R0; solve_R).
     apply Rmult_eq_reg_r with (r := h * (√(a + h) + √a)). 2 : { solve_R. }
-    field_simplify; try solve [solve_R].
+    field_simplify; try solve [solve_R];
     repeat rewrite pow2_sqrt; solve_R.
   - apply limit_div.
     -- apply limit_const.

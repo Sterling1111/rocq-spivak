@@ -106,7 +106,8 @@ The compatibility target checks transport in both directions, arbitrary
 integral orientation, equal endpoints, sequences, series, both Coquelicot
 import orders, and calculus tactics. It also checks that a required
 integrability premise cannot be skipped. It is enabled for opam builds with
-`--with-test`; the regression module is not installed.
+`--with-test`; version 0.1.1 did not install the regression module.
+Version 0.1.2 includes it with all other project modules.
 
 The kernel check rechecks the Coquelicot bridge against its compiled
 dependencies; it does not recursively re-audit external libraries.

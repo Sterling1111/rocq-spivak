@@ -1,7 +1,7 @@
-From Calculus.Chapter4 Require Export Prelude.
+From Lib Require Export Imports Notations Limit VectorCalculus.
 From Lib Require Export Sets Functions Limit Continuity Interval Notations Reals_util Tactics.
 Export FunctionNotations LimitNotations DerivativeNotations IntegralNotations
-  IntervalNotations SetNotations.
+  IntervalNotations SetNotations PlaneNotations VectorCalculusNotations.
 Open Scope R_scope.
 
 (** Two-sided calculus on an open time interval. No endpoint smoothness or

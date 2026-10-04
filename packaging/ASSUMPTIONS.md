@@ -1,8 +1,11 @@
 # Logical assumptions and plugin review
 
-The installed library is the list of `.v` files in `_CoqProject.opam`.
-The source archive also contains the development exercise collection; those
-files are not installed or covered by this package audit.
+The installed modules are every `.v` file under `Lib`, `Calculus`, `ATTAM`, and
+`Backprop`, listed in both build manifests. The package installs their sources
+and compiled libraries, as well as a complete source snapshot in
+`share/rocq-spivak`. Inclusion does not mean every exercise is finished: many
+proof attempts end in `Abort`, which creates no theorem. This audit samples
+public results; it is not an exhaustive review of the textbook collection.
 
 ## Logical assumptions
 
@@ -49,10 +52,11 @@ The review scope is `src/auto_int_main.ml`, `src/g_auto_int.mlg`,
 `src/auto_int.py`, and their use in `Lib/Tactics.v`. Check term construction,
 kernel checking, worker process handling, timeout/interrupt behavior, and
 installed worker discovery. The shared `META.calculus` also builds and
-installs `src/simplex_main.ml` and `src/g_simplex.mlg`; include them in the ML
-review even though `Lib/Psatz.v` and the C++ helper are outside this package.
-The standalone simplex workflow is not part of this release's supported opam
-interface.
+installs `src/simplex_main.ml` and `src/g_simplex.mlg`. The package includes
+`Lib/Psatz.v` and builds its C++ candidate generator from `src/simplex.cpp`.
+Include these in the review, along with installed-helper discovery. The solver
+produces candidate coefficients; `Lib/Psatz.v` checks the resulting certificate
+and proves the goal with its soundness theorem.
 
 A Rocq developer's independent review is required before claiming that this
 review is complete. The package submission should explicitly request that

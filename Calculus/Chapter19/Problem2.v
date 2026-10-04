@@ -43,9 +43,6 @@ Lemma lemma_19_2_vi : ∀ c,
   (λ x, 1 / 2 * arcsin (x ^ 2) + c).
 Proof.
   auto_int.
-  replace (1 + 1) with 2 by lra.
-  replace (1 / 2 * (2 * x / √(1 - x * x * (x * x)))) with ((x / √(1 - x * x * (x * x)))) by lra.
-  f_equal. f_equal. lra.
 Qed.
 
 Lemma lemma_19_2_vii : ∀ c,

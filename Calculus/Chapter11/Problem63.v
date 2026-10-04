@@ -8,7 +8,7 @@ Proof.
   set (f' := λ x, n * x^(n - 1) - n * (x + y)^(n - 1)).
 
   assert (H4 : ⟦ der ⟧ f = f').
-  { unfold f, f'; destruct n; [ | replace (S n - 1)%nat with n by lia]; auto_diff. }
+  { unfold f, f'; destruct n; [ | replace (S n - 1)%nat with n by lia]; auto_diff; rewrite ?Nat.sub_0_r; solve_R. }
 
   destruct (classic (x = 0)) as [H5 | H5]; auto.
 
@@ -63,7 +63,7 @@ Proof.
   set (f' := λ t, n * t^(n - 1) - n * (t + y)^(n - 1)).
 
   assert (H4 : ⟦ der ⟧ f = f').
-  { unfold f, f'. destruct n; [inversion H2 | replace (S n - 1)%nat with n by lia]; auto_diff. }
+  { unfold f, f'. destruct n; [inversion H2 | replace (S n - 1)%nat with n by lia]; auto_diff; rewrite ?Nat.sub_0_r; solve_R. }
 
   destruct (classic (x = 0 \/ x = -y)) as [H5 | H5]; auto.
   exfalso. apply not_or_and in H5 as [H5 H6].

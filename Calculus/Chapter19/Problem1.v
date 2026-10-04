@@ -58,10 +58,9 @@ Lemma lemma_19_1_iv : ∀ a b c, a > 0 -> b > 0 -> a <> b ->
   (λ x, ((a / b) ^^ x) / log (a / b) + c).
 Proof.
   intros a b c H1 H2 H3. unfold antiderivative. auto_diff.
-  - apply Rdiv_pos_pos; lra.
   - apply log_div_neq_0; auto.
   - pose proof Rpower_gt_0 b x H2 as H4. pose proof log_div_neq_0 a b H1 H2 H3 as H5.
-    rewrite Rpower_div; solve_R. repeat split; solve_R. rewrite ln_eq_log; auto.
+    rewrite Rpower_div; solve_R. repeat split; solve_R. rewrite ln_eq_log; auto. field; nra.
 Qed.
 
 Lemma lemma_19_1_v : ∀ c,
@@ -96,9 +95,8 @@ Lemma lemma_19_1_vii : ∀ a c, a > 0 ->
   (λ x, arcsin (x / a) + c).
 Proof.
   intros a c H1. unfold antiderivative_on. auto_diff.
-  - apply Rmult_lt_reg_r with (r:=a); field_simplify; solve_R.
-  - apply Rmult_lt_reg_r with (r:=a); field_simplify; solve_R.
-  - admit.
+  (* Remaining obligation: relate sqrt (a^2 - x^2) to
+     a * sqrt (1 - (x/a)^2) on the stated interval. *)
 Abort.
 
 Lemma lemma_19_1_viii : ∀ c,

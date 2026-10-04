@@ -4,7 +4,7 @@ Lemma lemma_5_2_i : ⟦ lim 1 ⟧ (λ x, (1 - √x) / (1-x)) = 1/2.
 Proof.
   apply limit_eq with (f1 := λ x, 1 / (1 + √x)).
   - exists 1. split; try lra. intros x H1. pose proof sqrt_lt_R0 x ltac:(solve_R) as H2.
-    apply Rmult_eq_reg_r with (r := (1 - x) * (1 + √x)). 2 : { solve_R. } field_simplify; try solve [solve_R].
+    apply Rmult_eq_reg_r with (r := (1 - x) * (1 + √x)). 2 : { solve_R. } field_simplify; try solve [solve_R];
     rewrite pow2_sqrt; solve_R.
   - auto_limit; simpl; rewrite sqrt_1; lra.
 Qed.

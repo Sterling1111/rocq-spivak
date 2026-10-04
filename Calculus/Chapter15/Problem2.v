@@ -51,7 +51,12 @@ Proof.
   apply limit_eq with (f1 := λ x : ℝ, (sin x - x) / (x * sin x)).
   {
     exists (π / 2). split; [solve_denoms |].
-    intros x H1. assert (H2 : sin x <> 0); solve_denoms.
+    intros x H1.
+    assert (H2 : sin x <> 0).
+    { replace x with (1 * x) at 1 by ring.
+      apply lemma_sin_neq_0_neighborhood; [lra |].
+      rewrite Rabs_R1. simpl in H1. solve_R. }
+    field. split; [exact H2 | solve_R].
   }
   step_lhopital (λ x, cos x - 1) (λ x, sin x + x * cos x).
   {

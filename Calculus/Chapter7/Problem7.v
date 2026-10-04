@@ -51,14 +51,23 @@ Proof.
 
   destruct (H3 1) as [H9 | H9]; destruct (H3 (-1)) as [H10 | H10].
   - left. extensionality x.
-    assert (x > 0 \/ x < 0 \/ x = 0) as [H11 | [H11 | H11]] by lra; subst; auto.
+    destruct (Rtotal_order x 0) as [Hx | [Hx | Hx]].
+    + apply H7; lra.
+    + subst. exact H4.
+    + apply H5; lra.
   - right; right; left. extensionality x.
-    assert (x > 0 \/ x < 0 \/ x = 0) as [H11 | [H11 | H11]] by lra; subst; solve_R.
-    rewrite H8; lra.
+    destruct (Rtotal_order x 0) as [Hx | [Hx | Hx]].
+    + rewrite Rabs_left by lra. apply H8; lra.
+    + subst. rewrite Rabs_R0. exact H4.
+    + rewrite Rabs_right by lra. apply H5; lra.
   - right; right; right. extensionality x.
-    assert (x > 0 \/ x < 0 \/ x = 0) as [H11 | [H11 | H11]] by lra; subst; solve_R.
-    rewrite H7; lra.
+    destruct (Rtotal_order x 0) as [Hx | [Hx | Hx]].
+    + rewrite Rabs_left by lra. rewrite H7 by lra. lra.
+    + subst. rewrite Rabs_R0, H4. lra.
+    + rewrite Rabs_right by lra. apply H6; lra.
   - right; left. extensionality x.
-    assert (x > 0 \/ x < 0 \/ x = 0) as [H11 | [H11 | H11]] by lra; subst; solve_R.
-    rewrite H8; lra.
+    destruct (Rtotal_order x 0) as [Hx | [Hx | Hx]].
+    + apply H8; lra.
+    + subst. rewrite H4. lra.
+    + apply H6; lra.
 Qed.

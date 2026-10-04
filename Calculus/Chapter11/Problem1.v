@@ -91,7 +91,7 @@ Proof.
   assert (H2 : continuous_on f [-1/2, 1]).
   { unfold f. apply continuous_on_div; try auto_cont. intros x H2. specialize (H1 x H2). lra. }
   assert (H3 : ⟦ der ⟧ f (-1/2, 1) = f').
-  { intros x H3. left. split; auto_interval. unfold f, f'. auto_diff; specialize (H1 x ltac:(lra)); lra. }
+  { intros x H3. left. split; auto_interval. unfold f, f'. auto_diff; specialize (H1 x ltac:(solve_R)); lra. }
   pose proof closed_interval_method_max f f' (-1/2) 1 ltac:(lra) H2 H3 as [c [H4 H5]].
   pose proof closed_interval_method_min f f' (-1/2) 1 ltac:(lra) H2 H3 as [d [H6 H7]].
   split.

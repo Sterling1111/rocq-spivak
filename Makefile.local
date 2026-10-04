@@ -1,10 +1,27 @@
 CAMLPKGS += -package findlib,unix,zarith
 
-# These tests also run in package builds, without installing the test modules.
+# Build the helper from source, including for installed uses of Lib.Psatz.
+src/simplex_solver: src/simplex.cpp
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -O2 -std=c++17 $$(pkg-config --cflags eigen3) $< -o $@
+
+pre-all:: src/simplex_solver
+Lib/Psatz.vo: src/simplex_solver
+
+clean::
+	rm -f src/simplex_solver
+
+# Explicit regression targets are also enabled by opam's --with-test option.
 .PHONY: check-compat
-check-compat: Lib/CoquelicotCompat.vo Lib/Tactics.vo
-	$(ROCQ) compile $(COQFLAGS) $(COQLIBS) Lib/CoquelicotCompatTests.v
+check-compat: Lib/CoquelicotCompatTests.vo Lib/Tactics.vo
 	$(ROCQ) compile $(COQFLAGS) $(COQLIBS) packaging/compat_smoke.v
+
+.PHONY: check-induction
+check-induction: Lib/WI_SI_WOTests.vo
+
+.PHONY: check-package
+check-package: all
+	python3 packaging/check-manifest.py
+	$(ROCQ) compile $(COQFLAGS) $(COQLIBS) packaging/full_smoke.v
 
 # Package builds can omit exercise plots and their gnuplot dependency.
 BUILD_PLOTS ?= yes
@@ -30,5 +47,6 @@ endif
 
 # Keep the untrusted candidate generator beside the installed OCaml plugins.
 # The generated uninstall target removes the whole calculus findlib package.
-install-extra::
+install-extra:: src/simplex_solver
 	install -m 0644 src/auto_int.py "$(COQPLUGININSTALL)/calculus/auto_int.py"
+	install -m 0755 src/simplex_solver "$(COQPLUGININSTALL)/calculus/simplex_solver"

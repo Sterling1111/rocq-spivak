@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.1.2 — 2026-10-03
+
+- Package every Rocq module in `Lib`, `Calculus`, `ATTAM`, and `Backprop`,
+  including Taylor, pi irrationality, induction, quotient-remainder results,
+  Dedekind-cut reals, linear algebra, and the textbook exercise collection.
+- Install the complete source snapshot, scripts, plots, and documentation
+  under `share/rocq-spivak`.
+- Keep both build manifests complete and check their coverage automatically.
+- Repair stale exercise scripts exposed by building the full collection.
+- Build the C++ simplex helper from source and locate it after installation.
+- Make simplex expression decoding independent of import-dependent printed names.
+- Run the existing induction-tactic regression suite with `--with-test`.
+
 ## 0.1.1 — 2026-10-03
 
 - Release the calculus package with its current packaging and compatibility

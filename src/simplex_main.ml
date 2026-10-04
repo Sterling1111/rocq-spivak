@@ -20,39 +20,34 @@ let extract_num env sigma t =
   String.iter (fun c -> if is_digit c then Buffer.add_char buf c) s;
   int_of_string (Buffer.contents buf)
 
+(* Match constructors by identity, independently of imports and printed names. *)
+let refers_to_global env sigma name term =
+  EConstr.isRefX env sigma (Nametab.locate (Libnames.qualid_of_string name)) term
+
 let rec parse_expr env sigma t =
   let open EConstr in
   match kind sigma t with
   | App (c, args) ->
-      let c_str = Pp.string_of_ppcmds (Printer.pr_econstr_env env sigma c) in
       let len = Array.length args in
-      (match c_str with
-       | "Add" | "@Add" -> Add (parse_expr env sigma args.(len - 2), parse_expr env sigma args.(len - 1))
-       | "Mult" | "@Mult" -> Mult (parse_expr env sigma args.(len - 2), parse_expr env sigma args.(len - 1))
-       | "Const" | "@Const" -> Const (extract_num env sigma args.(len - 1))
-       | "Var" | "@Var" -> Var (extract_num env sigma args.(len - 1))
-       | "Neg" | "@Neg" -> Neg (parse_expr env sigma args.(len - 1))
-       | _ -> failwith ("Unknown App: " ^ c_str))
+      let is name = refers_to_global env sigma ("Lib.PolySimp." ^ name) c in
+      if is "Add" then Add (parse_expr env sigma args.(len - 2), parse_expr env sigma args.(len - 1))
+      else if is "Mult" then Mult (parse_expr env sigma args.(len - 2), parse_expr env sigma args.(len - 1))
+      else if is "Const" then Const (extract_num env sigma args.(len - 1))
+      else if is "Var" then Var (extract_num env sigma args.(len - 1))
+      else if is "Neg" then Neg (parse_expr env sigma args.(len - 1))
+      else failwith "Unsupported expression constructor"
   | _ -> failwith "Unsupported AST node"
 
 let rec parse_list env sigma t =
   let open EConstr in
   match kind sigma t with
-  | Construct _ -> [] 
   | App (c, args) ->
-      let c_str = Pp.string_of_ppcmds (Printer.pr_econstr_env env sigma c) in
-      if c_str = "@nil" || c_str = "nil" then []
-      else if c_str = "@cons" || c_str = "cons" then
-        let len = Array.length args in
-        let head = args.(len - 2) in
-        let tail = args.(len - 1) in
-        let e = parse_expr env sigma head in
-        let rest = parse_list env sigma tail in
-        e :: rest
-      else failwith ("List parse error, got: " ^ c_str)
-  | _ -> 
-      let s = Pp.string_of_ppcmds (Printer.pr_econstr_env env sigma t) in
-      if s = "[]" then [] else failwith ("Not a list structure: " ^ s)
+      let len = Array.length args in
+      if refers_to_global env sigma "Corelib.Init.Datatypes.nil" c then []
+      else if refers_to_global env sigma "Corelib.Init.Datatypes.cons" c then
+        parse_expr env sigma args.(len - 2) :: parse_list env sigma args.(len - 1)
+      else failwith "Unsupported list constructor"
+  | _ -> failwith "Unsupported list representation"
 
 let extract_multipliers result_str =
   let prefix = "Multipliers: [ " in
@@ -86,9 +81,9 @@ let rec mk_pos n =
   else mk_App "xI" [mk_pos (n / 2)]
 
 let cert_of_multiplier idx m =
-  let gen = mk_App "Cert_isGen" [mk_nat idx] in
-  if m = 0 then mk_App "Cert_isMult" [mk_construct "Cert_IsZ0"; gen]
-  else mk_App "Cert_isMult" [mk_App "Cert_isZpos" [mk_pos m]; gen]
+  let gen = mk_App "Lib.Psatz.Cert_isGen" [mk_nat idx] in
+  if m = 0 then mk_App "Lib.Psatz.Cert_isMult" [mk_construct "Lib.Psatz.Cert_IsZ0"; gen]
+  else mk_App "Lib.Psatz.Cert_isMult" [mk_App "Lib.Psatz.Cert_isZpos" [mk_pos m]; gen]
 
 let rec eval_ast_at_zero = function
   | Var _ -> 0
@@ -112,14 +107,28 @@ let build_certificate multipliers ast_list =
           | [] -> failwith "impossible"
           | [last_m] -> cert_of_multiplier idx last_m
           | next_m :: rest ->
-              mk_App "Cert_isAdd" [cert_of_multiplier idx next_m; aux (idx + 1) rest]
+              mk_App "Lib.Psatz.Cert_isAdd" [cert_of_multiplier idx next_m; aux (idx + 1) rest]
         in
-        mk_App "Cert_isAdd" [cert_of_multiplier 0 m; aux 1 ms]
+        mk_App "Lib.Psatz.Cert_isAdd" [cert_of_multiplier 0 m; aux 1 ms]
   in
   let k = get_k multipliers ast_list in
   if k = 1 then base_cert
-  else if k > 1 then mk_App "Cert_isAdd" [base_cert; mk_App "Cert_isZpos" [mk_pos (k - 1)]]
+  else if k > 1 then mk_App "Lib.Psatz.Cert_isAdd" [base_cert; mk_App "Lib.Psatz.Cert_isZpos" [mk_pos (k - 1)]]
   else failwith "Math error: K is not positive"
+
+let find_solver () =
+  let rec in_checkout dir =
+    let path = Filename.concat dir "src/simplex_solver" in
+    if Sys.file_exists path then Some path
+    else let parent = Filename.dirname dir in
+      if parent = dir then None else in_checkout parent
+  in
+  match in_checkout (Sys.getcwd ()) with
+  | Some path -> path
+  | None ->
+      let path = Filename.concat (Findlib.package_directory "calculus") "simplex_solver" in
+      if Sys.file_exists path then path
+      else failwith "psatz: cannot find the installed simplex_solver"
 
 let run_dummy_executable expr_list =
   let in_file = Filename.temp_file "rocq_in_" ".txt" in
@@ -130,7 +139,8 @@ let run_dummy_executable expr_list =
     output_string oc (s ^ "\n")
   ) expr_list;
   close_out oc;
-  let cmd = Printf.sprintf "%s/src/simplex_solver %s %s" (Sys.getcwd ()) in_file out_file in
+  let cmd = Printf.sprintf "%s %s %s"
+    (Filename.quote (find_solver ())) (Filename.quote in_file) (Filename.quote out_file) in
   
   let exit_code = Sys.command cmd in
   

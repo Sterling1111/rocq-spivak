@@ -6,7 +6,7 @@ Lemma lemma_10_32_a : ∀ a (n k : nat) x,
 Proof.
   intros a n k x H1.
   induction k as [| k IH].
-  - simpl. rewrite Nat.add_0_r, Rmult_1_l. solve_R. split; [apply INR_fact_neq_0 | apply pow_nonzero; lra ].
+  - simpl. rewrite Nat.add_0_r, Rmult_1_l. unfold nth_derivative_at. field. split; [apply INR_fact_neq_0 | apply pow_nonzero; lra].
   -
 Abort.
 

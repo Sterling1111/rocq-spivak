@@ -1,11 +1,11 @@
 description = "Calculus with Coq plugins"
-version = "0.1.1"
+version = "0.1.2"
 directory = "src"
 
 package "auto_int_plugin" (
   requires = "rocq-runtime.plugins.ltac findlib unix zarith"
   description = "Auto integration plugin"
-  version = "0.1.1"
+  version = "0.1.2"
   archive(byte) = "auto_int_plugin.cma"
   archive(native) = "auto_int_plugin.cmxa"
   plugin(byte) = "auto_int_plugin.cma"
@@ -13,9 +13,9 @@ package "auto_int_plugin" (
 )
 
 package "simplex_plugin" (
-  requires = "rocq-runtime.plugins.ltac unix zarith"
+  requires = "rocq-runtime.plugins.ltac findlib unix zarith"
   description = "Simplex plugin"
-  version = "0.1.1"
+  version = "0.1.2"
   archive(byte) = "simplex_plugin.cma"
   archive(native) = "simplex_plugin.cmxa"
   plugin(byte) = "simplex_plugin.cma"

@@ -9,10 +9,10 @@ Fixpoint choose_R (alpha : R) (n : nat) : R :=
 Lemma lemma_24_7_a : ∀ α x f,
   (∀ y, Rabs y < 1 -> ∑ 0 ∞ (λ n, choose_R α n * y ^ n) = (f y)) ->
   Rabs x < 1 ->
-  (1 + x) * ⟦ Der x ⟧ f = α * f x.
+  (1 + x) * (⟦ Der x ⟧ f) = α * f x.
 Abort.
 
 Lemma lemma_24_7_b : ∀ α f,
-  (∀ x, Rabs x < 1 -> (1 + x) * ⟦ Der x ⟧ f = α * f x) ->
+  (∀ x, Rabs x < 1 -> (1 + x) * (⟦ Der x ⟧ f) = α * f x) ->
   ∃ c, ∀ x, Rabs x < 1 -> f x = c * Rpower (1 + x) α.
 Abort.

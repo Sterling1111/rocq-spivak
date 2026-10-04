@@ -10,7 +10,7 @@ Proof.
     apply derivative_on_sqrt; try solve_R. apply differentiable_domain_open; try lra.
   }
   pose proof mean_value_theorem (λ x, √x) 64 66 ltac:(lra) H1 H2 as [c [H3 H4]].
-  pose proof derivative_on_sqrt_open 64 66 ltac:(lra) as H5. specialize (H5 c ltac:(solve_R)) as [[_ H5] | [[H5 _] | [H5 _]]]; auto_interval.
+  pose proof derivative_on_sqrt_open 64 66 ltac:(lra) as H5. specialize (H5 c ltac:(solve_R)) as [[_ H5] | [[H5 _] | [H5 _]]]; try solve [exfalso; auto_interval].
   pose proof derivative_at_unique (λ x, √x) (λ x, 1 / (2 * √ x)) (λ _ : ℝ, (√66 - √64) / (66 - 64)) c H5 H4 as H6.
     clear H1 H2 H4 H5. rename H3 into H1, H6 into H2.
     simpl in H2. assert (H3 : 8 < √c < 9).

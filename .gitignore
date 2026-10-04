@@ -52,4 +52,5 @@ src/*.cmxa
 src/*.cmxs
 src/*.o
 src/*.a
+src/simplex_solver
 META

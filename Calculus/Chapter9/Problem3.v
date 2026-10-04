@@ -17,11 +17,9 @@ Proof.
 
       apply Rmult_eq_reg_r with (r := h); [ | solve_R ];
       apply Rmult_eq_reg_r with (r := (√(a + h) + √a)); [ | solve_R].
-      field_simplify; try solve [solve_R].
+      field_simplify; try solve [solve_R];
       repeat rewrite pow2_sqrt; solve_R.
     - auto_limit; simp_zero; solve_R.
-      + pose proof sqrt_lt_R0 a; solve_R.
-      + pose proof sqrt_lt_R0 a; solve_R.
   }
   rewrite (derivative_at_unique f f' (λ x, 1 / (2 * √x)) a H3 H4); auto.
 Qed.

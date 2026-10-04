@@ -451,7 +451,10 @@ Proof.
            ++ apply Forall_app. split. apply H11. apply Forall_app. split. apply Forall_cons. exists (1%Z), (Z.of_nat (m - j + 2)). rewrite INR_IZR_INZ.
               replace (m + 1 - j + 1)%nat with (m - j + 2)%nat by lia. auto. apply Forall_nil.
               apply Forall_forall. intros x H19. exists (0%Z), (1%Z). apply In_repeat with (n := (j - 2)%nat); try lia. replace (0 / 1) with 0 by lra. auto.
-           ++ intros n H19. specialize (H12 n H19). rewrite H12. rewrite sum_f_split with (l := 0%nat) (m := (m - 1)%nat) (n := (m - j)%nat); try lia.
+           ++ intros n H19. specialize (H12 n H19). rewrite H12.
+              replace (m + 1 - j + 1)%nat with (m - j + 2)%nat by lia.
+              replace (m + 1 - j - 1)%nat with (m - j)%nat by lia.
+              rewrite sum_f_split with (i := 0%nat) (j := (m - j)%nat) (n := (m - 1)%nat); try lia.
               replace (sum_f 0 (m - j) (λ i : nat, nth i (l ++ [1 / (m - j + 2)%nat] ++ repeat 0 (j - 2)) 0 * n ^ (i + 1))) with (sum_f 0 (m - j) (λ i : nat, nth i l 0 * n ^ (i + 1))).
               2 : { apply sum_f_equiv; try lia. intros k H20. rewrite app_nth1; try lia. reflexivity. }
               replace (sum_f (S (m - j)) (m - 1) (λ i : nat, nth i (l ++ [1 / (m - j + 2)%nat] ++ repeat 0 (j - 2)) 0 * n ^ (i + 1))) with (n ^ (m - j + 2) / (m - j + 2)%nat).
@@ -476,7 +479,7 @@ Proof.
       rewrite r_mult_sum_f_i_n_f_l. apply sum_f_equiv; try lia. intros k H13. lra. 
     }
     assert (H8 : ∃ l : list R, length l = m /\ Forall rational l /\ ∀ (n : ℕ), (n >= 1)%nat -> sum_f 2 (m + 1) (λ j : nat, choose (m + 1) j * sum_f 1 n (λ i : nat, i ^ (m + 1 - j))) = sum_f 0 (m - 1) (λ i : nat, nth i l 0 * n ^ (i + 1))).
-    { apply add_lists_sum_f; try lia. auto. }
+    { apply add_lists_sum_f; [lia |]. apply test_lemma3; auto. }
     assert (H9 : ∃ l : list R, length l = m /\ Forall rational l /\ ∀ (n : ℕ), (n >= 1)%nat -> sum_f 2 (m + 1) (λ j : nat, choose (m + 1) j * sum_f 1 n (λ i : nat, i ^ (m + 1 - j))) / (m + 1)%nat = sum_f 0 (m - 1) (λ i : nat, nth i l 0 * n ^ (i + 1))).
     {
       destruct H8 as [l1 [H10 [H11 H12]]]. exists (map (Rmult (/ (m + 1)%nat)) l1). repeat split. rewrite map_length. apply H10.
@@ -510,9 +513,9 @@ Proof.
       rewrite H15. unfold Rdiv. rewrite Rmult_comm. rewrite r_mult_sum_f_i_n_f_l. apply sum_f_equiv; try lia. intros k H17. lra.
     }
     destruct H10 as [l1 [H13 [H14 H15]]]. destruct H12 as [l2 [H16 [H17 H18]]]. exists (add_lists l1 l2). repeat split. 
-    - rewrite add_lists_length. rewrite H13. rewrite H16. lia. 
-    - apply add_lists_rational; auto.
-    - intros n H19. specialize (H15 n H19). specialize (H18 n H19).
+    + rewrite add_lists_length. rewrite H13. rewrite H16. lia.
+    + apply add_lists_rational; auto.
+    + intros n H19. specialize (H15 n H19). specialize (H18 n H19).
       assert (H20 : sum_f 1 n (λ (i : ℕ), (i + 1) ^ (m + 1) - i ^ (m + 1)) = (n + 1)^(m+1) - 1).
       {
         set (f := λ (x : ℕ), x ^ (m+1)). replace ((n + 1) ^ (m + 1)) with (f (n+1)%nat).
@@ -532,7 +535,7 @@ Proof.
       assert (H22 : (m + 1)%nat * sum_f 1 n (λ i : nat, i ^ m) = n ^ (m + 1) + sum_f 1 m (λ i : nat, choose (m + 1) i * n ^ i) - sum_f 2 (m + 1) (λ j : nat, choose (m + 1) j * sum_f 1 n (λ i : nat, i ^ (m + 1 - j)))) by nra.
       assert (H23 : sum_f 1 n (λ i : nat, i ^ (m)) = n ^ (m + 1) / (m + 1)%nat + (sum_f 1 m (λ i : nat, choose (m + 1) i * n ^ i) / (m + 1)%nat - sum_f 2 (m + 1) (λ j : nat, choose (m + 1) j * sum_f 1 n (λ i : nat, i ^ (m + 1 - j))) / (m + 1)%nat)).
       { apply Rmult_eq_reg_l with (r := ((m + 1)%nat : ℝ)). rewrite H22. field. apply not_0_INR. lia. apply not_0_INR. lia. }
-      rewrite H23. unfold Rminus. rewrite Rplus_assoc. rewrite Rplus_assoc. apply Rplus_eq_compat_l.
+      rewrite H23. unfold Rminus. repeat rewrite Rplus_assoc. apply Rplus_eq_compat_l.
       rewrite H18. replace (- (sum_f 2 (m + 1) (λ j : nat, choose (m + 1) j * sum_f 1 n (λ i : nat, i ^ (m + 1 - j))) / (m + 1)%nat)) with (- sum_f 2 (m + 1) (λ j : nat, choose (m + 1) j * sum_f 1 n (λ i : nat, i ^ (m + 1 - j))) / (m + 1)%nat) by lra.
       rewrite H15. rewrite sum_f_plus; try lia. apply sum_f_equiv; try lia. intros k H24. rewrite <- Rmult_plus_distr_r. rewrite Rplus_comm. rewrite <- add_lists_separate with (k := k) (m := m); try lia. lra.
 Qed.
