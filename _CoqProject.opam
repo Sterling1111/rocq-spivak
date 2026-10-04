@@ -787,6 +787,9 @@ Backprop/pytorch_results/BestParameters.v
 src/auto_int_main.ml
 src/g_auto_int.mlg
 src/auto_int_plugin.mlpack
+
+# Match both plugin entries in META.calculus. The C++ simplex helper and
+# Lib/Psatz.v are not part of this initial package.
 src/simplex_main.ml
 src/g_simplex.mlg
 src/simplex_plugin.mlpack
